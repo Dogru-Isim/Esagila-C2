@@ -19,7 +19,8 @@ class Cli():
         return response_json
 
     def api_post_req(self, endpoint: str, post_data, agent_uuid: str=""):
-        response_raw = requests.post(self._webserver + ''.join(endpoint), json=post_data).text
+        print(self._webserver+''.join(endpoint))
+        response_raw = requests.post(self._webserver + ''.join(endpoint) + agent_uuid, json=post_data).text
         return(response_raw)
 
     def create_agent(self, create_agent_payload=""):
@@ -43,9 +44,12 @@ class Cli():
 
     def list_tasks(self):
         endpoint = "/tasks/"
-        tasks = self.api_get_req(endpoint, self._agent_uuid)
+        output = ""
+        tasks = self.api_get_req(endpoint, agent_uuid=self._agent_uuid)
         for task in tasks:
-            return ' || '.join([str(e) for e in task])
+            output += ' || '.join([str(e) for e in task])
+            output += '\n'
+        return output
 
     def get_task_output(self, agent_uuid: str):
         """
@@ -77,7 +81,7 @@ class Cli():
                     "task_type": InputType.Cmd.value,    # cmd
                     "agent_uuid": self._agent_uuid
                 }
-                self.create_task(task)
+                print(self.create_task(task))
                 print("Created task")
 
             case InputType.ListTasks.value:
