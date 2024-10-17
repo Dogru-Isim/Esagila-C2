@@ -1,0 +1,13 @@
+##[pylyzer] failed /home/mint/University/OpenLearning/Work/General/PersonalProject/Initial/c2/cli/input_type.py 1725984392 211
+.___v_desugar_1 = pyimport "Failure"
+.Failure = pyimport "Failure"
+.Enum: Never
+.InputType: ClassType
+.InputType <: Never
+.InputType.Cmd: {"cmd"}
+.InputType.Exit: {"exit"}
+.InputType.ListAgents: {"list-agents"}
+.InputType.CreateAgent: {"create-agent"}
+.InputType.ListTasks: {"list-tasks"}
+.InputType.GetTaskOutput: {"get-task-output"}
+

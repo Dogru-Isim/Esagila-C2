@@ -1,0 +1,9 @@
+##[pylyzer] failed /home/mint/University/OpenLearning/Work/General/PersonalProject/Initial/c2/cli/input_error.py 1725981987 161
+.___v_desugar_1 = pyimport "Failure"
+.Failure = pyimport "Failure"
+.Enum: Never
+.InputError: ClassType
+.InputError <: Never
+.InputError.TaskTypeNotFound: {"Task type not found"}
+.InputError.IncoherentParameterAmount: {"Number of parameters isn\'t correct"}
+
