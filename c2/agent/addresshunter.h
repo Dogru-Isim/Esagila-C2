@@ -1,6 +1,7 @@
 #include <inttypes.h>
 #include <windows.h>
 
+#define DLL_QUERY_HMODULE 6
 #define DEREF(name) *(UINT_PTR *)(name)
 #define DEREF_64(name) *(DWORD64 *)(name)
 #define DEREF_32(name) *(DWORD *)(name)
@@ -202,7 +203,7 @@ UINT64 GetSymbolAddress(HANDLE hModule, LPCSTR lpProcName) {
   PIMAGE_EXPORT_DIRECTORY exportDirectory = NULL;
 
   ntHeaders = (PIMAGE_NT_HEADERS)(dllAddress + ((PIMAGE_DOS_HEADER)dllAddress)->e_lfanew);
-  dataDirectory = (PIMAGE_DATA_DIRECTORY)&ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];  // #define IMAGE_DIRECTORY_ENTRY_EXPORT 0
+  dataDirectory = (PIMAGE_DATA_DIRECTORY)&ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
   exportDirectory = (PIMAGE_EXPORT_DIRECTORY)(dllAddress + dataDirectory->VirtualAddress);
 
   exportedAddressTable = (dllAddress + exportDirectory->AddressOfFunctions);

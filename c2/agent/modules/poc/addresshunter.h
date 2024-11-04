@@ -1,6 +1,8 @@
 #include <inttypes.h>
 #include <windows.h>
 
+#define DLL_QUERY_HMODULE		6
+
 #define DEREF(name) *(UINT_PTR *)(name)
 #define DEREF_64(name) *(DWORD64 *)(name)
 #define DEREF_32(name) *(DWORD *)(name)

