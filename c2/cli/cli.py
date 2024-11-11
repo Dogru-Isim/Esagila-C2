@@ -13,6 +13,9 @@ class Cli():
     def change_agent_uuid(self, agent_uuid: str):
         self._agent_uuid = agent_uuid
 
+    def display_current_uuid(self):
+        print(self._agent_uuid)
+
     def api_get_req(self, endpoint: str, agent_uuid: str=""):
         response_raw = requests.get(self._webserver + endpoint + agent_uuid).text
         response_json = json.loads(response_raw)
@@ -31,9 +34,12 @@ class Cli():
 
     def list_agents(self):
         endpoint = "/agents/"
+        output = ""
         agents = self.api_get_req(endpoint)
         for agent in agents:
-            return ' || '.join([str(e) for e in agent])
+            output += ' || '.join([str(e) for e in agent])
+            output += '\n'
+        return output
 
     def create_task(self, task):
         endpoint = "/create_task/"
@@ -99,6 +105,4 @@ class Cli():
                 print("Created agent uuid: ", self.create_agent(create_agent_payload))
 
             case InputType.ListAgents.value:
-                print("\nAgents:\n")
                 print(self.list_agents())
-

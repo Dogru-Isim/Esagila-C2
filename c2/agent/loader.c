@@ -180,6 +180,10 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
     'h', 't', 't', 'p', 's', ':', '/', '/', 'g', 'o', 'o', 'g', 'l', 'e', '.', 'c', 'o', 'm', 0
     };
 
+    WCHAR wUuid[7] = {
+    'a', 'g', 'n', 'n', 't', '1', 0
+    };
+
     /*
     // Home
     WCHAR wServer[13] = {
