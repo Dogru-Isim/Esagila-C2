@@ -38,6 +38,9 @@ typedef struct API_ {
 
 HINSTANCE hAppInstance = NULL;
 
+DLLEXPORT INT WINAPI RunCmd(char* cmd)
+{ return system(cmd); }
+
 DLLEXPORT UINT_PTR WINAPI ReflectiveLoader()
 {
     UINT_PTR uiNewLibraryAddress;
@@ -264,9 +267,6 @@ BOOL WINAPI DllMain( HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpReserved )
 		case DLL_QUERY_HMODULE:
 			if( lpReserved != NULL )
 				*(HMODULE *)lpReserved = hAppInstance;
-
-			printf("H");
-			MessageBoxA( NULL, "Hello from DllMain!", "Reflective Dll Injection", MB_OK );
 		    break;
 		case DLL_PROCESS_DETACH:
 		case DLL_THREAD_ATTACH:
@@ -275,3 +275,4 @@ BOOL WINAPI DllMain( HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpReserved )
     }
 	return bReturnValue;
 }
+
