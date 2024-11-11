@@ -13,9 +13,6 @@ class Cli():
     def change_agent_uuid(self, agent_uuid: str):
         self._agent_uuid = agent_uuid
 
-    def display_current_uuid(self):
-        print(self._agent_uuid)
-
     def api_get_req(self, endpoint: str, agent_uuid: str=""):
         response_raw = requests.get(self._webserver + endpoint + agent_uuid).text
         response_json = json.loads(response_raw)
@@ -68,6 +65,7 @@ class Cli():
 
     def get_input(self) -> (list[str], list[InputError]):
         errors: list[InputError] = list()
+        print(f"({self._agent_uuid})")
         tokens = input(self._prompt).split()
         if tokens[0] not in [e.value for e in InputType]:
             errors.append(InputError.TaskTypeNotFound)

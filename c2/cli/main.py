@@ -10,6 +10,7 @@ def main():
         if len(errors) != 0:
             for e in errors:
                 print("Error:", e.value)
+            print()
             continue
 
         cli.process_input(cmd_tokens)
