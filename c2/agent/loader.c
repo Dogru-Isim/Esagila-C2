@@ -341,7 +341,6 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
     LPDWORD lpActuallyRead = &actuallyRead;
   
     while(((WINHTTPQUERYDATAAVAILABLE)api->WinHttpQueryDataAvailable)(hRequest, &availableBytes) && availableBytes != 0) {
-        ((PRINTF)api->printf)("Available Bytes: %d\n", availableBytes);
         BOOL readSuccess = ((WINHTTPREADDATA)api->WinHttpReadData)(
             hRequest,
             (LPVOID)(cpBuffer+bufferIndexChange),
