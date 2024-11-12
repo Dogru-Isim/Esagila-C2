@@ -42,7 +42,6 @@ class Cli():
         endpoint = "/create_task/"
         task_json = json.dumps(task)
         response = self.api_post_req(endpoint, task_json, self._agent_uuid)
-        self.get_task_output(self._agent_uuid)
         return response
 
     def list_tasks(self):

