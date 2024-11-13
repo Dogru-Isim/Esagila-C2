@@ -38,11 +38,11 @@ typedef struct API_ {
 
 HINSTANCE hAppInstance = NULL;
 
-DLLEXPORT CHAR* WINAPI RunCmd(CCHAR* cmd)
+DLLEXPORT CHAR* WINAPI RunCmd(CCHAR* cmd, size_t* size)
 {
     FILE *fp;
     char *output = NULL;
-    size_t size = 0;
+    *size = 0;
     size_t totalSize = 0;
     char buffer[1024];
 
@@ -55,8 +55,8 @@ DLLEXPORT CHAR* WINAPI RunCmd(CCHAR* cmd)
 
     // Read the output in chunks
     while (fgets(buffer, sizeof(buffer), fp) != NULL) {
-        size = strlen(buffer);
-        CHAR* temp = realloc(output, totalSize + size + 1); // +1 for null terminator
+        *size = strlen(buffer);
+        CHAR* temp = realloc(output, totalSize + *size + 1); // +1 for null terminator
         if (temp == NULL) {
             free(output); // Free previously allocated memory on failure
             perror("realloc failed");
@@ -64,8 +64,8 @@ DLLEXPORT CHAR* WINAPI RunCmd(CCHAR* cmd)
             return NULL;
         }
         output = temp;
-        memcpy(output + totalSize, buffer, size); // Copy the new data
-        totalSize += size;
+        memcpy(output + totalSize, buffer, *size); // Copy the new data
+        totalSize += *size;
         output[totalSize] = '\0'; // Null-terminate the string
     }
 

