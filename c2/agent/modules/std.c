@@ -38,8 +38,44 @@ typedef struct API_ {
 
 HINSTANCE hAppInstance = NULL;
 
-DLLEXPORT INT WINAPI RunCmd(char* cmd)
-{ return system(cmd); }
+DLLEXPORT CHAR* WINAPI RunCmd(CCHAR* cmd)
+{
+    FILE *fp;
+    char *output = NULL;
+    size_t size = 0;
+    size_t totalSize = 0;
+    char buffer[1024];
+
+    // Open the command for reading
+    fp = popen(cmd, "r");
+    if (fp == NULL) {
+        perror("popen failed");
+        return NULL;
+    }
+
+    // Read the output in chunks
+    while (fgets(buffer, sizeof(buffer), fp) != NULL) {
+        size = strlen(buffer);
+        CHAR* temp = realloc(output, totalSize + size + 1); // +1 for null terminator
+        if (temp == NULL) {
+            free(output); // Free previously allocated memory on failure
+            perror("realloc failed");
+            pclose(fp);
+            return NULL;
+        }
+        output = temp;
+        memcpy(output + totalSize, buffer, size); // Copy the new data
+        totalSize += size;
+        output[totalSize] = '\0'; // Null-terminate the string
+    }
+
+    // Close the file pointer
+    if (pclose(fp) == -1) {
+        perror("pclose failed");
+    }
+
+    return output; // Return the dynamically allocated string
+}
 
 DLLEXPORT UINT_PTR WINAPI ReflectiveLoader()
 {

