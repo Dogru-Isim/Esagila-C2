@@ -38,17 +38,21 @@ class WebServer:
         db.insert_row(TableName.TASK_TABLE.value, (task, agent_uuid))
         return "Task created", 200
 
+    """
     @app.route("/accept_task/<string:uuid>", methods=["POST"])
     def accept_task(uuid):
+    """
         """
         Agents will accept their tasks using this path. The task then gets removed from the database
         """
+    """
         db = DBServer()
         body = request.get_json()
         json_obj = json.loads(json.dumps(body))
         taskid_to_del = json_obj["remove_task"]
         db.delete_row(TableName.TASK_TABLE.value, (taskid_to_del, uuid))
         return "Task accepted"
+    """
 
     @app.route("/send_task_output/<string:uuid>", methods=["POST"])
     def accept_result(uuid):
@@ -61,7 +65,8 @@ class WebServer:
         agent_uuid = request.get_json()["agent_uuid"]
         result_text = request.get_json()["result_text"]
         db.insert_row(TableName.RESULT_TABLE.value, (agent_uuid, task_id, result_text))
-        return "Sent task", 200
+        db.delete_row(TableName.TASK_TABLE.value, (task_id, agent_uuid))
+        return "Sent output", 200
 
     @app.route("/get_task_output/<string:uuid>", methods=["GET"])
     def get_result(uuid):
