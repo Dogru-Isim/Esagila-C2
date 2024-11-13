@@ -977,7 +977,6 @@ void messagebox() {
     CHAR* agentUuid = {0};
     CHAR* task;
     task = parseJsonTask(api, jsonResponse, &taskId, &agentUuid);
-
     ((PRINTF)api->printf)(task);
     ((PRINTF)api->printf)(taskId);
     ((PRINTF)api->printf)(agentUuid);
