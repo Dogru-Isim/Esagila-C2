@@ -3,12 +3,20 @@ import json
 import sys
 import time
 from input_type import InputType
+from input_description import InputDescription
 from input_error import InputError
 
 class Cli():
     _prompt = "Imhullu> "
     _webserver = "http://127.0.0.1:5001"
     _agent_uuid = ""
+
+    def help(self):
+        frmt = "{cmd}: {desc}"
+        print("\nHelp: \n")
+        for task, desc in zip(InputType, InputDescription):
+            print(frmt.format(cmd=task.value, desc=desc.value))
+        print() # newline
 
     def change_agent_uuid(self, agent_uuid: str):
         self._agent_uuid = agent_uuid
@@ -78,6 +86,9 @@ class Cli():
             case InputType.Exit.value:
                 sys.exit(0)
 
+            case InputType.Help.value:
+                self.help()
+
             case InputType.Cmd.value:
                 task = {
                     "task":' '.join(input_token[1:]),   # ls -la
@@ -87,7 +98,7 @@ class Cli():
                 print(self.create_task(task))
                 print("Created task")
 
-            case InputType.ListTasks.value:
+            case InputType.ListTasks.value: 
                 print("\nTasks:\n")
                 print(self.list_tasks())
 
