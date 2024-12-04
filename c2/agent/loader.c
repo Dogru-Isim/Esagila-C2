@@ -913,7 +913,7 @@ CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** uuid)
     return task;
 }
 
-void main()
+void myMain()
 {
     API Api = { 0 };
     PAPI api = &Api;

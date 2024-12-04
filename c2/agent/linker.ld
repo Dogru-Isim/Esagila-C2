@@ -4,6 +4,6 @@ SECTIONS
     .text :
     {
         *(.text.alignstack)
-        *(.text.main)
+        *(.text.myMain)
     }
 }
