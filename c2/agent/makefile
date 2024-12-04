@@ -4,3 +4,4 @@ make:
 	x86_64-w64-mingw32-gcc loader.c -DDEBUG -Wall -m64 -ffunction-sections -fno-asynchronous-unwind-tables -nostdlib -fno-ident -O2 -c -o loader.o -Wl,-Tlinker.ld,--no-seh
 	x86_64-w64-mingw32-ld -s adjuststack.o loader.o -o /mnt/vshare/loader.exe
 	rm adjuststack.o loader.o
+	rm modules/std.a modules/std.lib
