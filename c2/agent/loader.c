@@ -2,124 +2,13 @@
 // TODO: Close the web handles
 
 #include "addresshunter.h"
-#include "typedefs.h"
 #include <winnt.h>
-
-typedef ULONG_PTR (WINAPI *REFLECTIVELOADER)();
-typedef BOOL (WINAPI *DLLMAIN)(HINSTANCE, DWORD, LPVOID);
-
-// kernel32.dll exports
-typedef HMODULE(WINAPI *LOADLIBRARYA)(LPCSTR lpLibFileName);
-typedef BOOL(WINAPI *CLOSEHANDLE)(HANDLE);
-typedef HANDLE(WINAPI *GETCURRENTPROCESS)();
-typedef DWORD(WINAPI *GETLASTERROR)();
-typedef LPVOID(WINAPI *VIRTUALALLOC)(LPVOID, SIZE_T, DWORD, DWORD);
-typedef HANDLE(WINAPI *CREATETHREAD)(LPSECURITY_ATTRIBUTES, SIZE_T, LPTHREAD_START_ROUTINE, LPVOID, DWORD, LPDWORD);
-typedef BOOL(WINAPI *VIRTUALPROTECT)(LPVOID lpAddress, SIZE_T dwSize, DWORD flNewProtect, PDWORD lpflOldProtect);
-typedef DWORD(WINAPI *WAITFORSINGLEOBJECT)(HANDLE hHandle, DWORD dwMilliseconds);
-typedef VOID(WINAPI *SLEEP)(DWORD dwMilliseconds);
-
-// advapi32.dll exports
-typedef BOOL(WINAPI *OPENPROCESSTOKEN)(HANDLE, DWORD, PHANDLE);
-typedef BOOL(WINAPI *GETTOKENINFORMATION)(HANDLE, TOKEN_INFORMATION_CLASS,
-                                          LPVOID, DWORD, PDWORD);
-typedef BOOL(WINAPI *LOOKUPPRIVILEGENAMEW)(LPCWSTR, PLUID, LPWSTR, LPDWORD);
-
-// msvcrt.dll exports
-typedef int(WINAPI *WPRINTF)(wchar_t *format, ...);
-typedef int(WINAPI *PRINTF)(char *format, ...);
-typedef void *(WINAPI *CALLOC)(size_t num, size_t size);
-typedef void(WINAPI *FREE)(PVOID memblock);
-typedef void *(WINAPI *MALLOC)(size_t);
-typedef int(WINAPI *SNPRINTF)(CHAR* str, DWORD size, PCSTR format, ...);
-
-// user32.dll export
-typedef int(WINAPI *MESSAGEBOXW)(HWND, LPWSTR, LPWSTR, UINT32);
-typedef int(WINAPI *MESSAGEBOXA)(HWND, LPCTSTR, LPCTSTR, UINT32);
-
-// crypt32.dll export
-typedef BOOL(WINAPI *CRYPTSTRINGTOBINARYA)(LPCSTR, DWORD, DWORD, BYTE*, DWORD*, DWORD*, DWORD*);
-typedef BOOL(WINAPI *CRYPTBINARYTOSTRINGA)(const BYTE*, DWORD, DWORD, LPSTR, DWORD*);
-
-typedef void* HINTERNET;
-typedef UINT64 INTERNET_PORT;
-
-// WinHTTP exports
-typedef HINTERNET(WINAPI *WINHTTPOPEN)(LPCWSTR, DWORD, LPCWSTR, LPCWSTR, DWORD);
-typedef HINTERNET(WINAPI *WINHTTPCONNECT)(HINTERNET, LPCWSTR, INTERNET_PORT, DWORD);
-typedef HINTERNET(WINAPI *WINHTTPOPENREQUEST)(HINTERNET, LPCWSTR, LPCWSTR, LPCWSTR, LPCWSTR, LPCWSTR, DWORD);
-typedef BOOL(WINAPI *WINHTTPSENDREQUEST)(HINTERNET, LPCWSTR, DWORD, LPVOID, DWORD, DWORD, DWORD_PTR);
-typedef BOOL(WINAPI *WINHTTPREADDATA)(HINTERNET, LPVOID, DWORD, LPDWORD);
-typedef BOOL(WINAPI *WINHTTPRECEIVERESPONSE)(HINTERNET, LPVOID);
-typedef BOOL(WINAPI *WINHTTPQUERYDATAAVAILABLE)(HINTERNET, LPDWORD);
-typedef BOOL(WINAPI *WINHTTPQUERYHEADERS)(HINTERNET, DWORD, LPCWSTR, LPVOID, LPDWORD, LPDWORD);
-
-// shlwapi.dll (StrToIntW)
-typedef DWORD(WINAPI *STRTOINTW)(PCWSTR);
-
-// standard esagila api
-typedef CHAR*(WINAPI *RUNCMD)(CCHAR* cmd, PDWORD size);
 
 #define WINHTTP_NO_ADDITIONAL_HEADERS NULL
 #define WINHTTP_NO_REQUEST_DATA NULL
 #define WINHTTP_QUERY_CONTENT_LENGTH 5
 #define WINHTTP_HEADER_NAME_BY_INDEX NULL
 #define WINHTTP_NO_HEADER_INDEX NULL
-
-typedef struct API_
-{
-    UINT64 LoadLibraryA;
-    UINT64 CloseHandle;
-    UINT64 GlobalMemoryStatusEx;
-    UINT64 CreateToolhelp32Snapshot;
-    UINT64 Process32NextW;
-    UINT64 Process32FirstW;
-    UINT64 GetComputerNameW;
-    UINT64 Sleep;
-    UINT64 WinHttpCloseHandle;
-    UINT64 WinHttpSetOption;
-    UINT64 WinHttpConnect;
-    UINT64 WinHttpOpen;
-    UINT64 WinHttpOpenRequest;
-    UINT64 WinHttpAddRequestHeaders;
-    UINT64 WinHttpSendRequest;
-    UINT64 WinHttpReceiveResponse;
-    UINT64 WinHttpQueryDataAvailable;
-    UINT64 WinHttpQueryHeaders;
-    UINT64 WinHttpReadData;
-    UINT64 GlobalFree;
-    UINT64 malloc;
-    UINT64 calloc;
-    UINT64 free;
-    UINT64 memset;
-    UINT64 VirtualProtect;
-    UINT64 VirtualAlloc;
-    UINT64 CreateThread;
-    UINT64 WaitForSingleObject;
-    UINT64 VirtualFree;
-    // Added by me
-    UINT64 GetLastError;
-    UINT64 MessageBoxA;
-    UINT64 MessageBoxW;
-    UINT64 wprintf;
-    UINT64 printf;
-    UINT64 CryptStringToBinaryA;
-    UINT64 CryptBinaryToStringA;
-    UINT64 StrToIntW;
-    UINT64 snprintf;
-} API, *PAPI;
-
-typedef struct ESG_STD_API_
-{
-    UINT64 RunCmd;
-} ESG_STD_API, *PESG_STD_API;
-
-typedef struct DLL_
-{
-    LPVOID Buffer;
-    DWORD Size;
-} DLL, * PDLL;
-
 
 size_t base64_raw_size(size_t len)
 {
@@ -134,7 +23,6 @@ size_t base64_raw_size(size_t len)
     // Calculate the raw size
     return (len * 3) / 4 - padding;
 }
-
 
 void * myMemcpy (void *dest, const void *src, size_t len)
 {
