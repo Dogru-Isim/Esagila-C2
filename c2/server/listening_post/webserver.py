@@ -48,8 +48,8 @@ class WebServer:
         task_id = request.get_json()["task_id"]
         agent_uuid = request.get_json()["agent_uuid"]
         result_text = request.get_json()["task_output"]
-        #db.insert_row(TableName.RESULT_TABLE.value, (agent_uuid, task_id, result_text))
-        #db.delete_row(TableName.TASK_TABLE.value, (task_id, agent_uuid))
+        db.insert_row(TableName.RESULT_TABLE.value, (agent_uuid, task_id, result_text))
+        db.delete_row(TableName.TASK_TABLE.value, (task_id, agent_uuid))
         return "Sent output", 200
 
     @app.route("/get_task_output/<string:uuid>", methods=["GET"])

@@ -5,6 +5,7 @@ import time
 from input_type import InputType
 from input_description import InputDescription
 from input_error import InputError
+from base64 import b64decode
 
 class Cli():
     _prompt = "Imhullu> "
@@ -68,7 +69,7 @@ class Cli():
         endpoint = "/get_task_output/"
         response_raw = requests.get(self._webserver + endpoint + agent_uuid).text
         response_json = json.loads(response_raw)
-        return response_json[-1][-1]     # last result_text
+        return b64decode(response_json[-1][-1]).decode()     # last result_text
 
     def get_input(self) -> (list[str], list[InputError]):
         errors: list[InputError] = list()
