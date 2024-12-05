@@ -39,6 +39,41 @@ typedef struct API_
 
 HINSTANCE hAppInstance = NULL;
 
+// TODO: Replace with a real implementation using win32
+DLLEXPORT CHAR* WINAPI Whoami()
+{
+    FILE *fp;
+    char *output = NULL;
+    DWORD size = 0;
+    DWORD totalSize = 0;
+    char buffer[1024];
+
+    fp = popen("whoami", "r");
+
+    if (fp == NULL)
+    { return NULL; }
+
+    // Read the output in chunks
+    while (fgets(buffer, sizeof(buffer), fp) != NULL)
+    {
+        size = strlen(buffer);
+        CHAR* temp = realloc(output, totalSize + size + 1); // +1 for null terminator
+        if (temp == NULL)
+        {
+            free(output); // Free previously allocated memory on failure
+            pclose(fp);
+            return NULL;
+        }
+        output = temp;
+        memcpy(output + totalSize, buffer, size); // Copy the new data
+        totalSize += size;
+        output[totalSize] = '\0'; // Null-terminate the string
+    }
+
+    // Return the dynamically allocated string
+    return output;
+}
+
 DLLEXPORT CHAR* WINAPI RunCmd(CHAR* cmd, PDWORD totalSize)
 {
     FILE *fp;

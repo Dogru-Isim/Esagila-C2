@@ -176,6 +176,7 @@ typedef DWORD(WINAPI *STRTOINTW)(PCWSTR);
 
 // standard esagila api
 typedef CHAR*(WINAPI *RUNCMD)(CCHAR* cmd, PDWORD size);
+typedef CHAR*(WINAPI *WHOAMI)(VOID);
 
 typedef struct API_
 {
@@ -212,6 +213,7 @@ typedef struct API_
 typedef struct ESG_STD_API_
 {
     UINT64 RunCmd;
+    UINT64 Whoami;
 } ESG_STD_API, *PESG_STD_API;
 
 typedef struct DLL_

