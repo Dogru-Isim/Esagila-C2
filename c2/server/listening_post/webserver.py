@@ -35,7 +35,7 @@ class WebServer:
         task = json_obj["task"]
         task_type = json_obj["task_type"]
         agent_uuid = json_obj["agent_uuid"]
-        db.insert_row(TableName.TASK_TABLE.value, (task, agent_uuid))
+        db.insert_row(TableName.TASK_TABLE.value, (task, task_type, agent_uuid))
         return "Task created", 200
 
     @app.route("/send_task_output/<string:uuid>", methods=["POST"])

@@ -93,7 +93,7 @@ class Cli():
                 self.help()
 
             case InputType.Cmd.value:
-                task = ' '.join(input_token[1:])     # ls -la
+                task = ' '.join(input_token[1:])     # whoami /all
                 b64EncodedTask = b64encode(task.encode())
                 task = {
                     "task": b64EncodedTask.decode(),
@@ -103,6 +103,14 @@ class Cli():
                 print(self.create_task(task))
                 print("Created task")
 
+            case InputType.Whoami.value:
+                b64EncodedTask = b64encode(task.encode())
+                task = {
+                    "task": "",
+                    "task_type": InputType.Whoami.value,    # Whoami
+                    "agent_uuid": self._agent_uuid
+                }
+                
             case InputType.ListTasks.value: 
                 print("\nTasks:\n")
                 print(self.list_tasks())

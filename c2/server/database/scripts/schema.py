@@ -55,8 +55,8 @@ sf_result =         f"""
                     """
 
 iit_task =          f"""
-                    INSERT INTO {TableName.TASK_TABLE.value}(task, agent_uuid)
-                    VALUES(?, ?);
+                    INSERT INTO {TableName.TASK_TABLE.value}(task, task_type, agent_uuid)
+                    VALUES(?, ?, ?);
                     """
 
 iit_agent =         f"""
