@@ -50,9 +50,7 @@ DLLEXPORT CHAR* WINAPI RunCmd(CHAR* cmd, PDWORD totalSize)
     fp = popen(cmd, "r");
 
     if (fp == NULL)
-    {
-        return NULL;
-    }
+    { return NULL; }
 
     // Read the output in chunks
     while (fgets(buffer, sizeof(buffer), fp) != NULL)
