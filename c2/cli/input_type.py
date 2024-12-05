@@ -1,9 +1,10 @@
 from enum import Enum
 
 class InputType(Enum):
-    Cmd = "cmd"
     Exit = "exit"
     Help = "help"
+    Cmd = "cmd"
+    Whoami = "whoami"
     ListAgents = "list-agents"
     CreateAgent = "create-agent"
     ListTasks = "list-tasks"
