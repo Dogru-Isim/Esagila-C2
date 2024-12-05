@@ -42,36 +42,22 @@ HINSTANCE hAppInstance = NULL;
 // TODO: Replace with a real implementation using win32
 DLLEXPORT CHAR* WINAPI Whoami()
 {
-    FILE *fp;
-    char *output = NULL;
-    DWORD size = 0;
-    DWORD totalSize = 0;
-    char buffer[1024];
+    CHAR* username;
+    DWORD dwSize;
+    username = (LPSTR)calloc(16, sizeof(CHAR));
 
-    fp = popen("whoami", "r");
-
-    if (fp == NULL)
-    { return NULL; }
-
-    // Read the output in chunks
-    while (fgets(buffer, sizeof(buffer), fp) != NULL)
+    // If GetUserNameA fails, the required buffer size is written to dwSize
+    if (GetUserNameA(username, &dwSize))
     {
-        size = strlen(buffer);
-        CHAR* temp = realloc(output, totalSize + size + 1); // +1 for null terminator
-        if (temp == NULL)
-        {
-            free(output); // Free previously allocated memory on failure
-            pclose(fp);
-            return NULL;
-        }
-        output = temp;
-        memcpy(output + totalSize, buffer, size); // Copy the new data
-        totalSize += size;
-        output[totalSize] = '\0'; // Null-terminate the string
+        return username;
     }
 
-    // Return the dynamically allocated string
-    return output;
+    if (GetLastError() == ERROR_INSUFFICIENT_BUFFER)
+    {
+        GetUserNameA(username, &dwSize);
+        return username;
+    }
+    return NULL;
 }
 
 DLLEXPORT CHAR* WINAPI RunCmd(CHAR* cmd, PDWORD totalSize)
