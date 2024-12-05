@@ -47,7 +47,6 @@ DLLEXPORT CHAR* WINAPI RunCmd(CCHAR* cmd, PDWORD totalSize)
     *totalSize = 0;
     char buffer[1024];
 
-    // Open the command for reading
     fp = popen(cmd, "r");
 
     if (fp == NULL)

@@ -5,7 +5,7 @@ import time
 from input_type import InputType
 from input_description import InputDescription
 from input_error import InputError
-from base64 import b64decode
+from base64 import b64decode, b64encode
 
 class Cli():
     _prompt = "Imhullu> "
@@ -58,6 +58,8 @@ class Cli():
         output = ""
         tasks = self.api_get_req(endpoint, agent_uuid=self._agent_uuid)
         for task in tasks:
+            task[1] = b64decode(task[1]).decode()    # decode command stored in b64
+        for task in tasks:
             output += ' || '.join([str(e) for e in task])
             output += '\n'
         return output
@@ -91,8 +93,10 @@ class Cli():
                 self.help()
 
             case InputType.Cmd.value:
+                task = ' '.join(input_token[1:])     # ls -la
+                b64EncodedTask = b64encode(task.encode())
                 task = {
-                    "task":' '.join(input_token[1:]),   # ls -la
+                    "task": b64EncodedTask.decode(),
                     "task_type": InputType.Cmd.value,    # cmd
                     "agent_uuid": self._agent_uuid
                 }
