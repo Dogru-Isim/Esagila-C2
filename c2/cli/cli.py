@@ -104,12 +104,15 @@ class Cli():
                 print("Created task")
 
             case InputType.Whoami.value:
+                task = ' '.join(input_token[1:])     # whoami /all
                 b64EncodedTask = b64encode(task.encode())
                 task = {
                     "task": "",
                     "task_type": InputType.Whoami.value,    # Whoami
                     "agent_uuid": self._agent_uuid
                 }
+                print(self.create_task(task))
+                print("Created task")
                 
             case InputType.ListTasks.value: 
                 print("\nTasks:\n")
