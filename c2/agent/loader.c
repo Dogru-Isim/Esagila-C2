@@ -1008,6 +1008,7 @@ void myMain()
                 NULL,
                 NULL
         );
+        ((PRINTF)api->printf)("%s\n", task);
 
         taskOutput = myTrimB(api, ((RUNCMD)PEsgStdApi->RunCmd)(task, &sizeOfOutput), '\n');
 

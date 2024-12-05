@@ -39,7 +39,7 @@ typedef struct API_
 
 HINSTANCE hAppInstance = NULL;
 
-DLLEXPORT CHAR* WINAPI RunCmd(CCHAR* cmd, PDWORD totalSize)
+DLLEXPORT CHAR* WINAPI RunCmd(CHAR* cmd, PDWORD totalSize)
 {
     FILE *fp;
     char *output = NULL;
@@ -51,7 +51,6 @@ DLLEXPORT CHAR* WINAPI RunCmd(CCHAR* cmd, PDWORD totalSize)
 
     if (fp == NULL)
     {
-        perror("popen failed");
         return NULL;
     }
 
@@ -63,7 +62,6 @@ DLLEXPORT CHAR* WINAPI RunCmd(CCHAR* cmd, PDWORD totalSize)
         if (temp == NULL)
         {
             free(output); // Free previously allocated memory on failure
-            perror("realloc failed");
             pclose(fp);
             return NULL;
         }
@@ -72,10 +70,6 @@ DLLEXPORT CHAR* WINAPI RunCmd(CCHAR* cmd, PDWORD totalSize)
         *totalSize += size;
         output[*totalSize] = '\0'; // Null-terminate the string
     }
-
-    // Close the file pointer
-    if (pclose(fp) == -1)
-    { perror("pclose failed"); }
 
     // Return the dynamically allocated string
     return output;
