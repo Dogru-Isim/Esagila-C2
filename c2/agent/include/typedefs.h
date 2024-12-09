@@ -1,5 +1,6 @@
 #ifndef TYPEDEFS_H
 #define TYPEDEFS_H
+
 #include <windows.h>
 
 #define DEREF(name) *(UINT_PTR *)(name)

@@ -1,3 +1,6 @@
+#ifndef STD_H
+#define STD_H
+
 #include <windows.h>
 #include <inttypes.h>
 #include "typedefs.h"
@@ -22,7 +25,4 @@ void myMemcpyW (void *dest, const void *src, size_t len);
 
 wchar_t* myConcatW(PAPI api, const wchar_t *s1, const wchar_t *s2);
 
-DWORD Rva2Offset(DWORD dwRva, UINT_PTR uiBaseAddress);
-
-UINT_PTR GetRLOffset(PAPI api, PVOID lpDll);
-
+#endif  // STD_H
