@@ -1,7 +1,7 @@
 // TODO: Using custom implementations of functionalities such as trimming and parsing is not okay as they can easily be flagged
 // TODO: is readJsonTask still modifying json?
 
-#include "addresshunter.h"
+#include "../include/addresshunter.h"
 #include <winnt.h>
 
 #define WINHTTP_NO_ADDITIONAL_HEADERS NULL
