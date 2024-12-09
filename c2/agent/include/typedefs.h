@@ -3,6 +3,16 @@
 
 #include <windows.h>
 
+typedef int                 BOOL;
+
+#ifndef FALSE
+#define FALSE               0
+#endif
+
+#ifndef TRUE
+#define TRUE                1
+#endif
+
 #define DEREF(name) *(UINT_PTR *)(name)
 #define DEREF_64(name) *(DWORD64 *)(name)
 #define DEREF_32(name) *(DWORD *)(name)
