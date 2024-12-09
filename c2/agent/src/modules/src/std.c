@@ -2,7 +2,7 @@
 #include <windows.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include "addresshunter.h"
+#include "../include/addresshunter.h"
 
 typedef int(WINAPI *MESSAGEBOXA)(HWND, LPCTSTR, LPCTSTR, UINT32);
 typedef int(WINAPI *PRINTF)(char *format, ...);
