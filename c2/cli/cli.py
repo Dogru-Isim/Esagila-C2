@@ -58,6 +58,18 @@ class ImhulluCLI(cmd.Cmd):
         super().do_help(arg)
         print()
 
+    def complete_help(self, text, line, begidx, endidx):
+        """Provide tab completion for the 'greet' command."""
+        params = [method.removeprefix("do_") for method in self.__class__.__dict__.keys() if method.startswith("do_")]
+        params.append('all')
+        if not text:
+            # If no text is entered, return all names
+            completions = params[:]
+        else:
+            # Filter names based on the text entered
+            completions = [param for param in params if param.startswith(text)]
+        return completions
+
     def do_change_agent_uuid(self, agent_uuid: str):
         """change current agent uuid\n\tUsage: <command> <agent_uuid>\n"""
         if not agent_uuid:
