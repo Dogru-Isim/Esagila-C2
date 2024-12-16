@@ -7,12 +7,16 @@ from input_usage import InputUsage
 from input_error import InputError
 from input_type import InputType
 import tableprint
+import colorama
 
 class ImhulluCLI(cmd.Cmd):
+    colorama.init()
     intro = "Welcome!"
     _webserver = "http://127.0.0.1:5001"
     _agent_uuid = ""
-    prompt = f"Imhullu> "
+    UNDERLINE = "\033[4m"
+    RESET = "\033[0m"
+    prompt = f"{UNDERLINE}Imhullu>{RESET} "
     
     def agent_uuid_required(func):
         @functools.wraps(func)  # Preserve metadata, namely the doc string
@@ -23,15 +27,16 @@ class ImhulluCLI(cmd.Cmd):
             return func(self, *args, **kwargs)
         return wrapper
 
+    # override the default functionality
+    # https://docs.python.org/3/library/cmd.html#cmd.Cmd.emptyline
+    def emptyline(self):
+        print()
+        return
+
     def default(self, line):
         """Override the default behavior for unrecognized commands."""
-        if line.strip() == "":
-            # do nothing if the input is empty
-            # it runs the last command otherwise
-            return
-        else:
-            print(f"Unrecognized command: {line}")
-            self.do_help('')
+        print(f"Unrecognized command: {line}")
+        self.do_help('')
 
     # Command to exit the tool
     def do_exit(self, arg):
@@ -56,16 +61,16 @@ class ImhulluCLI(cmd.Cmd):
     def do_change_agent_uuid(self, agent_uuid: str):
         """change current agent uuid\n\tUsage: <command> <agent_uuid>\n"""
         if not agent_uuid:
-            print("Usage: " + InputUsage.ChangeAgentUUID.value)
+            print("Usage: " + InputUsage.ChangeAgentUUID.value + '\n')
             return
 
         self._agent_uuid = agent_uuid
-        self.prompt = f"{agent_uuid}\nImhullu> ";
+        self.prompt = f"{agent_uuid}\n{self.UNDERLINE}Imhullu>{self.RESET} ";
 
     def do_create_agent(self, name):
         """create a new agent\n\tWIP\n"""
         if not name:
-            print("Usage: " + InputUsage.Name.value)
+            print("Usage: " + InputUsage.CreateAgent.value + '\n')
             return
 
         create_agent_payload = {
@@ -93,7 +98,7 @@ class ImhulluCLI(cmd.Cmd):
     def do_cmd(self, args):
         """create a new cmd task\n\tUsage: <command> <arg1> <arg2> ...\n"""
         if not args:
-            print("Usage: " + InputUsage.Cmd.value)
+            print("Usage: " + InputUsage.Cmd.value + '\n')
             return
 
         task = args
@@ -133,7 +138,7 @@ class ImhulluCLI(cmd.Cmd):
     def do_get_task_output(self, args):
         """return the output of the last task\n\tUsage: <command>\n"""
         if not args:
-            print("Usage: " + InputUsage.GetTaskOutput.value)
+            print("Usage: " + InputUsage.GetTaskOutput.value + '\n')
             return
         if not self._agent_uuid:
             print("Choose an agent")
@@ -162,8 +167,4 @@ class ImhulluCLI(cmd.Cmd):
         print(self._webserver+''.join(endpoint))
         response_raw = requests.post(self._webserver + ''.join(endpoint) + agent_uuid, json=post_data).text
         return(response_raw)
-
-
-#if __name__ == '__main__':
-#    ImhulluCLI().cmdloop()
 
