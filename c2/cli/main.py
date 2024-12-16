@@ -1,9 +1,9 @@
 import asyncio
-from cli import Cli
+from cli import ImhulluCLI
 from tokenize import tokenize
 
 def main():
-    cli = Cli()
+    cli = ImhulluCLI()
     while True:
         cli.change_agent_uuid("11e3b27c-a1e7-4224-b4d9-3af36fa2f0d0")
         cmd_tokens, errors = cli.get_input()
