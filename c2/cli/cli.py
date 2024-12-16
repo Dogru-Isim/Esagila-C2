@@ -79,6 +79,9 @@ class ImhulluCLI(cmd.Cmd):
         if not args:
             print("Usage: " + InputUsage.Cmd.value)
             return
+        if not _agent_uuid:
+            print("Choose an agent")
+            return
 
         task = args
         b64EncodedTask = b64encode(task.encode())
