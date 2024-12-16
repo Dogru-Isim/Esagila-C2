@@ -4,16 +4,9 @@ from tokenize import tokenize
 
 def main():
     cli = ImhulluCLI()
-    while True:
-        cli.change_agent_uuid("11e3b27c-a1e7-4224-b4d9-3af36fa2f0d0")
-        cmd_tokens, errors = cli.get_input()
-        if len(errors) != 0:
-            for e in errors:
-                print("Error:", e.value)
-            print()
-            continue
-
-        cli.process_input(cmd_tokens)
+    cli.do_change_agent_uuid("11e3b27c-a1e7-4224-b4d9-3af36fa2f0d0")
+    cli.cmdloop()
 
 if __name__ == "__main__":
     main()
+

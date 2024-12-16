@@ -1,4 +1,5 @@
 import cmd
+import functools
 import requests
 import json
 from base64 import b64decode, b64encode
@@ -12,6 +13,15 @@ class ImhulluCLI(cmd.Cmd):
     _webserver = "http://127.0.0.1:5001"
     _agent_uuid = ""
     prompt = f"Imhullu> "
+    
+    def agent_uuid_required(func):
+        @functools.wraps(func)  # Preserve metadata, namely the doc string
+        def wrapper(self, *args, **kwargs):
+            if not self._agent_uuid:
+                print("Choose an agent")
+                return
+            return func(self, *args, **kwargs)
+        return wrapper
 
     def default(self, line):
         """Override the default behavior for unrecognized commands."""
@@ -74,13 +84,11 @@ class ImhulluCLI(cmd.Cmd):
         agents = self._api_get_req(endpoint)
         tableprint.table(agents, headers)
 
+    @agent_uuid_required
     def do_cmd(self, args):
         """create a new cmd task\n\tUsage: <command> <arg1> <arg2> ...\n"""
         if not args:
             print("Usage: " + InputUsage.Cmd.value)
-            return
-        if not _agent_uuid:
-            print("Choose an agent")
             return
 
         task = args
@@ -96,9 +104,10 @@ class ImhulluCLI(cmd.Cmd):
         response = self._api_post_req(endpoint, task_json, self._agent_uuid)
         print(response)
 
+    @agent_uuid_required
     def do_list_tasks(self, args):
         """show a list of all the agents\n\tUsage: <command>\n"""
-        if not _agent_uuid:
+        if not self._agent_uuid:
             print("Choose an agent")
             return
 
@@ -112,12 +121,13 @@ class ImhulluCLI(cmd.Cmd):
 
         tableprint.table(tasks, headers)
 
+    @agent_uuid_required
     def do_get_task_output(self, args):
         """return the output of the last task\n\tUsage: <command>\n"""
         if not args:
             print("Usage: " + InputUsage.GetTaskOutput.value)
             return
-        if not _agent_uuid:
+        if not self._agent_uuid:
             print("Choose an agent")
             return
 
@@ -146,6 +156,6 @@ class ImhulluCLI(cmd.Cmd):
         return(response_raw)
 
 
-if __name__ == '__main__':
-    ImhulluCLI().cmdloop()
+#if __name__ == '__main__':
+#    ImhulluCLI().cmdloop()
 
