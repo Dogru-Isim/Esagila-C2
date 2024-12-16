@@ -82,6 +82,11 @@ class ImhulluCLI(cmd.Cmd):
         endpoint = "/agents/"
         output = ""
         agents = self._api_get_req(endpoint)
+
+        if len(agents) == 0:
+            print("No agent present")
+            return
+
         tableprint.table(agents, headers)
 
     @agent_uuid_required
@@ -118,6 +123,9 @@ class ImhulluCLI(cmd.Cmd):
         for task in tasks:
             task[1] = b64decode(task[1]).decode()    # decode command stored in b64
             output += '\n'
+
+        if len(tasks) == 0:
+            print("Task queue empty\n")
 
         tableprint.table(tasks, headers)
 
