@@ -48,6 +48,7 @@ class ImhulluCLI(cmd.Cmd):
         if not agent_uuid:
             print("Usage: " + InputUsage.ChangeAgentUUID.value)
             return
+
         self._agent_uuid = agent_uuid
         self.prompt = f"{agent_uuid}\nImhullu> ";
 
@@ -94,6 +95,10 @@ class ImhulluCLI(cmd.Cmd):
 
     def do_list_tasks(self, args):
         """show a list of all the agents\n\tUsage: <command>\n"""
+        if not _agent_uuid:
+            print("Choose an agent")
+            return
+
         headers = ['Task ID', 'Command Args', 'Command Type', 'Agent UUID']
         endpoint = "/tasks/"
         output = ""
@@ -108,6 +113,9 @@ class ImhulluCLI(cmd.Cmd):
         """return the output of the last task\n\tUsage: <command>\n"""
         if not args:
             print("Usage: " + InputUsage.GetTaskOutput.value)
+            return
+        if not _agent_uuid:
+            print("Choose an agent")
             return
 
         endpoint = "/get_task_output/"
