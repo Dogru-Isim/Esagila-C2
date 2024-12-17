@@ -104,7 +104,7 @@ class Cli():
                 print("Created task")
 
             case InputType.Whoami.value:
-                task = ' '.join(input_token[1:])     # whoami /all
+                task = ' '.join(input_token[1:])
                 b64EncodedTask = b64encode(task.encode())
                 task = {
                     "task": "",
