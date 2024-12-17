@@ -78,7 +78,7 @@ class ImhulluCLI(cmd.Cmd):
             return
 
         self._agent_uuid = agent_uuid
-        self.prompt = f"{agent_uuid}\n{self.UNDERLINE}Imhullu>{self.RESET} ";
+        self.prompt = f"{agent_uuid}\n{UNDERLINE}Imhullu>{RESET} ";
 
     def do_create_agent(self, name):
         """create a new agent\n\tWIP\n"""
@@ -130,10 +130,6 @@ class ImhulluCLI(cmd.Cmd):
     @agent_uuid_required
     def do_list_tasks(self, args):
         """show a list of all the agents\n\tUsage: <command>\n"""
-        if not self._agent_uuid:
-            print("Choose an agent")
-            return
-
         headers = ['Task ID', 'Command Args', 'Command Type', 'Agent UUID']
         endpoint = "/tasks/"
         output = ""
@@ -152,9 +148,6 @@ class ImhulluCLI(cmd.Cmd):
         """return the output of the last task\n\tUsage: <command>\n"""
         if not args:
             print("Usage: " + InputUsage.GetTaskOutput.value + '\n')
-            return
-        if not self._agent_uuid:
-            print("Choose an agent")
             return
 
         endpoint = "/get_task_output/"
@@ -180,4 +173,8 @@ class ImhulluCLI(cmd.Cmd):
         print(self._webserver+''.join(endpoint))
         response_raw = requests.post(self._webserver + ''.join(endpoint) + agent_uuid, json=post_data).text
         return(response_raw)
+
+if __name__ == '__main__':
+    cli = ImhulluCLI()
+    cli.cmdloop()
 
