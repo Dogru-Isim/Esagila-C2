@@ -33,12 +33,12 @@ class ImhulluCLI(cmd.Cmd):
         return
 
     def default(self, line):
-        """override the default behavior for unrecognized commands."""
+        """override the default behavior for unrecognized commands"""
         print(f"Unrecognized command: {line}")
         self.do_help('')
 
     def do_reload(self, arg):
-        """reload ImhulluCLI"""
+        """reload ImhulluCLI\n\tUsage: <command>\n"""
         raise ImhulluCLIReloadedException
 
     # Command to exit the tool
@@ -51,6 +51,7 @@ class ImhulluCLI(cmd.Cmd):
     # Command to list available commands
     def do_help(self, arg):
         """list available commands\n\tUsage: <command>\n"""
+        print()
         if arg == 'all':
             for name, method in self.__class__.__dict__.items():
                 if callable(method) and name.startswith('do_'):
@@ -136,7 +137,7 @@ class ImhulluCLI(cmd.Cmd):
 
     @agent_uuid_required
     def do_whoami(self, line):
-        """get user info through GetUserName\nUsage: <command>\n"""
+        """get user info through GetUserName\n\tUsage: <command>\n"""
         task = {
             "task": "",
             "task_type": InputType.Whoami.value,

@@ -3,6 +3,7 @@ import asyncio
 from module import cli
 from tokenize import tokenize
 import importlib
+import requests
 from module.module_exception import *
 
 def main():
@@ -12,6 +13,9 @@ def main():
         try:
             imhullu.do_change_agent_uuid("11e3b27c-a1e7-4224-b4d9-3af36fa2f0d0")
             imhullu.cmdloop(intro)
+        except requests.exceptions.ConnectionError:
+            intro = "\n"
+            print("Can't connect to server")
         except ImhulluModuleReloadException as e:
             match e:
                 case ImhulluCLIReloadedException():
