@@ -6,15 +6,14 @@ from base64 import b64decode, b64encode
 from input_usage import InputUsage
 from input_error import InputError
 from input_type import InputType
+from module_exception import *
 import tableprint
-import colorama
 
 UNDERLINE = "\033[4m"
 RESET = "\033[0m"
 
 class ImhulluCLI(cmd.Cmd):
-    colorama.init()
-    intro = "Welcome!"
+    running = 1
     _webserver = "http://127.0.0.1:5001"
     _agent_uuid = ""
     prompt = f"{UNDERLINE}Imhullu>{RESET} "
@@ -39,10 +38,15 @@ class ImhulluCLI(cmd.Cmd):
         print(f"Unrecognized command: {line}")
         self.do_help('')
 
+    def do_reload(self, arg):
+        """reload ImhulluCLI"""
+        raise ImhulluCLIReloadedException
+
     # Command to exit the tool
     def do_exit(self, arg):
         """exit the program\n\tUsage: <command>\n"""
         print('Goodbye!')
+        self.running = 0
         return True
 
     # Command to list available commands
