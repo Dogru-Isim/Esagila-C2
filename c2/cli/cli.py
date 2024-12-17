@@ -35,7 +35,7 @@ class ImhulluCLI(cmd.Cmd):
         return
 
     def default(self, line):
-        """Override the default behavior for unrecognized commands."""
+        """override the default behavior for unrecognized commands."""
         print(f"Unrecognized command: {line}")
         self.do_help('')
 
@@ -129,7 +129,7 @@ class ImhulluCLI(cmd.Cmd):
             "agent_uuid": self._agent_uuid
         }
 
-        print(self._create_task(task))
+        print(self._create_task(task)) + '\n'
 
     @agent_uuid_required
     def do_whoami(self, line):
@@ -140,7 +140,7 @@ class ImhulluCLI(cmd.Cmd):
             "agent_uuid": self._agent_uuid
         }
 
-        print(self._create_task(task))
+        print(self._create_task(task)) + '\n'
 
     @agent_uuid_required
     def do_list_tasks(self, args):
@@ -162,10 +162,6 @@ class ImhulluCLI(cmd.Cmd):
     @agent_uuid_required
     def do_get_task_output(self, args):
         """return the output of the last task\n\tUsage: <command>\n"""
-        if not args:
-            print("Usage: " + InputUsage.GetTaskOutput.value + '\n')
-            return
-
         endpoint = "/get_task_output/"
         response_raw = requests.get(self._webserver + endpoint + self._agent_uuid).text
         response_json = json.loads(response_raw)
