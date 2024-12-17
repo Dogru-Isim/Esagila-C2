@@ -40,12 +40,6 @@ It has the following commands:
 
 
 
-**Photos:**
-
-Help Menu
-
-![help menu](/home/mint/University/OpenLearning/Work/General/PersonalProject/Initial/new/Esagila-C2/c2/cli/photos/help.png)
-
 
 
 **Dev Notes**:
