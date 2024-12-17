@@ -84,8 +84,8 @@ class ImhulluCLI(cmd.Cmd):
         self._agent_uuid = agent_uuid
         self.prompt = f"{agent_uuid}\n{UNDERLINE}Imhullu>{RESET} ";
 
-    def do_create_agent(self, name):
-        """create a new agent\n\tWIP\n"""
+    def do_create_agent(self, name, server, port):
+        """create a new agent\n\t<command> <name> <server> <port>\n"""
         if not name:
             print("Usage: " + InputUsage.CreateAgent.value + '\n')
             return
@@ -93,6 +93,7 @@ class ImhulluCLI(cmd.Cmd):
         create_agent_payload = {
             "name": name
         }
+
         endpoint = "/create_agent/"
         create_agent_payload_json = json.dumps(create_agent_payload)
         agent_uuid = self._api_post_req(endpoint, post_data=create_agent_payload_json)
