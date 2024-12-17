@@ -9,13 +9,14 @@ from input_type import InputType
 import tableprint
 import colorama
 
+UNDERLINE = "\033[4m"
+RESET = "\033[0m"
+
 class ImhulluCLI(cmd.Cmd):
     colorama.init()
     intro = "Welcome!"
     _webserver = "http://127.0.0.1:5001"
     _agent_uuid = ""
-    UNDERLINE = "\033[4m"
-    RESET = "\033[0m"
     prompt = f"{UNDERLINE}Imhullu>{RESET} "
     
     def agent_uuid_required(func):
