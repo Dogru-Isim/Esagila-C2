@@ -40,8 +40,6 @@ It has the following commands:
 
 
 
-
-
 **Dev Notes**:
 
 _Section for guiding the future contributors of the project_
