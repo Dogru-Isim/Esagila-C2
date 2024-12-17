@@ -1,9 +1,9 @@
 import sys
 import asyncio
-import cli
+from module import cli
 from tokenize import tokenize
 import importlib
-from module_exception import *
+from module.module_exception import *
 
 def main():
     intro = "Welcome!\n"

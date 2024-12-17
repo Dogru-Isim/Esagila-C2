@@ -3,10 +3,9 @@ import functools
 import requests
 import json
 from base64 import b64decode, b64encode
-from input_usage import InputUsage
-from input_error import InputError
-from input_type import InputType
-from module_exception import *
+from module.input_usage import InputUsage
+from module.input_type import InputType
+from module.module_exception import *
 import tableprint
 
 UNDERLINE = "\033[4m"

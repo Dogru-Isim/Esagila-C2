@@ -1,5 +1,5 @@
 from enum import Enum
-from input_type import InputType
+from module.input_type import InputType
 
 class InputUsage(Enum):
     Exit = InputType.Exit.value
