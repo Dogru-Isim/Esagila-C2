@@ -97,9 +97,9 @@ class ImhulluCLI(cmd.Cmd):
             pi_uuid += "'" + char + "'" + ','
             
         pi_server += '0'  # null terminator
-        pi_uuid += '0'  # null terminator
+        pi_uuid += '0'    # null terminator
 
-        command = ["make", f'SERVER_M="SERVER=\\"{pi_server}\\""', f'PORT_M="PORT=\\"{port}\\""', f'UUID_M="UUID=\\"{uuid}\\""']
+        command = ["make", f'SERVER_M="{pi_server}"', f'PORT_M="{port}"', f'UUID_M="{pi_uuid}"']
         print(command[0] + ' ' + command[1] + ' ' + command[2] + ' ' + command[3])
         process = subprocess.Popen(command, cwd="../agent/", stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 

