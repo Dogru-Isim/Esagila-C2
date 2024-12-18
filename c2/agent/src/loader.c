@@ -5,9 +5,9 @@
 #include "../include/http.h"
 
 // will be overriden by ImhulluCLI
-#define SERVER '1','9','2','.','1','6','8','.','0','.','1',0
-#define PORT 5001
-#define UUID '1','1','e','3','b','2','7','c','-','a','1','e','7','-','4','2','2','4','-','b','4','d','9','-','3','a','f','3','6','f','a','2','f','0','d','0',0
+//#define SERVER '1','9','2','.','1','6','8','.','0','.','1',0
+//#define PORT 5001
+//#define UUID '1','1','e','3','b','2','7','c','-','a','1','e','7','-','4','2','2','4','-','b','4','d','9','-','3','a','f','3','6','f','a','2','f','0','d','0',0
 
 HANDLE inject(PAPI api, LPVOID lpDll, DWORD dwDllSize)
 {

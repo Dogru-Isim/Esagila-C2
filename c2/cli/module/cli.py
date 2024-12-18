@@ -90,11 +90,17 @@ class ImhulluCLI(cmd.Cmd):
     def _compile_agent(self, name, server, port, uuid):
         """modify agent server and port then compiler"""
         pi_server = ''
+        pi_uuid = ''
         for char in server:
             pi_server += "'" + char + "'" + ','
+        for char in uuid:
+            pi_uuid += "'" + char + "'" + ','
+            
         pi_server += '0'  # null terminator
+        pi_uuid += '0'  # null terminator
 
         command = ["make", f'SERVER_M="SERVER=\\"{pi_server}\\""', f'PORT_M="PORT=\\"{port}\\""', f'UUID_M="UUID=\\"{uuid}\\""']
+        print(command[0] + ' ' + command[1] + ' ' + command[2] + ' ' + command[3])
         process = subprocess.Popen(command, cwd="../agent/", stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
         while True:
@@ -235,6 +241,9 @@ class ImhulluCLI(cmd.Cmd):
         endpoint = "/get_task_output/"
         response_raw = requests.get(self._webserver + endpoint + self._agent_uuid).text
         response_json = json.loads(response_raw)
+        if not response_json:
+            print("No output")
+            return
         print(b64decode(response_json[-1][-1]).decode())     # last result_text
 
     def _api_get_req(self, endpoint: str, agent_uuid: str=""):

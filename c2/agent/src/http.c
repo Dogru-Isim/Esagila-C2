@@ -1,8 +1,8 @@
 #include "../include/http.h"
 
 // will be overriden by ImhulluCLI
-#define SERVER '1','9','2','.','1','6','8','.','0','.','1',0
-#define PORT 5001
+//#define SERVER '1','9','2','.','1','6','8','.','0','.','1',0
+//#define PORT 5001
 
 CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
 {
