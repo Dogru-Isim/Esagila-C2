@@ -112,17 +112,6 @@ class ImhulluCLI(cmd.Cmd):
         # Wait for the process to complete and get the return code
         return_code = process.wait()
 
-        """
-        result = subprocess.run(
-            command,
-            cwd="../agent/",
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
-        """
-
     def do_create_agent(self, args):
         """create a new agent\n\t<command> <name> <server> <port>\n"""
         if not args:
@@ -135,8 +124,6 @@ class ImhulluCLI(cmd.Cmd):
         port = args[2]
 
         self._compile_agent(server, port)
-
-        return
 
         create_agent_payload = {
             "name": name
