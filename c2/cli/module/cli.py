@@ -87,14 +87,14 @@ class ImhulluCLI(cmd.Cmd):
         self._agent_uuid = agent_uuid
         self.prompt = f"{self._agent_uuid}\n{UNDERLINE}Imhullu>{RESET} ";
 
-    def _compile_agent(self, name, server, port):
+    def _compile_agent(self, name, server, port, uuid):
         """modify agent server and port then compiler"""
         pi_server = ''
         for char in server:
             pi_server += "'" + char + "'" + ','
         pi_server += '0'  # null terminator
 
-        command = ["make", f'SERVER_M="SERVER=\\"{pi_server}\\""', f'PORT_M="PORT=\\"{port}\\""']
+        command = ["make", f'SERVER_M="SERVER=\\"{pi_server}\\""', f'PORT_M="PORT=\\"{port}\\""', f'UUID_M="UUID=\\"{uuid}\\""']
         process = subprocess.Popen(command, cwd="../agent/", stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
         while True:
@@ -123,16 +123,16 @@ class ImhulluCLI(cmd.Cmd):
         server = args[1]
         port = args[2]
 
-        self._compile_agent(name, server, port)
-
         create_agent_payload = {
             "name": name
         }
-
         endpoint = "/create_agent/"
         create_agent_payload_json = json.dumps(create_agent_payload)
-        agent_uuid = self._api_post_req(endpoint, post_data=create_agent_payload_json)
-        print(agent_uuid)
+        uuid = self._api_post_req(endpoint, post_data=create_agent_payload_json)
+
+        self._compile_agent(name, server, port, uuid)
+
+        print(uuid + '\n')
 
     def _shutdown_agent(self, uuid):
         """send shutdown signal to agent with the relevant uuid"""
