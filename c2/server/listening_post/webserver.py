@@ -77,8 +77,9 @@ class WebServer:
     def remove_agent():
         db = DBServer()
         body = request.get_json()
-        agent_uuid = body["agent_uuid"]
-        db.delete_row(TableName.AGENT_TABLE.value, (agent_uuid,))
+        json_obj = json.loads(body)
+        uuid = json_obj["uuid"]
+        db.delete_row(TableName.AGENT_TABLE.value, (uuid,))
         return "Agent deleted"
 
     @app.route("/agents/", methods=["GET"])

@@ -136,10 +136,14 @@ class ImhulluCLI(cmd.Cmd):
 
     def do_remove_agent(self, uuid):
         """remove agent (WIP and terminate implant)\n\tUsage: <command> <agent_uuid>\n"""
+        if not uuid:
+            print("Usage: " + InputUsage.RemoveAgent.value + '\n')
+            return
+
         remove_agent_payload = {
             "uuid": uuid
         }
-        endpoint = "/create_agent/"
+        endpoint = "/remove_agent/"
         remove_agent_payload_json = json.dumps(remove_agent_payload)
         print(self._api_post_req(endpoint, post_data=remove_agent_payload_json))
 
