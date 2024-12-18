@@ -72,6 +72,15 @@ class WebServer:
         db.insert_row(TableName.AGENT_TABLE.value, (agent_uuid, agent_name))
         return agent_uuid
 
+    @app.route("/remove_agent/", methods=["POST"])
+    @localhost_only
+    def remove_agent():
+        db = DBServer()
+        body = request.get_json()
+        agent_uuid = body["agent_uuid"]
+        db.delete_row(TableName.AGENT_TABLE.value, (agent_uuid,))
+        return "Agent deleted"
+
     @app.route("/agents/", methods=["GET"])
     @localhost_only
     def list_agents():
