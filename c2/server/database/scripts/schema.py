@@ -43,7 +43,6 @@ sf_task =           f"""
                     WHERE agent_uuid = (?);
                     """
 
-#NOTE: For now the only way this is used is to list all the agents. Therefore the `LIKE` keyword.
 sf_agent =          f"""
                     SELECT * FROM {TableName.AGENT_TABLE.value}
                     WHERE uuid LIKE (?);

