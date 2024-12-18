@@ -7,6 +7,9 @@ from module.input_usage import InputUsage
 from module.input_type import InputType
 from module.module_exception import *
 import tableprint
+import subprocess
+import importlib
+import os
 
 UNDERLINE = "\033[4m"
 RESET = "\033[0m"
@@ -84,11 +87,56 @@ class ImhulluCLI(cmd.Cmd):
         self._agent_uuid = agent_uuid
         self.prompt = f"{agent_uuid}\n{UNDERLINE}Imhullu>{RESET} ";
 
-    def do_create_agent(self, name, server, port):
+    def _compile_agent(self, server, port):
+        """modify agent server and port then compiler"""
+        pi_server = ''
+        for char in server:
+            pi_server += "'" + char + "'" + ','
+        pi_server += '0'  # null terminator
+
+        command = ["make", f'SERVER_M="SERVER=\\"{pi_server}\\""', f'PORT_M="PORT=\\"{port}\\""']
+        process = subprocess.Popen(command, cwd="../agent/", stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+        while True:
+            # Read a line from the output
+            output = process.stdout.readline()
+            
+            # If the output is empty and the process has finished, break the loop
+            if output == '' and process.poll() is not None:
+                break
+            
+            # If there is output, print it
+            if output:
+                print(output.strip())
+
+        # Wait for the process to complete and get the return code
+        return_code = process.wait()
+
+        """
+        result = subprocess.run(
+            command,
+            cwd="../agent/",
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        """
+
+    def do_create_agent(self, args):
         """create a new agent\n\t<command> <name> <server> <port>\n"""
-        if not name:
+        if not args:
             print("Usage: " + InputUsage.CreateAgent.value + '\n')
             return
+
+        args = args.split(' ')
+        name = args[0]
+        server = args[1]
+        port = args[2]
+
+        self._compile_agent(server, port)
+
+        return
 
         create_agent_payload = {
             "name": name
