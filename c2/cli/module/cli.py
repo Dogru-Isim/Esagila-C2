@@ -134,6 +134,15 @@ class ImhulluCLI(cmd.Cmd):
         agent_uuid = self._api_post_req(endpoint, post_data=create_agent_payload_json)
         print(agent_uuid)
 
+    def do_remove_agent(self, uuid):
+        """remove agent (WIP and terminate implant)\n\tUsage: <command> <agent_uuid>"""
+        remove_agent_payload = {
+            "uuid": uuid
+        }
+        endpoint = "/create_agent/"
+        remove_agent_payload_json = json.dumps(remove_agent_payload)
+        print(self._api_post_req(endpoint, post_data=remove_agent_payload_json)
+
     def do_list_agents(self, args):
         """list every agents\n\tUsage: <command>\n"""
         headers = ['Agent ID', 'Agent UUID', 'Agent Name']
