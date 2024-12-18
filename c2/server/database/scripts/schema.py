@@ -76,6 +76,6 @@ df_task =           f"""
 
 df_agent =          f"""
                     DELETE FROM {TableName.AGENT_TABLE.value}
-                    WHERE id = (?);
+                    WHERE uuid = (?);
                     """
 
