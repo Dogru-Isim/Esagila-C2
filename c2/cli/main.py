@@ -16,6 +16,8 @@ def main():
         except requests.exceptions.ConnectionError:
             intro = "\n"
             print("Can't connect to server")
+        except KeyboardInterrupt:
+            intro = "\n"
         except ImhulluModuleReloadException as e:
             match e:
                 case ImhulluCLIReloadedException():
