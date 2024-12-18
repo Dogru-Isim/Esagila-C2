@@ -141,7 +141,7 @@ class ImhulluCLI(cmd.Cmd):
         }
         endpoint = "/create_agent/"
         remove_agent_payload_json = json.dumps(remove_agent_payload)
-        print(self._api_post_req(endpoint, post_data=remove_agent_payload_json)
+        print(self._api_post_req(endpoint, post_data=remove_agent_payload_json))
 
     def do_list_agents(self, args):
         """list every agents\n\tUsage: <command>\n"""
