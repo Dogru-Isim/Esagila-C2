@@ -96,8 +96,6 @@ class WebServer:
         body = request.get_json()
         json_obj = json.loads(body)
         agent = db.read_rows(TableName.AGENT_TABLE.value, (json_obj["uuid"],))
-        print(agent)
-        print(type(agent))
         data = {
             "id": agent[0][0],
             "uuid": agent[0][1],

