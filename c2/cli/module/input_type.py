@@ -11,3 +11,5 @@ class InputType(Enum):
     ListTasks = "list_tasks"
     GetTaskOutput = "get_task_output"
     ChangeAgentUUID = "change_agent_uuid"
+    #
+    AgentShutdown = "shutdown"

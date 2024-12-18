@@ -136,6 +136,17 @@ class ImhulluCLI(cmd.Cmd):
         agent_uuid = self._api_post_req(endpoint, post_data=create_agent_payload_json)
         print(agent_uuid)
 
+    def _shutdown_agent(self, uuid):
+        """send shutdown signal to agent with the relevant uuid"""
+        task = {
+            "task": "",
+            "task_type": InputType.AgentShutdown.value,
+            "agent_uuid": self.uuid
+        }
+
+        print(self._create_task(task) + '\n')
+
+
     def do_remove_agent(self, uuid):
         """remove agent (WIP and terminate implant)\n\tUsage: <command> <agent_uuid>\n"""
         if not uuid:
@@ -149,6 +160,8 @@ class ImhulluCLI(cmd.Cmd):
         endpoint = "/remove_agent/"
         remove_agent_payload_json = json.dumps(remove_agent_payload)
         print(self._api_post_req(endpoint, post_data=remove_agent_payload_json))
+        self._shutdown_agent(uuid)
+        print("Agent terminated")
 
     def do_list_agents(self, args):
         """list every agents\n\tUsage: <command>\n"""
@@ -196,7 +209,7 @@ class ImhulluCLI(cmd.Cmd):
             "agent_uuid": self._agent_uuid
         }
 
-        print(self._create_task(task)) + '\n'
+        print(self._create_task(task) + '\n')
 
     @agent_uuid_required
     def do_list_tasks(self, args):
