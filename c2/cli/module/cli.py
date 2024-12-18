@@ -135,7 +135,7 @@ class ImhulluCLI(cmd.Cmd):
         print(agent_uuid)
 
     def do_remove_agent(self, uuid):
-        """remove agent (WIP and terminate implant)\n\tUsage: <command> <agent_uuid>"""
+        """remove agent (WIP and terminate implant)\n\tUsage: <command> <agent_uuid>\n"""
         remove_agent_payload = {
             "uuid": uuid
         }
