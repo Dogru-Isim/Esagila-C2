@@ -185,6 +185,9 @@ typedef BOOL(WINAPI *WINHTTPCLOSEHANDLE)(HINTERNET);
 // shlwapi.dll (StrToIntW)
 typedef DWORD(WINAPI *STRTOINTW)(PCWSTR);
 
+// processthreadsapi
+typedef VOID(WINAPI *EXITTHREAD)(DWORD dwExitCode);
+
 // standard esagila api
 typedef CHAR*(WINAPI *RUNCMD)(CCHAR* cmd, PDWORD size);
 typedef CHAR*(WINAPI *WHOAMI)();
@@ -219,6 +222,7 @@ typedef struct API_
     UINT64 CryptBinaryToStringA;
     UINT64 StrToIntW;
     UINT64 snprintf;
+    UINT64 ExitThread;
 } API, *PAPI;
 
 typedef struct ESG_STD_API_

