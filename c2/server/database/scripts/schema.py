@@ -26,6 +26,8 @@ ct_agent =          f"""
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         uuid TEXT NOT NULL,
                         name TEXT
+                        server TEXT NOT NULL,
+                        port TEXT NOT NULL
                     );
                     """
 
@@ -59,7 +61,7 @@ iit_task =          f"""
                     """
 
 iit_agent =         f"""
-                    INSERT INTO {TableName.AGENT_TABLE.value}(uuid, name)
+                    INSERT INTO {TableName.AGENT_TABLE.value}(uuid, name, server, port)
                     VALUES (?, ?);
                     """
 
