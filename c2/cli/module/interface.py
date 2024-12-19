@@ -12,7 +12,7 @@ import importlib
 import os
 
 class Interface:
-    def __init__(self, webserver, agent: Agent = None):
+    def __init__(self, webserver, agent:Agent = None):
         self._webserver = webserver
         self._agent = agent
 
@@ -24,18 +24,14 @@ class Interface:
     def agent(self):
         return self._agent
 
-    @webserver.setter
-    def agent_uuid(self, value):
-        self._agent_uuid = value
-
-    @agent_uuid.setter
-    def agent_uuid(self, value):
-        self._agent_uuid = value
+    @agent.setter
+    def agent(self, agent:Agent):
+        self._agent = agent
 
     def agent_uuid_required(func):
         @functools.wraps(func)  # Preserve metadata, namely the doc string
         def wrapper(self, *args, **kwargs):
-            if not self._agent_uuid:
+            if not self.agent.uuid:
                 return InterfaceMessages.AgentUUIDRequired
             return func(self, *args, **kwargs)
         return wrapper
@@ -71,7 +67,7 @@ class Interface:
         """
         endpoint = "/create_task/"
         task_json = task.jsonify()
-        response = self.api_post_req(endpoint, task_json, self._agent_uuid)
+        response = self.api_post_req(endpoint, task_json, self.agent.uuid)
         return response
 
     @agent_uuid_required
@@ -84,7 +80,7 @@ class Interface:
             InterfaceMessages.AgentUUIDRequired: Return value if fail
         """
         b64_task_params = b64encode(args.encode())
-        task: Task = Task(task_params=b64_task_params.decode(), task_type=InputType.Cmd.value, agent_uuid=self._agent_uuid)
+        task: Task = Task(task_params=b64_task_params.decode(), task_type=InputType.Cmd.value, agent_uuid=self.agent.uuid)
 
         return self.create_task(task) + '\n'
 
@@ -98,7 +94,7 @@ class Interface:
             InterfaceMessages.AgentUUIDRequired: Return value if fail
         """
         endpoint = "/get_task_output/"
-        response_raw = requests.get(self._webserver + endpoint + self._agent_uuid).text
+        response_raw = requests.get(self._webserver + endpoint + self.agent.uuid).text
         response_json = json.loads(response_raw)
         if not response_json:
             return ""
@@ -115,7 +111,7 @@ class Interface:
             InterfaceMessages.AgentUUIDRequired: The enum value if no agent is chosen
         """
         endpoint = "/tasks/"
-        response = self.api_get_req(endpoint, agent_uuid=self._agent_uuid)
+        response = self.api_get_req(endpoint, agent_uuid=self.agent.uuid)
         tasks: list[Task] = []
 
         if len(response) == 0:
@@ -138,7 +134,7 @@ class Interface:
             str: Response from the web server
             InterfaceMessages.AgentUUIDRequired: Return value if fail
         """
-        task = Task(task_type=InputType.Whoami.value, agent_uuid=self._agent_uuid)
+        task = Task(task_type=InputType.Whoami.value, agent_uuid=self.agent.uuid)
 
         return self.create_task(task) + '\n'
 
@@ -152,6 +148,6 @@ class Interface:
             response (str): Response from the web server if success
             InterfaceMessages.AgentUUIDRequired: Return value if fail
         """
-        task: Task = Task(task_type=InputType.AgentShutdown.value, agent_uuid=self._agent_uuid)
+        task: Task = Task(task_type=InputType.AgentShutdown.value, agent_uuid=self.agent.uuid)
         return self.create_task(task) + '\n'
 
