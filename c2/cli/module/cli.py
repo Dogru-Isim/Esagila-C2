@@ -10,6 +10,7 @@ import tableprint
 import subprocess
 import importlib
 import os
+from interface import Interface
 
 UNDERLINE = "\033[4m"
 RESET = "\033[0m"
