@@ -50,9 +50,10 @@ class Interface:
 
     def api_post_req(self, endpoint: str, post_data, agent_uuid: str=""):
         """
-        endpoint: /example
-        post_data: json data
-        uuid: agent_uuid
+        Parameters:
+            endpoint: /example
+            post_data: json data
+            uuid: agent_uuid
         """
         print(self._webserver+''.join(endpoint))
         response_raw = requests.post(self._webserver + ''.join(endpoint) + agent_uuid, json=post_data).text
@@ -62,6 +63,8 @@ class Interface:
         """
         General function for creating tasks
 
+        Parameters:
+            task (list[str]): task to create
         Returns:
             str: Return value from the server
         """
