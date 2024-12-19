@@ -12,17 +12,17 @@ import importlib
 import os
 
 class Interface:
-    def __init__(self, webserver, agent_uuid=""):
+    def __init__(self, webserver, agent: Agent = None):
         self._webserver = webserver
-        self._agent_uuid = agent_uuid
+        self._agent = agent
 
     @property
     def webserver(self):
         return self._webserver
 
     @property
-    def agent_uuid(self):
-        return self._agent_uuid
+    def agent(self):
+        return self._agent
 
     @webserver.setter
     def agent_uuid(self, value):

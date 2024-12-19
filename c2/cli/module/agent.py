@@ -1,6 +1,7 @@
 class Agent:
-    def __init__(self, id:int = -1, name:str = "", server:str = "", port:str = ""):
+    def __init__(self, id:int = -1, uuid:str = "", name:str = "", server:str = "", port:str = ""):
         self._id = id
+        self._uuid = uuid
         self._name = name
         self._server = server
         self._port = port
@@ -8,6 +9,14 @@ class Agent:
     @property
     def id(self):
         return self._id
+
+    @property
+    def uuid(self):
+        return self._uuid
+
+    @uuid.setter
+    def agent_uuid(self, value):
+        self._agent_uuid = value
 
     @property
     def name(self):
