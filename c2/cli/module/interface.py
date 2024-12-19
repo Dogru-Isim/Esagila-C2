@@ -76,7 +76,7 @@ class Interface:
             "agent_uuid": self._agent_uuid
         }
 
-        return self.interface.create_task(task) + '\n'
+        return self.create_task(task) + '\n'
 
     @agent_uuid_required
     def get_task_output(self):
