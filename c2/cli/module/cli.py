@@ -21,15 +21,6 @@ class ImhulluCLI(cmd.Cmd):
     interface = Interface("http://127.0.0.1:5001")
     prompt = f"{UNDERLINE}Imhullu>{RESET} "
     
-    def agent_uuid_required(func):
-        @functools.wraps(func)  # Preserve metadata, namely the doc string
-        def wrapper(self, *args, **kwargs):
-            if not self.interface.agent_uuid:
-                print("Choose an agent")
-                return
-            return func(self, *args, **kwargs)
-        return wrapper
-
     # override the default functionality
     # https://docs.python.org/3/library/cmd.html#cmd.Cmd.emptyline
     def emptyline(self):
@@ -178,7 +169,6 @@ class ImhulluCLI(cmd.Cmd):
 
         tableprint.table(agents, headers)
 
-    @agent_uuid_required
     def do_cmd(self, args):
         """create a new cmd task\n\tUsage: <command> <arg1> <arg2> ...\n"""
         if not args:
@@ -193,13 +183,11 @@ class ImhulluCLI(cmd.Cmd):
 
         print(status)
 
-    @agent_uuid_required
     def do_whoami(self, line):
         """get user info through GetUserName\n\tUsage: <command>\n"""
         result = self.interface.whoami()
         print(result)
 
-    @agent_uuid_required
     def do_list_tasks(self, args):
         """show a list of all the agents\n\tUsage: <command>\n"""
         headers = ['Task ID', 'Command Args', 'Command Type', 'Agent UUID']
@@ -227,7 +215,6 @@ class ImhulluCLI(cmd.Cmd):
 
         tableprint.table(rows, headers)
 
-    @agent_uuid_required
     def do_get_task_output(self, args):
         """return the output of the last task\n\tUsage: <command>\n"""
         output = self.interface.get_task_output()
