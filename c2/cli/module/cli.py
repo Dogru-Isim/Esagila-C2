@@ -184,13 +184,6 @@ class ImhulluCLI(cmd.Cmd):
 
         tableprint.table(agents, headers)
 
-    def _create_task(self, task):
-        """general function for creating tasks\nevery task creation function calls this"""
-        endpoint = "/create_task/"
-        task_json = json.dumps(task)
-        response = self.interface.api_post_req(endpoint, task_json, self._agent_uuid)
-        return response
-
     @agent_uuid_required
     def do_cmd(self, args):
         """create a new cmd task\n\tUsage: <command> <arg1> <arg2> ...\n"""
@@ -198,15 +191,9 @@ class ImhulluCLI(cmd.Cmd):
             print("Usage: " + InputUsage.Cmd.value + '\n')
             return
 
-        task = args
-        b64EncodedTask = b64encode(task.encode())
-        task = {
-            "task": b64EncodedTask.decode(),
-            "task_type": InputType.Cmd.value,    # cmd
-            "agent_uuid": self._agent_uuid
-        }
+        status = self.interface.cmd(args)
 
-        print(self._create_task(task) + '\n')
+        print(status)
 
     @agent_uuid_required
     def do_whoami(self, line):

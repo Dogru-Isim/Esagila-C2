@@ -66,6 +66,19 @@ class Interface:
         return response
 
     @agent_uuid_required
+    def cmd(self, args):
+        """create a new cmd task"""
+        task = args
+        b64EncodedTask = b64encode(task.encode())
+        task = {
+            "task": b64EncodedTask.decode(),
+            "task_type": InputType.Cmd.value,    # cmd
+            "agent_uuid": self._agent_uuid
+        }
+
+        return self.interface.create_task(task) + '\n'
+
+    @agent_uuid_required
     def get_task_output(self):
         """return the output of the last task"""
         endpoint = "/get_task_output/"
