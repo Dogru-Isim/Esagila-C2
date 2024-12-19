@@ -5,7 +5,7 @@ from base64 import b64decode, b64encode
 from module.input_usage import InputUsage
 from module.input_type import InputType
 from module.module_exception import *
-from module.interface_messages import Messages
+from module.interface_messages import InterfaceMessages
 import subprocess
 import importlib
 import os
@@ -56,15 +56,28 @@ class Interface:
         """
         print(self._webserver+''.join(endpoint))
         response_raw = requests.post(self._webserver + ''.join(endpoint) + agent_uuid, json=post_data).text
-        return(response_raw)
+        return response_raw
 
     @agent_uuid_required
     def get_task_output(self):
-        """return the output of the last task\n\tUsage: <command>\n"""
+        """return the output of the last task"""
         endpoint = "/get_task_output/"
         response_raw = requests.get(self._webserver + endpoint + self._agent_uuid).text
         response_json = json.loads(response_raw)
         if not response_json:
             return "No output"
         return b64decode(response_json[-1][-1]).decode()     # last result_text
+
+    @agent_uuid_required
+    def get_tasks(self):
+        """list of all the agents"""
+        endpoint = "/tasks/"
+        tasks = self.api_get_req(endpoint, agent_uuid=self._agent_uuid)
+        for task in tasks:
+            task[1] = b64decode(task[1]).decode()    # decode command stored in b64
+
+        if len(tasks) == 0:
+            return InterfaceMessages.TaskQueueEmpty
+
+        return tasks
 

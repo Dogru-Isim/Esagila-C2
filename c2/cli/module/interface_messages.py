@@ -1,4 +1,7 @@
-class Messages:
-    AGENT_UUID_REQUIRED = "Agent UUID required"
+from enum import Enum
+
+class InterfaceMessages(Enum):
+    AgentUUIDRequired = "Agent UUID required"
+    TaskQueueEmpty = "Task queue empty"
 
 

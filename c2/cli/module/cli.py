@@ -11,6 +11,7 @@ import subprocess
 import importlib
 import os
 from module.interface import Interface
+from module.interface_messages import InterfaceMessages
 
 UNDERLINE = "\033[4m"
 RESET = "\033[0m"
@@ -222,15 +223,10 @@ class ImhulluCLI(cmd.Cmd):
     def do_list_tasks(self, args):
         """show a list of all the agents\n\tUsage: <command>\n"""
         headers = ['Task ID', 'Command Args', 'Command Type', 'Agent UUID']
-        endpoint = "/tasks/"
-        output = ""
-        tasks = self.interface.api_get_req(endpoint, agent_uuid=self._agent_uuid)
-        for task in tasks:
-            task[1] = b64decode(task[1]).decode()    # decode command stored in b64
-            output += '\n'
+        tasks = self.interface.get_tasks()
 
-        if len(tasks) == 0:
-            print("Task queue empty\n")
+        if tasks == InterfaceMessages.TaskQueueEmpty:
+            print(InterfaceMessages.TaskQueueEmpty.value + '\n')
             return
 
         tableprint.table(tasks, headers)
@@ -240,6 +236,7 @@ class ImhulluCLI(cmd.Cmd):
         """return the output of the last task\n\tUsage: <command>\n"""
         output = self.interface.get_task_output()
         print(output)
+        return
 
 if __name__ == '__main__':
     cli = ImhulluCLI()
