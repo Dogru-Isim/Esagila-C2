@@ -6,6 +6,7 @@ from module.input_usage import InputUsage
 from module.input_type import InputType
 from module.module_exception import *
 from module.interface_messages import InterfaceMessages
+from module.task import Task
 import subprocess
 import importlib
 import os
@@ -69,7 +70,8 @@ class Interface:
             response (str): Return value from the server
         """
         endpoint = "/create_task/"
-        task_json = json.dumps(task)
+        task_json = task.jsonify()
+        print(task_json)
         response = self.api_post_req(endpoint, task_json, self._agent_uuid)
         return response
 
@@ -80,14 +82,11 @@ class Interface:
 
         Returns:
             str: Return value from the server
+            InterfaceMessages.AgentUUIDRequired: Return value if fail
         """
-        b64EncodedTask = b64encode(args.encode())
-        task = Task()
-        task = {
-            "task": b64EncodedTask.decode(),
-            "task_type": InputType.Cmd.value,    # cmd
-            "agent_uuid": self._agent_uuid
-        }
+        b64_task_params = b64encode(args.encode())
+        task: Task = Task(task_params=b64_task_params.decode(), task_type=InputType.Cmd.value, agent_uuid=self._agent_uuid)
+        print(task.id)
 
         return self.create_task(task) + '\n'
 
@@ -98,6 +97,7 @@ class Interface:
 
         Returns:
             str: The return value, empty string if an output doesn't exist
+            InterfaceMessages.AgentUUIDRequired: Return value if fail
         """
         endpoint = "/get_task_output/"
         response_raw = requests.get(self._webserver + endpoint + self._agent_uuid).text
@@ -118,16 +118,16 @@ class Interface:
         """
         endpoint = "/tasks/"
         response = self.api_get_req(endpoint, agent_uuid=self._agent_uuid)
-        tasks: list[Task]
+        tasks: list[Task] = []
 
         if len(response) == 0:
             return InterfaceMessages.TaskQueueEmpty
 
-        for task in tasks:
+        for task in response:
             task[1] = b64decode(task[1]).decode()    # decode command stored in b64
 
         for task in response:
-            tasks.append(Task(task[0], task[1], task[2], task[3]))
+            tasks.append(Task(id=task[0], task_params=task[1], task_type=task[2], agent_uuid=task[3]))
 
         return tasks
 
@@ -137,13 +137,23 @@ class Interface:
         Get user info through GetUserName
 
         Returns:
-            str: Response from the web web server
+            str: Response from the web server
+            InterfaceMessages.AgentUUIDRequired: Return value if fail
         """
-        task = {
-            "task": "",
-            "task_type": InputType.Whoami.value,
-            "agent_uuid": self._agent_uuid
-        }
+        task = Task(task_type=InputType.Whoami.value, agent_uuid=self._agent_uuid)
 
+        return self.create_task(task) + '\n'
+
+    @agent_uuid_required
+    def shutdown_agent(self):
+        """
+        Send shutdown signal to the agent
+        Agent UUID required
+
+        Returns:
+            response (str): Response from the web server if success
+            InterfaceMessages.AgentUUIDRequired: Return value if fail
+        """
+        task: Task = Task(task_type=InputType.AgentShutdown.value, agent_uuid=self._agent_uuid)
         return self.create_task(task) + '\n'
 

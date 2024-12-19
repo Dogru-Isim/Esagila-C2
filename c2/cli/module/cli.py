@@ -141,20 +141,14 @@ class ImhulluCLI(cmd.Cmd):
 
         print(uuid + '\n')
 
-    def _shutdown_agent(self, uuid):
-        """send shutdown signal to agent with the relevant uuid"""
-        task = {
-            "task": "",
-            "task_type": InputType.AgentShutdown.value,
-            "agent_uuid": uuid
-        }
-
-        print(self._create_task(task) + '\n')
-
-    @agent_uuid_required
     def do_shutdown(self, args):
         """terminate implant\n\tUsage: <command>\n"""
-        self._shutdown_agent(self.interface.agent_uuid)
+        response: str|InterfaceMessages = self.interface.shutdown_agent()
+
+        if isinstance(response, InterfaceMessages) and response == InterfaceMessages.AgentUUIDRequired:
+            print(InterfaceMessages.value)
+        else:
+            print(response)
 
     def do_remove_agent(self, uuid):
         """remove agent (WIP and terminate implant)\n\tUsage: <command> <agent_uuid>\n"""
@@ -193,6 +187,10 @@ class ImhulluCLI(cmd.Cmd):
 
         status = self.interface.cmd(args)
 
+        if status == InterfaceMessages.AgentUUIDRequired:
+            print(status.value + '\n')
+            return
+
         print(status)
 
     @agent_uuid_required
@@ -215,7 +213,19 @@ class ImhulluCLI(cmd.Cmd):
             print(tasks.value + '\n')
             return
 
-        tableprint.table(tasks, headers)
+        rows = []
+        row  = []
+        for task in tasks:
+            row.append(task.id)
+            row.append(task.task_params)
+            row.append(task.task_type)
+            row.append(task.agent_uuid)
+            rows.append(row)
+            row = []
+
+        print(rows)
+
+        tableprint.table(rows, headers)
 
     @agent_uuid_required
     def do_get_task_output(self, args):
