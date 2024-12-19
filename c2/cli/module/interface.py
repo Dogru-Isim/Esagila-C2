@@ -23,6 +23,14 @@ class Interface:
     def agent_uuid(self):
         return self._agent_uuid
 
+    @webserver.setter
+    def agent_uuid(self, value):
+        self._webserver = value
+
+    @agent_uuid.setter
+    def agent_uuid(self, value):
+        self._agent_uuid = value
+
     def agent_uuid_required(func):
         @functools.wraps(func)  # Preserve metadata, namely the doc string
         def wrapper(self, *args, **kwargs):
@@ -51,7 +59,7 @@ class Interface:
         return(response_raw)
 
     @agent_uuid_required
-    def do_get_task_output(self):
+    def get_task_output(self):
         """return the output of the last task\n\tUsage: <command>\n"""
         endpoint = "/get_task_output/"
         response_raw = requests.get(self._webserver + endpoint + self._agent_uuid).text

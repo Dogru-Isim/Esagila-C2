@@ -85,7 +85,7 @@ class ImhulluCLI(cmd.Cmd):
             return
 
         self.interface.agent_uuid = agent_uuid
-        self.prompt = f"{inteface.agent_uuid}\n{UNDERLINE}Imhullu>{RESET} ";
+        self.prompt = f"{self.interface.agent_uuid}\n{UNDERLINE}Imhullu>{RESET} ";
 
     def _compile_agent(self, name, server, port, uuid):
         """modify agent server and port then compiler"""
