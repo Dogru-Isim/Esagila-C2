@@ -206,11 +206,13 @@ class ImhulluCLI(cmd.Cmd):
         """show a list of all the agents\n\tUsage: <command>\n"""
         headers = ['Task ID', 'Command Args', 'Command Type', 'Agent UUID']
         tasks = self.interface.get_tasks()
-        if tasks == InterfaceMessages.TaskQueueEmpty:
-            print("No task present\n")
 
         if tasks == InterfaceMessages.TaskQueueEmpty:
-            print(InterfaceMessages.TaskQueueEmpty.value + '\n')
+            print(tasks.value + '\n')
+            return
+
+        if tasks == InterfaceMessages.AgentUUIDRequired:
+            print(tasks.value + '\n')
             return
 
         tableprint.table(tasks, headers)

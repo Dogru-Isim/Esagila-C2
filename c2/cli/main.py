@@ -11,7 +11,6 @@ def main():
     imhullu = cli.ImhulluCLI()
     while (imhullu.running):
         try:
-            imhullu.do_change_agent_uuid("11e3b27c-a1e7-4224-b4d9-3af36fa2f0d0")
             imhullu.cmdloop(intro)
         except requests.exceptions.ConnectionError:
             intro = "\n"
