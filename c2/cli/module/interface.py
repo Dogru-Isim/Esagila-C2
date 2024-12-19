@@ -67,7 +67,12 @@ class Interface:
 
     @agent_uuid_required
     def cmd(self, args):
-        """create a new cmd task"""
+        """
+        Create a new cmd task
+
+        Returns:
+            str: Return value from the server
+        """
         task = args
         b64EncodedTask = b64encode(task.encode())
         task = {
@@ -121,7 +126,7 @@ class Interface:
         Get user info through GetUserName
 
         Returns:
-            str: The web server response
+            str: Response from the web web server
         """
         task = {
             "task": "",
