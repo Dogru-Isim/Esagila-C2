@@ -59,7 +59,12 @@ class Interface:
         return response_raw
 
     def create_task(self, task):
-        """general function for creating tasks"""
+        """
+        General function for creating tasks
+
+        Returns:
+            str: Return value from the server
+        """
         endpoint = "/create_task/"
         task_json = json.dumps(task)
         response = self.api_post_req(endpoint, task_json, self._agent_uuid)
