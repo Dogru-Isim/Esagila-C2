@@ -80,12 +80,17 @@ class Interface:
 
     @agent_uuid_required
     def get_task_output(self):
-        """return the output of the last task"""
+        """
+        Return the output of the last task
+
+        Returns:
+            str: The return value, empty string if an output doesn't exist
+        """
         endpoint = "/get_task_output/"
         response_raw = requests.get(self._webserver + endpoint + self._agent_uuid).text
         response_json = json.loads(response_raw)
         if not response_json:
-            return "No output"
+            return ""
         return b64decode(response_json[-1][-1]).decode()     # last result_text
 
     @agent_uuid_required
