@@ -211,13 +211,8 @@ class ImhulluCLI(cmd.Cmd):
     @agent_uuid_required
     def do_whoami(self, line):
         """get user info through GetUserName\n\tUsage: <command>\n"""
-        task = {
-            "task": "",
-            "task_type": InputType.Whoami.value,
-            "agent_uuid": self._agent_uuid
-        }
-
-        print(self._create_task(task) + '\n')
+        result = self.interface.whoami()
+        print(result)
 
     @agent_uuid_required
     def do_list_tasks(self, args):

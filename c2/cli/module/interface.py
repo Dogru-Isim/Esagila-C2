@@ -81,3 +81,14 @@ class Interface:
 
         return tasks
 
+    @agent_uuid_required
+    def whoami(self):
+        """get user info through GetUserName"""
+        task = {
+            "task": "",
+            "task_type": InputType.Whoami.value,
+            "agent_uuid": self._agent_uuid
+        }
+
+        return self._create_task(task) + '\n'
+
