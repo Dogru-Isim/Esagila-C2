@@ -59,14 +59,14 @@ class Interface:
         response_raw = requests.post(self._webserver + ''.join(endpoint) + agent_uuid, json=post_data).text
         return response_raw
 
-    def create_task(self, task):
+    def create_task(self, task: Task):
         """
         General function for creating tasks
 
         Parameters:
-            task (list[str]): task to create
+            task (Task): task to create
         Returns:
-            str: Return value from the server
+            response (str): Return value from the server
         """
         endpoint = "/create_task/"
         task_json = json.dumps(task)
@@ -81,8 +81,8 @@ class Interface:
         Returns:
             str: Return value from the server
         """
-        task = args
-        b64EncodedTask = b64encode(task.encode())
+        b64EncodedTask = b64encode(args.encode())
+        task = Task()
         task = {
             "task": b64EncodedTask.decode(),
             "task_type": InputType.Cmd.value,    # cmd
@@ -112,19 +112,22 @@ class Interface:
         Get all the tasks belonging to the current agent
 
         Returns:
-            list[list[]]: The return value if successful
+            list[Task]: The return value if successful
             InterfaceMessages.TaskQueueEmpty: The enum value if no task is present
             InterfaceMessages.AgentUUIDRequired: The enum value if no agent is chosen
         """
         endpoint = "/tasks/"
-        tasks = self.api_get_req(endpoint, agent_uuid=self._agent_uuid)
+        response = self.api_get_req(endpoint, agent_uuid=self._agent_uuid)
+        tasks: list[Task]
 
-        print(tasks)
-        if len(tasks) == 0:
+        if len(response) == 0:
             return InterfaceMessages.TaskQueueEmpty
 
         for task in tasks:
             task[1] = b64decode(task[1]).decode()    # decode command stored in b64
+
+        for task in response:
+            tasks.append(Task(task[0], task[1], task[2], task[3]))
 
         return tasks
 

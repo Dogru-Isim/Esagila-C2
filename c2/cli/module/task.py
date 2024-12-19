@@ -1,5 +1,5 @@
 class Task:
-    def __init__(self, id, task_params, task_type, agent_uuid):
+    def __init__(self, id: int, task_params: str, task_type: str, agent_uuid: str):
         self._id = id
         self._task_params = task_params
         self._task_type = task_type

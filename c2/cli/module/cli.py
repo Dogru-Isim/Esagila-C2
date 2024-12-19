@@ -205,7 +205,7 @@ class ImhulluCLI(cmd.Cmd):
     def do_list_tasks(self, args):
         """show a list of all the agents\n\tUsage: <command>\n"""
         headers = ['Task ID', 'Command Args', 'Command Type', 'Agent UUID']
-        tasks = self.interface.get_tasks()
+        tasks: list[Task] | InterfaceMessages = self.interface.get_tasks()
 
         if tasks == InterfaceMessages.TaskQueueEmpty:
             print(tasks.value + '\n')
