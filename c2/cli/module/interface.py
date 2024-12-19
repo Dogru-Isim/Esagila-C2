@@ -25,7 +25,7 @@ class Interface:
 
     @webserver.setter
     def agent_uuid(self, value):
-        self._webserver = value
+        self._agent_uuid = value
 
     @agent_uuid.setter
     def agent_uuid(self, value):
@@ -35,7 +35,7 @@ class Interface:
         @functools.wraps(func)  # Preserve metadata, namely the doc string
         def wrapper(self, *args, **kwargs):
             if not self._agent_uuid:
-                return Messages.AGENT_UUID_REQUIRED
+                return InterfaceMessages.AgentUUIDRequired.value
             return func(self, *args, **kwargs)
         return wrapper
 
@@ -90,7 +90,13 @@ class Interface:
 
     @agent_uuid_required
     def get_tasks(self):
-        """list of all the agents"""
+        """
+        Get all the tasks belonging to the currect agent
+
+        Returns:
+            list[list[]]: The return value if successful
+            InterfaceMessages.TaskQueueEmpty: The enum value if no task is present
+        """
         endpoint = "/tasks/"
         tasks = self.api_get_req(endpoint, agent_uuid=self._agent_uuid)
         for task in tasks:
