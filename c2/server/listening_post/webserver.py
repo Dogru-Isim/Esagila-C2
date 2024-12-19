@@ -32,6 +32,7 @@ class WebServer:
         db = DBServer()
         body = request.get_json()
         json_obj = json.loads(body)  # json_obj is a dict now
+        print("Hi: ", json_obj)
         task = json_obj["task"]
         task_type = json_obj["task_type"]
         agent_uuid = json_obj["agent_uuid"]

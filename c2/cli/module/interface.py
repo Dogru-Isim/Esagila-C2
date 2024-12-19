@@ -71,7 +71,6 @@ class Interface:
         """
         endpoint = "/create_task/"
         task_json = task.jsonify()
-        print(task_json)
         response = self.api_post_req(endpoint, task_json, self._agent_uuid)
         return response
 
@@ -86,7 +85,6 @@ class Interface:
         """
         b64_task_params = b64encode(args.encode())
         task: Task = Task(task_params=b64_task_params.decode(), task_type=InputType.Cmd.value, agent_uuid=self._agent_uuid)
-        print(task.id)
 
         return self.create_task(task) + '\n'
 
@@ -124,7 +122,7 @@ class Interface:
             return InterfaceMessages.TaskQueueEmpty
 
         for task in response:
-            task[1] = b64decode(task[1]).decode()    # decode command stored in b64
+            task[1] = b64decode(task[1]).decode()    # decode task_params
 
         for task in response:
             tasks.append(Task(id=task[0], task_params=task[1], task_type=task[2], agent_uuid=task[3]))
