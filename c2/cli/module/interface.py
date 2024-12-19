@@ -58,6 +58,13 @@ class Interface:
         response_raw = requests.post(self._webserver + ''.join(endpoint) + agent_uuid, json=post_data).text
         return response_raw
 
+    def create_task(self, task):
+        """general function for creating tasks"""
+        endpoint = "/create_task/"
+        task_json = json.dumps(task)
+        response = self.api_post_req(endpoint, task_json, self._agent_uuid)
+        return response
+
     @agent_uuid_required
     def get_task_output(self):
         """return the output of the last task"""
@@ -90,5 +97,5 @@ class Interface:
             "agent_uuid": self._agent_uuid
         }
 
-        return self._create_task(task) + '\n'
+        return self.create_task(task) + '\n'
 
