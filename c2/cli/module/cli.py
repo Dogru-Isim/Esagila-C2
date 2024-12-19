@@ -10,21 +10,20 @@ import tableprint
 import subprocess
 import importlib
 import os
-from interface import Interface
+from module.interface import Interface
 
 UNDERLINE = "\033[4m"
 RESET = "\033[0m"
 
 class ImhulluCLI(cmd.Cmd):
     running = 1
-    _webserver = "http://127.0.0.1:5001"
-    _agent_uuid = ""
+    interface = Interface("http://127.0.0.1:5001")
     prompt = f"{UNDERLINE}Imhullu>{RESET} "
     
     def agent_uuid_required(func):
         @functools.wraps(func)  # Preserve metadata, namely the doc string
         def wrapper(self, *args, **kwargs):
-            if not self._agent_uuid:
+            if not self.interface.agent_uuid:
                 print("Choose an agent")
                 return
             return func(self, *args, **kwargs)
@@ -85,8 +84,8 @@ class ImhulluCLI(cmd.Cmd):
             print("Usage: " + InputUsage.ChangeAgentUUID.value + '\n')
             return
 
-        self._agent_uuid = agent_uuid
-        self.prompt = f"{self._agent_uuid}\n{UNDERLINE}Imhullu>{RESET} ";
+        self.interface.agent_uuid = agent_uuid
+        self.prompt = f"{inteface.agent_uuid}\n{UNDERLINE}Imhullu>{RESET} ";
 
     def _compile_agent(self, name, server, port, uuid):
         """modify agent server and port then compiler"""
@@ -135,7 +134,7 @@ class ImhulluCLI(cmd.Cmd):
         }
         endpoint = "/create_agent/"
         create_agent_payload_json = json.dumps(create_agent_payload)
-        uuid = self._api_post_req(endpoint, post_data=create_agent_payload_json)
+        uuid = self.interface.api_post_req(endpoint, post_data=create_agent_payload_json)
 
         self._compile_agent(name, server, port, uuid)
 
@@ -154,7 +153,7 @@ class ImhulluCLI(cmd.Cmd):
     @agent_uuid_required
     def do_shutdown(self, args):
         """terminate implant\n\tUsage: <command>\n"""
-        self._shutdown_agent(self._agent_uuid)
+        self._shutdown_agent(self.interface.agent_uuid)
 
     def do_remove_agent(self, uuid):
         """remove agent (WIP and terminate implant)\n\tUsage: <command> <agent_uuid>\n"""
@@ -168,7 +167,7 @@ class ImhulluCLI(cmd.Cmd):
 
         endpoint = "/remove_agent/"
         remove_agent_payload_json = json.dumps(remove_agent_payload)
-        print(self._api_post_req(endpoint, post_data=remove_agent_payload_json))
+        print(self.interface.api_post_req(endpoint, post_data=remove_agent_payload_json))
         print("Agent terminated")
 
     def do_list_agents(self, args):
@@ -176,7 +175,7 @@ class ImhulluCLI(cmd.Cmd):
         headers = ['Agent ID', 'Agent UUID', 'Agent Name']
         endpoint = "/agents/"
         output = ""
-        agents = self._api_get_req(endpoint)
+        agents = self.interface.api_get_req(endpoint)
 
         if len(agents) == 0:
             print("No agent present")
@@ -188,7 +187,7 @@ class ImhulluCLI(cmd.Cmd):
         """general function for creating tasks\nevery task creation function calls this"""
         endpoint = "/create_task/"
         task_json = json.dumps(task)
-        response = self._api_post_req(endpoint, task_json, self._agent_uuid)
+        response = self.interface.api_post_req(endpoint, task_json, self._agent_uuid)
         return response
 
     @agent_uuid_required
@@ -225,7 +224,7 @@ class ImhulluCLI(cmd.Cmd):
         headers = ['Task ID', 'Command Args', 'Command Type', 'Agent UUID']
         endpoint = "/tasks/"
         output = ""
-        tasks = self._api_get_req(endpoint, agent_uuid=self._agent_uuid)
+        tasks = self.interface.api_get_req(endpoint, agent_uuid=self._agent_uuid)
         for task in tasks:
             task[1] = b64decode(task[1]).decode()    # decode command stored in b64
             output += '\n'
@@ -239,32 +238,8 @@ class ImhulluCLI(cmd.Cmd):
     @agent_uuid_required
     def do_get_task_output(self, args):
         """return the output of the last task\n\tUsage: <command>\n"""
-        endpoint = "/get_task_output/"
-        response_raw = requests.get(self._webserver + endpoint + self._agent_uuid).text
-        response_json = json.loads(response_raw)
-        if not response_json:
-            print("No output")
-            return
-        print(b64decode(response_json[-1][-1]).decode())     # last result_text
-
-    def _api_get_req(self, endpoint: str, agent_uuid: str=""):
-        """
-        endpoint: /example
-        uuid: agent_uuid
-        """
-        response_raw = requests.get(self._webserver + endpoint + agent_uuid).text
-        response_json = json.loads(response_raw)
-        return response_json
-
-    def _api_post_req(self, endpoint: str, post_data, agent_uuid: str=""):
-        """
-        endpoint: /example
-        post_data: json data
-        uuid: agent_uuid
-        """
-        print(self._webserver+''.join(endpoint))
-        response_raw = requests.post(self._webserver + ''.join(endpoint) + agent_uuid, json=post_data).text
-        return(response_raw)
+        output = self.interface.get_task_output()
+        print(output)
 
 if __name__ == '__main__':
     cli = ImhulluCLI()

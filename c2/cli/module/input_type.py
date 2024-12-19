@@ -13,3 +13,4 @@ class InputType(Enum):
     ChangeAgentUUID = "change_agent_uuid"
     #
     AgentShutdown = "shutdown"
+
