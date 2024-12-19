@@ -112,7 +112,12 @@ class Interface:
 
     @agent_uuid_required
     def whoami(self):
-        """get user info through GetUserName"""
+        """
+        Get user info through GetUserName
+
+        Returns:
+            str: The web server response
+        """
         task = {
             "task": "",
             "task_type": InputType.Whoami.value,
