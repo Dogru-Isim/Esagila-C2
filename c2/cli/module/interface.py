@@ -25,12 +25,6 @@ class Interface:
     def agent(self):
         return self._agent
 
-    """
-    @agent.setter
-    def agent(self, agent:Agent):
-        self._agent = agent
-    """
-
     def agent_uuid_required(func):
         @functools.wraps(func)  # Preserve metadata, namely the doc string
         def wrapper(self, *args, **kwargs):
