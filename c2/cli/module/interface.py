@@ -32,7 +32,7 @@ class Interface:
     def agent_uuid_required(func):
         @functools.wraps(func)  # Preserve metadata, namely the doc string
         def wrapper(self, *args, **kwargs):
-            if not self.agent.uuid:
+            if not self.agent:
                 return InterfaceMessages.AgentUUIDRequired
             return func(self, *args, **kwargs)
         return wrapper
@@ -232,3 +232,27 @@ class Interface:
         agent_json = agent.jsonify()
         response = self.api_post_req(endpoint, post_data=agent_json)
         return "Agent terminated"
+
+    def get_agent(self, uuid:str) -> Agent:
+        """
+        Fetch the agent with the `uuid`
+        Parameters:
+            uuid (str): agent uuid
+        Returns:
+            agent (Agent): agent with the `uuid`
+        """
+        endpoint = "/get_agent/"
+        data = {"uuid": uuid}
+        response = self.api_post_req(endpoint, post_data=json.dumps(data))
+        agent_dict = json.loads(response)
+        agent = Agent(agent_dict["id"], agent_dict["uuid"] , agent_dict["name"], agent_dict["server"], agent_dict["port"])
+        return agent
+
+    def change_agent(self, uuid:str):
+        """
+        Change current agent
+        Parameters:
+            uuid (str): uuid of the agent to switch to
+        """
+        self.agent = self.get_agent(uuid)
+

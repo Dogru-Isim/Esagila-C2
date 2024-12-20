@@ -71,14 +71,15 @@ class ImhulluCLI(cmd.Cmd):
             completions = [param for param in params if param.startswith(text)]
         return completions
 
-    def do_change_agent_uuid(self, agent_uuid: str):
+    def do_change_agent(self, agent_uuid: str):
         """change current agent uuid\n\tUsage: <command> <agent_uuid>\n"""
         if not agent_uuid:
             print("Usage: " + InputUsage.ChangeAgentUUID.value + '\n')
             return
 
-        self.interface.agent_uuid = agent_uuid
-        self.prompt = f"{self.interface.agent_uuid}\n{UNDERLINE}Imhullu>{RESET} ";
+        self.interface.change_agent(agent_uuid)
+        print()
+        self.prompt = f"{self.interface.agent.uuid}\n{UNDERLINE}Imhullu>{RESET} ";
 
     def _compile_agent(self, name, server, port, uuid):
         """modify agent server and port then compiler"""

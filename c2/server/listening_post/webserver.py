@@ -102,7 +102,9 @@ class WebServer:
         data = {
             "id": agent[0][0],
             "uuid": agent[0][1],
-            "name": agent[0][2]
+            "name": agent[0][2],
+            "server": agent[0][3],
+            "port": agent[0][4]
         }
         return jsonify(data)
 
