@@ -187,7 +187,7 @@ class ImhulluCLI(cmd.Cmd):
 
         status = self.interface.cmd(args)
 
-        if status == InterfaceMessages.AgentUUIDRequired:
+        if isinstance(status, InterfaceMessages) and status == InterfaceMessages.AgentUUIDRequired:
             print(status.value + '\n')
             return
 
