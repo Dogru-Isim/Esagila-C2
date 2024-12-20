@@ -15,8 +15,8 @@ class Agent:
         return self._uuid
 
     @uuid.setter
-    def agent_uuid(self, value):
-        self._agent_uuid = value
+    def uuid(self, value):
+        self._uuid = value
 
     @property
     def name(self):

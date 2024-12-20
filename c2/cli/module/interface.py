@@ -151,3 +151,18 @@ class Interface:
         task: Task = Task(task_type=InputType.AgentShutdown.value, agent_uuid=self.agent.uuid)
         return self.create_task(task) + '\n'
 
+    def get_agents(self) -> list[Agent] | InterfaceMessages:
+        """list every agents\n\tUsage: <command>\n"""
+        endpoint = "/agents/"
+        output = ""
+        response = self.api_get_req(endpoint)
+
+        if len(response) == 0:
+            return InterfaceMessages.NoAgentPresent
+
+        agents:list[Agent] = []
+        for agent in response:
+            agents.append(Agent(id=agent[0], uuid=agent[1], name=agent[2], server=agent[3], port=agent[4]))
+
+        return agents
+
