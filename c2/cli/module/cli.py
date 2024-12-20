@@ -119,9 +119,24 @@ class ImhulluCLI(cmd.Cmd):
             return
 
         args = args.split(' ')
-        uuid = self.interface.create_agent(Agent(name=args[0], server=args[1], port=args[2]))
+        uuid, process = self.interface.create_agent(Agent(name=args[0], server=args[1], port=args[2]))
 
-        print(uuid + '\n')
+        while True:
+            # Read a line from the output
+            output = process.stdout.readline()
+            
+            # If the output is empty and the process has finished, break the loop
+            if output == '' and process.poll() is not None:
+                break
+            
+            # If there is output, print it
+            if output:
+                print(output.strip())
+
+        # Wait for the process to complete and get the return code
+        return_code = process.wait()
+
+        print("New agent UUID: " + uuid + '\n')
 
     def do_shutdown(self, args):
         """terminate implant\n\tUsage: <command>\n"""

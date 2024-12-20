@@ -179,15 +179,18 @@ class Interface:
 
         Parameters:
             agent (Agent): instance of Agent with name (optional), server and port
+        Returns:
+            uuid (str): newly created agent's uuid
+            process handle to process created by subprocess.Popen
         """
         endpoint = "/create_agent/"
         agent_json = agent.jsonify()
 
         uuid = self.api_post_req(endpoint, post_data=agent_json)
 
-        self._compile_agent(agent.name, agent.server, agent.port, agent.uuid)
+        process = self._compile_agent(agent.name, agent.server, agent.port, agent.uuid)
 
-        return uuid
+        return uuid, process
 
     def _compile_agent(self, name, server, port, uuid):
         """
@@ -197,6 +200,8 @@ class Interface:
             server (str): callback server
             port (str): callback server port
             uuid (str): agent uuid
+        Returns:
+            process: handle to process returned by subprocess.Popen
         """
         pi_server = ''
         pi_uuid = ''
@@ -212,6 +217,9 @@ class Interface:
         print(command[0] + ' ' + command[1] + ' ' + command[2] + ' ' + command[3])
         process = subprocess.Popen(command, cwd="../agent/", stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
+        return process
+
+        """
         while True:
             # Read a line from the output
             output = process.stdout.readline()
@@ -226,6 +234,7 @@ class Interface:
 
         # Wait for the process to complete and get the return code
         return_code = process.wait()
+        """
 
     def remove_agent(self, agent:Agent):
         """
