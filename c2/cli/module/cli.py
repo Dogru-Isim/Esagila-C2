@@ -6,6 +6,7 @@ from base64 import b64decode, b64encode
 from module.input_usage import InputUsage
 from module.input_type import InputType
 from module.module_exception import *
+from module.agent import Agent
 import tableprint
 import subprocess
 import importlib
@@ -117,7 +118,7 @@ class ImhulluCLI(cmd.Cmd):
             return
 
         args = args.split(' ')
-        uuid = interface.create_agent(Agent(name=args[0], server=args[1], port=args[2]))
+        uuid = self.interface.create_agent(Agent(name=args[0], server=args[1], port=args[2]))
 
         print(uuid + '\n')
 

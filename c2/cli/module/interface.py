@@ -183,9 +183,9 @@ class Interface:
         endpoint = "/create_agent/"
         agent_json = agent.jsonify()
 
-        uuid = self.interface.api_post_req(endpoint, post_data=agent_json)
+        uuid = self.api_post_req(endpoint, post_data=agent_json)
 
-        self._compile_agent(name, server, port, uuid)
+        self._compile_agent(agent.name, agent.server, agent.port, agent.uuid)
 
         return uuid
 

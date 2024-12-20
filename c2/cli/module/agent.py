@@ -37,7 +37,7 @@ class Agent:
             "id": self._id,
             "uuid": self._uuid,
             "name": self._name,
-            "server": self._server
+            "server": self._server,
             "port": self._port
         }
         return json.dumps(agent)

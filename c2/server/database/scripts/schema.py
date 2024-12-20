@@ -25,7 +25,7 @@ ct_agent =          f"""
                     CREATE TABLE IF NOT EXISTS {TableName.AGENT_TABLE.value} (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         uuid TEXT NOT NULL,
-                        name TEXT
+                        name TEXT,
                         server TEXT NOT NULL,
                         port TEXT NOT NULL
                     );
@@ -62,7 +62,7 @@ iit_task =          f"""
 
 iit_agent =         f"""
                     INSERT INTO {TableName.AGENT_TABLE.value}(uuid, name, server, port)
-                    VALUES (?, ?);
+                    VALUES (?, ?, ?, ?);
                     """
 
 iit_result =        f"""
