@@ -190,7 +190,14 @@ class Interface:
         return uuid
 
     def _compile_agent(self, name, server, port, uuid):
-        """modify agent server and port then compiler"""
+        """
+        modify agent's server and port, then compile
+        Parameters:
+            name (str): agent name (optional)
+            server (str): callback server
+            port (str): callback server port
+            uuid (str): agent uuid
+        """
         pi_server = ''
         pi_uuid = ''
         for char in server:
