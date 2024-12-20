@@ -72,9 +72,9 @@ class ImhulluCLI(cmd.Cmd):
         return completions
 
     def do_change_agent(self, agent_uuid: str):
-        """change current agent uuid\n\tUsage: <command> <agent_uuid>\n"""
+        """change current agent\n\tUsage: <command> <agent_uuid>\n"""
         if not agent_uuid:
-            print("Usage: " + InputUsage.ChangeAgentUUID.value + '\n')
+            print("Usage: " + InputUsage.ChangeAgent.value + '\n')
             return
 
         self.interface.change_agent(agent_uuid)

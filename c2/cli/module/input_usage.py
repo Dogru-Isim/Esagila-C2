@@ -11,4 +11,4 @@ class InputUsage(Enum):
     RemoveAgent = InputType.RemoveAgent.value + ' ' + "758dcd88-b131-4d86-880a-2ee2edb8b656"
     ListTasks = InputType.ListTasks.value
     GetTaskOutput = InputType.GetTaskOutput.value
-    ChangeAgentUUID = InputType.ChangeAgentUUID.value + ' ' + "758dcd88-b131-4d86-880a-2ee2edb8b656"
+    ChangeAgent = InputType.ChangeAgent.value + ' ' + "758dcd88-b131-4d86-880a-2ee2edb8b656"
