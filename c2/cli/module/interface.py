@@ -7,6 +7,7 @@ from module.input_type import InputType
 from module.module_exception import *
 from module.interface_messages import InterfaceMessages
 from module.task import Task
+from module.agent import Agent
 import subprocess
 import importlib
 import os
@@ -172,3 +173,49 @@ class Interface:
 
         return agents
 
+    def create_agent(self, agent:Agent):
+        """
+        Create a new agent
+
+        Parameters:
+            agent (Agent): instance of Agent with name (optional), server and port
+        """
+        endpoint = "/create_agent/"
+        agent_json = agent.jsonify()
+
+        uuid = self.interface.api_post_req(endpoint, post_data=agent_json)
+
+        self._compile_agent(name, server, port, uuid)
+
+        return uuid
+
+    def _compile_agent(self, name, server, port, uuid):
+        """modify agent server and port then compiler"""
+        pi_server = ''
+        pi_uuid = ''
+        for char in server:
+            pi_server += "'" + char + "'" + ','
+        for char in uuid:
+            pi_uuid += "'" + char + "'" + ','
+            
+        pi_server += '0'  # null terminator
+        pi_uuid += '0'    # null terminator
+
+        command = ["make", f'SERVER_M="{pi_server}"', f'PORT_M="{port}"', f'UUID_M="{pi_uuid}"']
+        print(command[0] + ' ' + command[1] + ' ' + command[2] + ' ' + command[3])
+        process = subprocess.Popen(command, cwd="../agent/", stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+        while True:
+            # Read a line from the output
+            output = process.stdout.readline()
+            
+            # If the output is empty and the process has finished, break the loop
+            if output == '' and process.poll() is not None:
+                break
+            
+            # If there is output, print it
+            if output:
+                print(output.strip())
+
+        # Wait for the process to complete and get the return code
+        return_code = process.wait()

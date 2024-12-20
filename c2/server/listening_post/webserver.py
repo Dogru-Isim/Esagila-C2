@@ -70,7 +70,9 @@ class WebServer:
         json_obj = json.loads(body)
         agent_uuid = str(uuid4())
         agent_name = json_obj["name"]
-        db.insert_row(TableName.AGENT_TABLE.value, (agent_uuid, agent_name))
+        agent_server = json_obj["server"]
+        agent_port = json_obj["port"]
+        db.insert_row(TableName.AGENT_TABLE.value, (agent_uuid, agent_name, agent_server, agent_port))
         return agent_uuid
 
     @app.route("/remove_agent/", methods=["POST"])

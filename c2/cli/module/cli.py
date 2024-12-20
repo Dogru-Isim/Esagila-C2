@@ -117,18 +117,7 @@ class ImhulluCLI(cmd.Cmd):
             return
 
         args = args.split(' ')
-        name = args[0]
-        server = args[1]
-        port = args[2]
-
-        create_agent_payload = {
-            "name": name
-        }
-        endpoint = "/create_agent/"
-        create_agent_payload_json = json.dumps(create_agent_payload)
-        uuid = self.interface.api_post_req(endpoint, post_data=create_agent_payload_json)
-
-        self._compile_agent(name, server, port, uuid)
+        uuid = interface.create_agent(Agent(name=args[0], server=args[1], port=args[2]))
 
         print(uuid + '\n')
 
@@ -159,15 +148,25 @@ class ImhulluCLI(cmd.Cmd):
     def do_list_agents(self, args):
         """list every agents\n\tUsage: <command>\n"""
         headers = ['Agent ID', 'Agent UUID', 'Agent Name']
-        endpoint = "/agents/"
-        output = ""
-        agents = self.interface.api_get_req(endpoint)
 
-        if len(agents) == 0:
-            print("No agent present")
+        agents = self.interface.get_agents()
+
+        if isinstance(agents, InterfaceMessages) and agents == InterfaceMessages.NoAgentPresent:
+            print(agents.value)
             return
 
-        tableprint.table(agents, headers)
+        rows = []
+        row  = []
+        for agent in agents:
+            row.append(agent.id)
+            row.append(agent.uuid)
+            row.append(agent.name)
+            row.append(agent.server)
+            row.append(agent.port)
+            rows.append(row)
+            row = []
+
+        tableprint.table(rows, headers)
 
     def do_cmd(self, args):
         """create a new cmd task\n\tUsage: <command> <arg1> <arg2> ...\n"""

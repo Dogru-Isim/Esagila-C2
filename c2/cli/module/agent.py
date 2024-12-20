@@ -1,3 +1,5 @@
+import json
+
 class Agent:
     def __init__(self, id:int = -1, uuid:str = "", name:str = "", server:str = "", port:str = ""):
         self._id = id
@@ -29,4 +31,14 @@ class Agent:
     @property
     def port(self):
         return self._port
+    
+    def jsonify(self):
+        agent = {
+            "id": self._id,
+            "uuid": self._uuid,
+            "name": self._name,
+            "server": self._server
+            "port": self._port
+        }
+        return json.dumps(agent)
 
