@@ -137,12 +137,12 @@ class ImhulluCLI(cmd.Cmd):
             print("Usage: " + InputUsage.RemoveAgent.value + '\n')
             return
 
-        response = interface.remove_agent(uuid)
+        response = interface.remove_agent(Agent(uuid=uuid))
         print(response + '\n')
 
     def do_list_agents(self, args):
         """list every agents\n\tUsage: <command>\n"""
-        headers = ['Agent ID', 'Agent UUID', 'Agent Name']
+        headers = ['Agent ID', 'Agent UUID', 'Agent Name', 'Callback Server', 'Callback Port']
 
         agents = self.interface.get_agents()
 
