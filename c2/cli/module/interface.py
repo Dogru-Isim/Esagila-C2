@@ -219,3 +219,16 @@ class Interface:
 
         # Wait for the process to complete and get the return code
         return_code = process.wait()
+
+    def remove_agent(self, agent:Agent):
+        """
+        Remove agent
+        Parameters:
+            agent (Agent): agent to remove
+        Returns:
+            text (str): success message if success
+        """
+        endpoint = "/remove_agent/"
+        agent_json = agent.jsonify()
+        response = self.api_post_req(endpoint, post_data=agent_json)
+        return "Agent terminated"

@@ -137,14 +137,8 @@ class ImhulluCLI(cmd.Cmd):
             print("Usage: " + InputUsage.RemoveAgent.value + '\n')
             return
 
-        remove_agent_payload = {
-            "uuid": uuid
-        }
-
-        endpoint = "/remove_agent/"
-        remove_agent_payload_json = json.dumps(remove_agent_payload)
-        print(self.interface.api_post_req(endpoint, post_data=remove_agent_payload_json))
-        print("Agent terminated")
+        response = interface.remove_agent(uuid)
+        print(response + '\n')
 
     def do_list_agents(self, args):
         """list every agents\n\tUsage: <command>\n"""
