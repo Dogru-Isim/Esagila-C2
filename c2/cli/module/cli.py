@@ -143,7 +143,7 @@ class ImhulluCLI(cmd.Cmd):
         response: str|InterfaceMessages = self.interface.shutdown_agent()
 
         if isinstance(response, InterfaceMessages) and response == InterfaceMessages.AgentUUIDRequired:
-            print(InterfaceMessages.value)
+            print(response.value)
         else:
             print(response)
 
@@ -196,6 +196,9 @@ class ImhulluCLI(cmd.Cmd):
     def do_whoami(self, line):
         """get user info through GetUserName\n\tUsage: <command>\n"""
         result = self.interface.whoami()
+        if isinstance(result, InterfaceMessages) and result == InterfaceMessages.AgentUUIDRequired:
+            print(result.value)
+            return
         print(result)
 
     def do_list_tasks(self, args):

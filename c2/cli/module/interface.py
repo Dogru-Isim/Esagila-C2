@@ -25,9 +25,11 @@ class Interface:
     def agent(self):
         return self._agent
 
+    """
     @agent.setter
     def agent(self, agent:Agent):
         self._agent = agent
+    """
 
     def agent_uuid_required(func):
         @functools.wraps(func)  # Preserve metadata, namely the doc string
@@ -188,7 +190,7 @@ class Interface:
 
         uuid = self.api_post_req(endpoint, post_data=agent_json)
 
-        process = self._compile_agent(agent.name, agent.server, agent.port, agent.uuid)
+        process = self._compile_agent(agent.name, agent.server, agent.port, uuid)
 
         return uuid, process
 
@@ -270,5 +272,5 @@ class Interface:
         Parameters:
             uuid (str): uuid of the agent to switch to
         """
-        self.agent = self.get_agent(uuid)
+        self._agent = self.get_agent(uuid)
 
