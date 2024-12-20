@@ -153,7 +153,7 @@ class ImhulluCLI(cmd.Cmd):
             print("Usage: " + InputUsage.RemoveAgent.value + '\n')
             return
 
-        response = interface.remove_agent(Agent(uuid=uuid))
+        response = self.interface.remove_agent(Agent(uuid=uuid))
         print(response + '\n')
 
     def do_list_agents(self, args):
