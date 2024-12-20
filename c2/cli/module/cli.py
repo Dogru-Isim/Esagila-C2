@@ -81,22 +81,6 @@ class ImhulluCLI(cmd.Cmd):
         print()
         self.prompt = f"{self.interface.agent.uuid}\n{UNDERLINE}Imhullu>{RESET} ";
 
-    def _compile_agent(self, name, server, port, uuid):
-        """modify agent server and port then compiler"""
-        pi_server = ''
-        pi_uuid = ''
-        for char in server:
-            pi_server += "'" + char + "'" + ','
-        for char in uuid:
-            pi_uuid += "'" + char + "'" + ','
-            
-        pi_server += '0'  # null terminator
-        pi_uuid += '0'    # null terminator
-
-        command = ["make", f'SERVER_M="{pi_server}"', f'PORT_M="{port}"', f'UUID_M="{pi_uuid}"']
-        print(command[0] + ' ' + command[1] + ' ' + command[2] + ' ' + command[3])
-        process = subprocess.Popen(command, cwd="../agent/", stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-
         while True:
             # Read a line from the output
             output = process.stdout.readline()
