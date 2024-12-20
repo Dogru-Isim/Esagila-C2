@@ -152,7 +152,13 @@ class Interface:
         return self.create_task(task) + '\n'
 
     def get_agents(self) -> list[Agent] | InterfaceMessages:
-        """list every agents\n\tUsage: <command>\n"""
+        """
+        Fetch every agent from the server
+
+        Returns:
+            agents (list[Agent]): list of agents if success
+            message (InterfaceMessages.NoAgentPresent): return value if failure
+        """
         endpoint = "/agents/"
         output = ""
         response = self.api_get_req(endpoint)
