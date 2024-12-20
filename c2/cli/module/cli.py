@@ -81,21 +81,6 @@ class ImhulluCLI(cmd.Cmd):
         print()
         self.prompt = f"{self.interface.agent.uuid}\n{UNDERLINE}Imhullu>{RESET} ";
 
-        while True:
-            # Read a line from the output
-            output = process.stdout.readline()
-            
-            # If the output is empty and the process has finished, break the loop
-            if output == '' and process.poll() is not None:
-                break
-            
-            # If there is output, print it
-            if output:
-                print(output.strip())
-
-        # Wait for the process to complete and get the return code
-        return_code = process.wait()
-
     def do_create_agent(self, args):
         """create a new agent\n\t<command> <name> <server> <port>\n"""
         if not args:
