@@ -3,6 +3,6 @@
 
 #include <windows.h>
 
-VOID injectIntoProcess(BYTE shellcode[], LPCSTR lpApplicationName);
+VOID injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize, LPCSTR lpApplicationName);
 
 #endif  // EXEC_H
