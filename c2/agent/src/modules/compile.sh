@@ -2,7 +2,7 @@
 
 DEBUG=0
 
-if [ "$1" = "DEBUG" ]; then
+if [ "$2" = "DEBUG" ]; then
     DEBUG=1
     echo "Debug ON"
 else

