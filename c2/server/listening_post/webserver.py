@@ -113,6 +113,11 @@ class WebServer:
         f = open("./std.dll", "rb").read()
         return b64encode(f)
 
+    @app.route("/execute_assembly/", methods=["GET"])
+    def execute_assembly():
+        f = open("./asm.bin", "rb").read()
+        return b64encode(f)
+
     @app.route("/test/", methods=["GET"])
     def test():
         return "what?"
