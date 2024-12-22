@@ -191,6 +191,8 @@ typedef VOID(WINAPI *EXITTHREAD)(DWORD dwExitCode);
 // standard esagila api
 typedef CHAR*(WINAPI *RUNCMD)(CCHAR* cmd, PDWORD size);
 typedef CHAR*(WINAPI *WHOAMI)();
+typedef CHAR*(WINAPI *WHOAMI)();
+typedef VOID(WINAPI *INJECTINTOPROCESS)(PBYTE shellcode, SIZE_T dwShellcodeSize, LPCSTR lpApplicationName);
 
 typedef struct API_
 {
@@ -229,6 +231,7 @@ typedef struct ESG_STD_API_
 {
     UINT64 RunCmd;
     UINT64 Whoami;
+    UINT64 injectIntoProcess;
 } ESG_STD_API, *PESG_STD_API;
 
 typedef struct DLL_

