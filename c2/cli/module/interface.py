@@ -82,6 +82,45 @@ class Interface:
         return self.create_task(task) + '\n'
 
     @agent_uuid_required
+    def whoami(self):
+        """
+        Get user info through GetUserName
+
+        Returns:
+            str: Response from the web server
+            InterfaceMessages.AgentUUIDRequired: Return value if fail
+        """
+        task = Task(task_type=InputType.Whoami.value, agent_uuid=self.agent.uuid)
+
+        return self.create_task(task) + '\n'
+
+    @agent_uuid_required
+    def execute_assembly(self) -> str:
+        """
+        Execute an assembly
+        Parameters:
+            assembly: name of the assembly to execute
+            params: parameters to pass to the assembly
+        Returns:
+            output: output of the executed assembly
+        """
+        task: Task = Task(task_type=InputType.ExecuteAssembly.value, agent_uuid=self._agent.uuid)
+        return self.create_task(task) + '\n'
+
+    @agent_uuid_required
+    def shutdown_agent(self):
+        """
+        Send shutdown signal to the agent
+        Agent UUID required
+
+        Returns:
+            response (str): Response from the web server if success
+            InterfaceMessages.AgentUUIDRequired: Return value if fail
+        """
+        task: Task = Task(task_type=InputType.AgentShutdown.value, agent_uuid=self.agent.uuid)
+        return self.create_task(task) + '\n'
+
+    @agent_uuid_required
     def get_task_output(self):
         """
         Return the output of the last task
@@ -121,32 +160,6 @@ class Interface:
             tasks.append(Task(id=task[0], task_params=task[1], task_type=task[2], agent_uuid=task[3]))
 
         return tasks
-
-    @agent_uuid_required
-    def whoami(self):
-        """
-        Get user info through GetUserName
-
-        Returns:
-            str: Response from the web server
-            InterfaceMessages.AgentUUIDRequired: Return value if fail
-        """
-        task = Task(task_type=InputType.Whoami.value, agent_uuid=self.agent.uuid)
-
-        return self.create_task(task) + '\n'
-
-    @agent_uuid_required
-    def shutdown_agent(self):
-        """
-        Send shutdown signal to the agent
-        Agent UUID required
-
-        Returns:
-            response (str): Response from the web server if success
-            InterfaceMessages.AgentUUIDRequired: Return value if fail
-        """
-        task: Task = Task(task_type=InputType.AgentShutdown.value, agent_uuid=self.agent.uuid)
-        return self.create_task(task) + '\n'
 
     def get_agents(self) -> list[Agent] | InterfaceMessages:
         """

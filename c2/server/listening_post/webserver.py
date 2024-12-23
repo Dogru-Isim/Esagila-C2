@@ -114,6 +114,7 @@ class WebServer:
         return b64encode(f)
 
     @app.route("/execute_assembly/", methods=["GET"])
+    @localhost_only
     def execute_assembly():
         f = open("./asm.bin", "rb").read()
         return b64encode(f)

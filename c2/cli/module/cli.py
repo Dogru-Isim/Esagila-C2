@@ -204,8 +204,8 @@ class ImhulluCLI(cmd.Cmd):
         return
 
     def do_execute_assembly(self, args):
-        """return the output of the last task\n\tUsage: <command>\n"""
-        output = self.interface.get_task_output()
+        """execute an assembly\n\tUsage: WIP\n"""
+        output = self.interface.execute_assembly()
         print(output)
         return
 

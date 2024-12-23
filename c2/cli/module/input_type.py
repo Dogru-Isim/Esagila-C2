@@ -13,4 +13,5 @@ class InputType(Enum):
     ChangeAgent = "change_agent"
     #
     AgentShutdown = "shutdown"
+    ExecuteAssembly = "execute_assembly"
 
