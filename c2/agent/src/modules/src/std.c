@@ -434,7 +434,7 @@ DLLEXPORT VOID injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize, LPCST
         #endif
     }
 
-    //WaitForSingleObject( pi.hProcess, INFINITE );
+    WaitForSingleObject( pi.hThread, INFINITE );
     CloseHandle( pi.hProcess );
     CloseHandle( pi.hThread );
     return;
