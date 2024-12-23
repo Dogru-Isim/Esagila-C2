@@ -203,6 +203,12 @@ class ImhulluCLI(cmd.Cmd):
         print(output)
         return
 
+    def do_execute_assembly(self, args):
+        """return the output of the last task\n\tUsage: <command>\n"""
+        output = self.interface.get_task_output()
+        print(output)
+        return
+
 if __name__ == '__main__':
     cli = ImhulluCLI()
     cli.cmdloop()
