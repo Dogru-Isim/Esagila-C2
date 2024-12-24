@@ -426,7 +426,6 @@ DLLEXPORT VOID WINAPI injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize
     //CloseHandle(hThread);
     CloseHandle(pi.hThread);
     CloseHandle(pi.hProcess);
-
     return;
 
     /*
