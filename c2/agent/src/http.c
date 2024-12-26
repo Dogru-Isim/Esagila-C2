@@ -414,7 +414,7 @@ LPVOID httpGetExecutable(PAPI api, PDWORD pdwDllSize, WCHAR* wEndpoint, WCHAR* w
         BOOL readSuccess = ((WINHTTPREADDATA)api->WinHttpReadData)
         (
             hRequest,
-            lpEncodedBuffer+dwBytesRead,
+            (WCHAR*)lpEncodedBuffer+dwBytesRead,
             dwAvailableBytes,
             &dwActuallyRead
         );
@@ -458,5 +458,5 @@ LPVOID httpGetExecutable(PAPI api, PDWORD pdwDllSize, WCHAR* wEndpoint, WCHAR* w
     if (lpRawExecutableBuffer != NULL && lengthBuffer)
     { return lpRawExecutableBuffer; }
     else
-    { return 0;}
+    { return NULL;}
 }
