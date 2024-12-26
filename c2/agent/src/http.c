@@ -423,7 +423,7 @@ LPVOID httpGetExecutable(PAPI api, PDWORD pdwDllSize, WCHAR* wEndpoint, WCHAR* w
         {
             #ifdef DEBUG
             CHAR whrdFailed[] = { 'W', 'i', 'n', 'H', 't', 't', 'p', 'R', 'e', 'a', 'd', 'D', 'a', 't', 'a', 'F' };
-            ((MESSAGEBOXA)api->MessageBoxA)(0, whrdFailed, whrdFailed, 0x0L);
+            ((MESSAGEBOXA)api->MessageBoxA)(-1, whrdFailed, whrdFailed, 0x0L);
             #endif
         }
 

