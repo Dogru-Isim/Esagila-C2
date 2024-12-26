@@ -13,6 +13,6 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath);
 
 void PostRequest(PAPI api, WCHAR* server, INTERNET_PORT port, const WCHAR* endpoint, CHAR* data);
 
-LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize, WCHAR* wEndpoint, WCHAR* wcServer, INTERNET_PORT dwPort);
+LPVOID httpGetExecutable(PAPI api, PDWORD pdwDllSize, WCHAR* wEndpoint, WCHAR* wcServer, INTERNET_PORT dwPort);
 
 #endif  // HTTP_H

