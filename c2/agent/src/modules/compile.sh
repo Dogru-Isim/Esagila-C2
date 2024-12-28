@@ -15,9 +15,9 @@ if [ -z "$1" ]; then
 elif [ "$1" = "std" ]; then
     echo "Compiling std.c"
     if [[ DEBUG -eq 1 ]]; then
-        x86_64-w64-mingw32-gcc -DDEBUG -shared ./src/std.c -o ../../../server/std.dll -O2
+        x86_64-w64-mingw32-gcc -DDEBUG -shared ./src/std.c ./src/injections.c -o ../../../server/std.dll -O2
     else
-        x86_64-w64-mingw32-gcc -shared ./src/std.c -o ../../../server/std.dll -O2
+        x86_64-w64-mingw32-gcc -shared ./src/std.c ./src/injections.c -o ../../../server/std.dll -O2
     fi
 else
     echo "Unknown module name: $1"
