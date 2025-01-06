@@ -4,30 +4,7 @@
 
 Run Imhullu: `python3 main.py`
 
-
-
-It has the following commands:
-
-- exit                                           -> exit
-
-- help                                          -> help menu
-
-- cmd                                          -> run cmd commands on the target
-
-- whoami                                    -> get user info on the target
-
-- list_agents                                -> list available agents
-
-- create_agent                            -> create a new agent
-
-- list_tasks                                   -> list queued tasks
-
-- get_task_output                       -> get the last output
-
-- change_agent_uuid                 -> switch between agents
-
-- reload                                        -> load changes made to the module
-
+Execute `help` in the prompt
 
 
 **Notes:**
