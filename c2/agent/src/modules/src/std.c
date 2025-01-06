@@ -108,48 +108,6 @@ DLLEXPORT CHAR* WINAPI RunCmd(CHAR* cmd, PDWORD totalSize)
     return output; // Return the dynamically allocated string
 }
 
-/*
-DLLEXPORT CHAR* WINAPI RunCmd(CHAR* cmd, PDWORD totalSize)
-{
-    FILE *fp;
-    char *output = NULL;
-    DWORD size = 0;
-    *totalSize = 0;
-    char buffer[2048];
-    //MessageBoxA(0, "Enter", "RunCmd", 0x0L);
-
-    fp = popen(cmd, "r");
-
-    if (fp == NULL)
-    { return NULL; }
-
-    // Read the output in chunks
-    while (fgets(buffer, sizeof(buffer), fp) != NULL)
-    {
-        //MessageBoxA(0, "while loop iteration", "RunCmd", 0x0L);
-        size = strlen(buffer);
-        //MessageBoxA(0, "realloc(output...)", "RunCmd", 0x0L);
-        CHAR* temp = realloc(output, *totalSize + size + 1); // +1 for null terminator
-        if (temp == NULL)
-        {
-            //MessageBoxA(0, "free(output)", "RunCmd", 0x0L);
-            free(output); // Free previously allocated memory on failure
-            pclose(fp);
-            return NULL;
-        }
-        output = temp;
-        //MessageBoxA(0, "memcpy(output...)", "RunCmd", 0x0L);
-        memcpy(output + *totalSize, buffer, size); // Copy the new data
-        *totalSize += size;
-        output[*totalSize] = '\0'; // Null-terminate the string
-    }
-    //MessageBoxA(0, "Finished reading", "RunCmd", 0x0L);
-
-    // Return the dynamically allocated string
-    return output;
-}
-*/
-
 DLLEXPORT UINT_PTR WINAPI ReflectiveLoader()
 {
     UINT_PTR uiNewLibraryAddress;
