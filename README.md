@@ -14,3 +14,6 @@ View README.md under `server`
 
 Go to the `cli` directory in `c2` and run `main.py`
 View README.md under `cli`
+
+**Esagila Agent**
+View README.md under `agent`
