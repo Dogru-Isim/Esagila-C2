@@ -336,7 +336,8 @@ DLLEXPORT UINT_PTR WINAPI ReflectiveLoader()
 }
 
 
-BOOL WINAPI DllMain( HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpReserved )
+// https://stackoverflow.com/questions/9545732/what-is-hmodule
+BOOL WINAPI DllMain( HINSTANCE hinstDLL, DWORD dwReason, HMODULE hBaseAddress )
 {
     BOOL bReturnValue = TRUE;
     switch( dwReason ) 
@@ -350,8 +351,8 @@ BOOL WINAPI DllMain( HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpReserved )
         // The base address has been assigned to hAppInstance by the reflective loader
         // using the DLL_PROCESS_ATTACH case
         case DLL_QUERY_HMODULE:
-            if( lpReserved != NULL )
-            { *(HMODULE *)lpReserved = hAppInstance; }
+            if( hBaseAddress != NULL )
+            { *(HMODULE *)hBaseAddress = hAppInstance; }
             break;
         case DLL_PROCESS_DETACH:
         case DLL_THREAD_ATTACH:
