@@ -326,6 +326,7 @@ DLLEXPORT UINT_PTR WINAPI ReflectiveLoader()
 
     ((FLUSHINSTRUCTIONCACHE)api->FlushInstructionCache)((HANDLE)-1, NULL, 0);
     
+    // sets hAppInstance to the DLLs base address (uiNewLibraryAddress)
     ((DLLMAIN)pDllMain)((HINSTANCE)uiNewLibraryAddress, DLL_PROCESS_ATTACH, NULL);
     #ifdef DEBUG
     ((PRINTF)api->printf)(fPointer, pDllMain);
@@ -340,9 +341,11 @@ BOOL WINAPI DllMain( HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpReserved )
     BOOL bReturnValue = TRUE;
     switch( dwReason ) 
     { 
+        // reflective loader runs DllMain with DLL_PROCESS_ATTACH
         case DLL_PROCESS_ATTACH:
             hAppInstance = hinstDLL;
             break;
+        // other programs run DllMain with DLL_QUERY_HMODULE after reflective loader
         case DLL_QUERY_HMODULE:
             if( lpReserved != NULL )
             { *(HMODULE *)lpReserved = hAppInstance; }
