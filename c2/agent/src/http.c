@@ -12,7 +12,7 @@ Input:
     INTERNET_PORT port: port number
     WCHAR* wcPath: path to query
 Output:
-    Success -> CHAR*: web server response that needs to be freed
+    Success -> CHAR*: web server response, needs to be freed
     Failure -> NULL
 */
 CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)

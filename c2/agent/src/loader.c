@@ -25,7 +25,8 @@ Input:
     PAPI api: a pointer to the API struct
     PDLL: a pointer to the DLL struct that holds a reflective DLL
 Output:
-    HANDLE: handle to the new region the DLL has been written to, this handle needs to be freed
+    Success -> HANDLE: handle to the new region the DLL has been written to, this handle needs to be freed
+    Failure -> NULL
 */
 HANDLE executeRD(PAPI api, PDLL pDll)
 {

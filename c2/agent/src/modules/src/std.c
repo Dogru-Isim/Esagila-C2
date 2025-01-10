@@ -322,16 +322,16 @@ DLLEXPORT UINT_PTR WINAPI ReflectiveLoader()
         }
     }
 
-    UINT_PTR pEntryPoint = ( uiNewLibraryAddress + (((PIMAGE_NT_HEADERS)uiHeaderValue)->OptionalHeader.AddressOfEntryPoint));
+    UINT_PTR pDllMain = ( uiNewLibraryAddress + (((PIMAGE_NT_HEADERS)uiHeaderValue)->OptionalHeader.AddressOfEntryPoint));
 
     ((FLUSHINSTRUCTIONCACHE)api->FlushInstructionCache)((HANDLE)-1, NULL, 0);
     
-    ((DLLMAIN)pEntryPoint)((HINSTANCE)uiNewLibraryAddress, DLL_PROCESS_ATTACH, NULL);
+    ((DLLMAIN)pDllMain)((HINSTANCE)uiNewLibraryAddress, DLL_PROCESS_ATTACH, NULL);
     #ifdef DEBUG
-    ((PRINTF)api->printf)(fPointer, pEntryPoint);
+    ((PRINTF)api->printf)(fPointer, pDllMain);
     #endif
 
-    return pEntryPoint;
+    return pDllMain;
 }
 
 
