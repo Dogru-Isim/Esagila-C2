@@ -12,7 +12,7 @@ Input:
     INTERNET_PORT port: port number
     WCHAR* wcPath: path to query
 Output:
-    Success -> CHAR*: web server response
+    Success -> CHAR*: web server response that needs to be freed
     Failure -> NULL
 */
 CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
@@ -291,6 +291,9 @@ void PostRequest(PAPI api, WCHAR* server, INTERNET_PORT port, const WCHAR* endpo
 }
 
 // TODO: combine this function with GetRequest
+/*
+the return need to be freed
+*/
 LPVOID httpGetExecutable(PAPI api, PDWORD pdwDllSize, WCHAR* wEndpoint, WCHAR* wServer, INTERNET_PORT dwPort)
 {
     WCHAR wVerb[] = { 'G', 'E', 'T', 0 };
