@@ -345,7 +345,10 @@ BOOL WINAPI DllMain( HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpReserved )
         case DLL_PROCESS_ATTACH:
             hAppInstance = hinstDLL;
             break;
-        // other programs run DllMain with DLL_QUERY_HMODULE after reflective loader
+        // Other programs run DllMain with DLL_QUERY_HMODULE after the reflective loader
+        // This gives them the base address of the DLL stored in hAppInstance
+        // The base address has been assigned to hAppInstance by the reflective loader
+        // using the DLL_PROCESS_ATTACH case
         case DLL_QUERY_HMODULE:
             if( lpReserved != NULL )
             { *(HMODULE *)lpReserved = hAppInstance; }

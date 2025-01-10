@@ -65,7 +65,7 @@ HANDLE executeRD(PAPI api, PDLL pDll)
 
     if( pDllMain != NULL )
     {
-        // call the loaded library's DllMain with DLL_QUERY_HMODULE to get its HMODULE (base address)
+        // call the loaded library's DllMain with DLL_QUERY_HMODULE to get its HMODULE (i.e. base address)
         if ( pDllMain(NULL, DLL_QUERY_HMODULE, &hDllBase) == FALSE)
         {
             #ifdef DEBUG
