@@ -171,13 +171,14 @@ DWORD Rva2Offset(DWORD dwRva, UINT_PTR uiBaseAddress)
 }
 
 /*
-This function gets a pointer to the function called ReflectiveLoader
+This function gets the offset of a function called ReflectiveLoader from a DLLs export table
+the offset is relative to the DLLs current address
 
 Input:
     PAPI api: a struct that stores a pointer to the `wprintf` function for debugging
     PVOID lpDll: a pointer to the DLL from which to get a pointer to the reflective loader's
 Output:
-    Success -> UINT_PTR: a pointer to the reflective loader
+    Success -> UINT_PTR: the offset of the reflective loader
     Failure -> 0
 */
 UINT_PTR GetRLOffset(PAPI api, PVOID lpDll)
@@ -221,7 +222,7 @@ UINT_PTR GetRLOffset(PAPI api, PVOID lpDll)
     UINT_PTR functionNameAddresses;
     UINT_PTR functionOrdinals;
     UINT_PTR functionAddresses;
-    UINT_PTR rlAddress = 0;
+    UINT_PTR rlOffset = 0;
 
     // get the number of exported functions
     dwNumberOfEntries = ((PIMAGE_EXPORT_DIRECTORY)uiExportDirectory)->NumberOfNames;
@@ -277,13 +278,13 @@ UINT_PTR GetRLOffset(PAPI api, PVOID lpDll)
             // address. It will be used as CreateThread's fourth parameter
             // (thread starting point) //
             functionAddresses += DEREF_16(functionOrdinals) * sizeof(DWORD);
-            rlAddress = Rva2Offset(DEREF_32(functionAddresses), uiDll);
+            rlOffset = Rva2Offset(DEREF_32(functionAddresses), uiDll);
             break;
         }
     }
 
-    if (rlAddress)
-    { return rlAddress; }
+    if (rlOffset)
+    { return rlOffset; }
     else
     { return 0; }
 }
