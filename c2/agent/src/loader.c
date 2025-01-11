@@ -100,7 +100,7 @@ Output:
 Notes:
     The function changes every `delim` character with a null byte in the original string
     The function changes the pointer to iterate through every token, you lose the original pointer
-    need to run myStrtok(NULL, 0, TRUE) to reset the static variable
+    need to run myStrtok(NULL, 0, TRUE) to reset the static variable after you are done
     TODO: Sketchy function overall, needs to be changed
 */
 CHAR* myStrtok(CHAR* str, CCHAR delim, BOOL reset)
@@ -126,6 +126,15 @@ CHAR* myStrtok(CHAR* str, CCHAR delim, BOOL reset)
     return str;
 }
 
+/*
+This function recursively removes a character from the start of a string
+
+Input:
+    CHAR* str: the string to trim
+    CHAR trim: character to remove
+Output:
+    CHAR*: the new string
+*/
 CHAR* myStartTrim(CHAR* str, CHAR trim)
 {
     CHAR* outStr = str;
@@ -134,6 +143,15 @@ CHAR* myStartTrim(CHAR* str, CHAR trim)
     return outStr;
 }
 
+/*
+This function recursively removes a character from the end of a string
+
+Input:
+    CHAR* str: the string to trim
+    CHAR trim: character to remove
+Output:
+    CHAR*: the new string
+*/
 CHAR* myEndTrim(CHAR* str, CHAR trim)
 {
     for (int i=myStrlenA(str)-1; i>=0; i--)     // -1 for null terminator
@@ -146,6 +164,15 @@ CHAR* myEndTrim(CHAR* str, CHAR trim)
     return str;
 }
 
+/*
+This function recursively removes a character from both sides of a string
+
+Input:
+    CHAR* str: the string to trim
+    CHAR trim: the character to remove
+Output:
+    CHAR*: the new string
+*/
 CHAR* myTrim(CCHAR* str, CHAR trim)
 {
     CHAR* outStr = myStartTrim(str, trim);
