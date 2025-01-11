@@ -134,6 +134,10 @@ Input:
     CHAR trim: character to remove
 Output:
     CHAR*: the new string
+Note:
+    The output depends on `str`, so a change in `str` can also effect the output
+    The output does NOT need to be freed as it does not create a new string
+    TODO: weird function, change it
 */
 CHAR* myStartTrim(CCHAR* str, CHAR trim)
 {
@@ -151,8 +155,11 @@ Input:
     CHAR trim: character to remove
 Output:
     CHAR*: the new string
+Note:
+    The function modifies the input itself and returns it
+    TODO: weird function, change it
 */
-CHAR* myEndTrim(CCHAR* str, CHAR trim)
+CHAR* myEndTrim(CHAR* str, CHAR trim)
 {
     for (int i=myStrlenA(str)-1; i>=0; i--)     // -1 for null terminator
     {
@@ -172,6 +179,7 @@ Input:
     CHAR trim: the character to remove
 Output:
     CHAR*: the new string
+    // TODO: sketchy function change it
 */
 CHAR* myTrim(CCHAR* str, CHAR trim)
 {
