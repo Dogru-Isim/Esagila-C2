@@ -361,9 +361,6 @@ CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** taskType, CHAR** 
 
     ((FREE)api->free)(tokens.tokenizedString);
 
-    // intentional segfault to exit
-    ((void(*)())0xffff)();
-
     /*
     // SKIP [ and ]
     for (int i=0; i<=myStrlenA(blacklist)-1; i++)
