@@ -320,12 +320,14 @@ CHAR* myEndTrim(PAPI api, CCHAR* str, CHAR trim)
 This function recursively removes a character from both sides of a string
 
 Input:
+    PAPI api: a pointer to the API struct
+
     CHAR* str: the string to trim
 
     CHAR trim: the character to remove
 
 Output:
-    CHAR*: the new string
+    CHAR*: the trimmed string that needs to be freed
 
     // TODO: sketchy function change it
 */
@@ -622,12 +624,12 @@ void myMain()
         if (my_strcmp(taskType, cmd) == 0)
         {
             orgOutput = ((RUNCMD)PEsgStdApi->RunCmd)(task, &sizeOfOutput);
-            taskOutput = myTrim(orgOutput, '\n');
+            taskOutput = myTrim(api, orgOutput, '\n');
         }
         else if (my_strcmp(taskType, whoami) == 0)
         {
             orgOutput = ((WHOAMI)PEsgStdApi->Whoami)();
-            taskOutput = myTrim(orgOutput, '\n');
+            taskOutput = myTrim(api, orgOutput, '\n');
         }
         else if (my_strcmp(taskType, shutdown) == 0)
         {
