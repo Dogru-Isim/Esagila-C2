@@ -162,7 +162,7 @@ Tokens myStrtok(PAPI api, CCHAR* str, CCHAR delim)
 This function retrieves a token in a Tokens struct
 
 Input:
-    Tokens tokenizedStr: a `Tokens` struct obtained with myStrtok
+    Tokens tokenizedStr: a `Tokens` struct obtained from myStrtok
 
     DWORD index: the index of the requested token
 
@@ -211,7 +211,7 @@ Output:
 CHAR* myStartTrim(PAPI api, CCHAR* str, CHAR trim)
 {
     // temporary variable
-    CHAR* trimmedStr;
+    CHAR* trimmedStr = str;
 
     // calculate the first index that doesn't have the trim character
     while (*trimmedStr == trim )
@@ -342,24 +342,56 @@ CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** taskType, CHAR** 
     CHAR delim = { '\n' };
     CHAR blacklist[] = { '[', ']', '\0' };
     // tokenize json
-    Tokens tokens = myStrtok(api, tmpJson, delim);
+    Tokens tokensStruct = myStrtok(api, tmpJson, delim);
 
     // json is empty
-    if (tokens.tokenizedString[0] == '[' && tokens.tokenizedString[1] == ']')
+    if (tokensStruct.tokenizedString[0] == '[' && tokensStruct.tokenizedString[1] == ']')
     {
         return NULL;
     }
 
     #ifdef DEBUG
-    char hi[] = { '%', 'd', 0 };
-    ((PRINTF)api->printf)(hi, tokens.numberOfTokens);
+    char hi[] = { 'N', 'u', 'm', 'b', 'e', 'r', 'O', 'f', 'T', 'o', 'k', 'e', 'n', 's', ':', ' ', '%', 'd', '\n', 0 };
+    ((PRINTF)api->printf)(hi, tokensStruct.numberOfTokens);
     #endif
 
-    for (int index = 0; index < tokens.numberOfTokens; index++)
+    CHAR* token;
+    CHAR* trimmedToken;
+    CHAR* finalToken;
+
+    token = getToken(api, tokensStruct, 0);
+    myStartTrim(api, token, ' ');
+    ((PRINTF)api->printf)(token);
+
+    ((FREE)api->free)(tokensStruct.tokenizedString);
+
+    /*
+    trimmedToken = myTrim(api, token, ' ');
+    finalToken = myEndTrim(api, trimmedToken, ',');
+
+    ((PRINTF)api->printf)(finalToken);
+    ((FREE)api->free)(trimmedToken);
+    ((FREE)api->free)(finalToken);
+    trimmedToken = NULL;
+    finalToken = NULL;
+    */
+
+    /*
+    for (int index = 0; index < tokensStruct.numberOfTokens; index++)
     {
-        getToken(api, tokens, index);
-        //((PRINTF)api->printf)(getToken(api, tokens, index));
+        token = getToken(api, tokensStruct, index);
+        trimmedToken = myTrim(api, token, ' ');
+        finalToken = myEndTrim(api, trimmedToken, ',');
+
+        ((PRINTF)api->printf)(finalToken);
+        ((FREE)api->free)(trimmedToken);
+        ((FREE)api->free)(finalToken);
+        trimmedToken = NULL;
+        finalToken = NULL;
+
+        //((PRINTF)api->printf)(getToken(api, tokensStruct, index));
     }
+    */
 
     /*
     // SKIP [ and ]
