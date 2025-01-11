@@ -328,8 +328,6 @@ Input:
 
 Output:
     CHAR*: the trimmed string that needs to be freed
-
-    // TODO: sketchy function change it
 */
 CHAR* myTrim(PAPI api, CCHAR* str, CHAR trim)
 {
