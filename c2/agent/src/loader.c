@@ -135,7 +135,7 @@ Input:
 Output:
     CHAR*: the new string
 */
-CHAR* myStartTrim(CHAR* str, CHAR trim)
+CHAR* myStartTrim(CCHAR* str, CHAR trim)
 {
     CHAR* outStr = str;
     while (outStr[0] == trim)
@@ -152,7 +152,7 @@ Input:
 Output:
     CHAR*: the new string
 */
-CHAR* myEndTrim(CHAR* str, CHAR trim)
+CHAR* myEndTrim(CCHAR* str, CHAR trim)
 {
     for (int i=myStrlenA(str)-1; i>=0; i--)     // -1 for null terminator
     {
