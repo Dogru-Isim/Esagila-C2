@@ -150,17 +150,22 @@ This function tokenizes a string
 
 Input:
     [in] PAPI api: an instance of the API struct
+    [in] CCHAR* str: the string to tokenize
     [in] CCHAR delim: a delimiter to use for tokenization
 Output:
     A `Tokens` struct whose member `tokenizedString` needs to be freed
 Note:
     The first token can be retrieved by using the `tokenizedString` member as a CHAR*
     The rest of the tokens can be retrieved using the getNextToken function
+    // TODO: the final numberOfTokens value is not accurate if the last char 
+    // or `delim` is not a null byte or if there are consecutive delimiters
 */
 Tokens myStrtok(PAPI api, CCHAR* str, CCHAR delim)
 {
-    // initialize tokens with numberOfTokens 1
-    Tokens tokens = {NULL, 1};
+
+    // initialize tokens with numberOfTokens 0 because str is null terminated therefore
+    // numberOfTokens is increment at the end
+    Tokens tokens = {NULL, 0};
 
     // calculate the buffer size for the tokenized string
     DWORD lenStr = myStrlenA(str);
@@ -182,6 +187,7 @@ Tokens myStrtok(PAPI api, CCHAR* str, CCHAR delim)
         }
     }
 
+    tokens.tokenizedString[lenStr+1] = '\0';
     return tokens;
 }
 
@@ -190,19 +196,30 @@ This function retrieves the next token in a Tokens struct
 
 Input:
     Tokens tokenizedStr: a `Tokens` struct obtained with myStrtok
+    DWORD index: the index of the requested token
 Output:
-    CHAR*: a pointer to the next token
+    Success -> CHAR*: a pointer to the next token
+    Failure -> NULL
 Note:
     the function should be run in a function that counts down the number of tokens
     the `tokenizedString` member of `tokens` must not be freed before running the function
 */
-CHAR* getNextToken(Tokens tokens)
+CHAR* getNextToken(PAPI api, Tokens tokens, DWORD index)
 {
-    CHAR* token = tokens.tokenizedString;
-    // (size of a token + null byte) gives us the offset to reach the second token
-    DWORD dwOffsetToNextToken = myStrlenA(tokens.tokenizedString)+1;
+    // return null if index is out of bounds
+    if (index > tokens.numberOfTokens)
+    {
+        return NULL;
+    }
 
-    token += dwOffsetToNextToken;
+    CHAR* token = tokens.tokenizedString;
+    DWORD dwOffsetToNextToken = 0;
+    for (DWORD i = 0; i < index; i++)
+    {
+        // (size of a token + null byte) gives us the offset to reach the next token
+        token += myStrlenA(token)+1;
+    }
+
     return token;
 }
 
@@ -271,17 +288,31 @@ CHAR* myTrim(CCHAR* str, CHAR trim)
 CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** taskType, CHAR** uuid)
 {
     CHAR* tmpJson = json;  // myStrtok modifies the string itself
+    ((PRINTF)api->printf)(json);
     CHAR* task;
     CHAR delim = { '\n' };
-    CHAR* token = myStrtok(tmpJson, delim, FALSE);
+    Tokens tokens = myStrtok(api, tmpJson, delim);
     CHAR blacklist[] = { '[', ']', '\0' };
 
-    if (token[0] == '[' && token[1] == ']')
+    // json is empty
+    if (tokens.tokenizedString[0] == '[' && tokens.tokenizedString[1] == ']')
     {
-        myStrtok(NULL, 0, TRUE);
         return NULL;
     }
 
+    char hi[] = { '%', 'd', 0 };
+    ((PRINTF)api->printf)(hi, tokens.numberOfTokens);
+    for (int index = 0; index < tokens.numberOfTokens; index++)
+    {
+        ((PRINTF)api->printf)(getNextToken(api, tokens, index));
+    }
+
+    ((FREE)api->free)(tokens.tokenizedString);
+
+    // intentional segfault to exit
+    ((void(*)())0xffff)();
+
+    /*
     // SKIP [ and ]
     for (int i=0; i<=myStrlenA(blacklist)-1; i++)
     {
@@ -308,8 +339,8 @@ CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** taskType, CHAR** 
     *uuid = myTrim(myStrtok(tmpJson, delim, FALSE), ' ');
     *uuid = myEndTrim(*uuid, ',');
     *uuid = myTrim(*uuid, '"');
+    */
 
-    myStrtok(NULL, 0, TRUE);
     return task;
 }
 
