@@ -88,47 +88,6 @@ HANDLE executeRD(PAPI api, PDLL pDll)
 }
 
 /*
-This function tokenizes a string by replacing delimiters with null bytes
-The next token can be obtained by running the function again 
-
-Input:
-    CHAR* str: the string to tokenize, NULL to reset
-    CCHAR delim: the character to replace null bytes with, 0 to reset
-    BOOL reset: 
-Output:
-    CHAR* str: the next token
-Notes:
-    The function changes every `delim` character with a null byte in the original string
-    The function changes the pointer to iterate through every token, you lose the original pointer
-    need to run myStrtok(NULL, 0, TRUE) to reset the static variable after you are done
-    TODO: Sketchy function overall, needs to be changed
-*/
-/*
-CHAR* myStrtok(CHAR* str, CCHAR delim, BOOL reset)
-{
-    // static variable allows us to keep the variable when the function exits
-    static DWORD index = 0;
-    // retrieve the original 
-    if (reset)
-    {
-        index=0;
-        return NULL;
-    }
-    DWORD lenStr = myStrlenA(str);
-    str += index;
-
-    for (int i=0; i<lenStr+1; i++)
-    {
-        if (str[i] == delim)
-        { str[i] = '\0'; }
-    }
-
-    index += myStrlenA(str)+1;    // +1 for null byte
-    return str;
-}
-*/
-
-/*
 This struct contains a series of null terminated strings called tokens
 This struct represents a tokenized string
 
@@ -187,7 +146,6 @@ Tokens myStrtok(PAPI api, CCHAR* str, CCHAR delim)
         }
     }
 
-    tokens.tokenizedString[lenStr+1] = '\0';
     return tokens;
 }
 
@@ -227,20 +185,33 @@ CHAR* getNextToken(PAPI api, Tokens tokens, DWORD index)
 This function recursively removes a character from the start of a string
 
 Input:
-    CHAR* str: the string to trim
-    CHAR trim: character to remove
+    PAPI api: an API struct
+    CCHAR* str: string 
+    CHAR trim: character to trim
 Output:
-    CHAR*: the new string
-Note:
-    The output depends on `str`, so a change in `str` can also effect the output
-    The output does NOT need to be freed as it does not create a new string
-    TODO: weird function, change it
+    A CHAR* that needs to be freed
+
 */
-CHAR* myStartTrim(CCHAR* str, CHAR trim)
+CHAR* myStartTrim(PAPI api, CCHAR* str, CHAR trim)
 {
-    CHAR* outStr = str;
-    while (outStr[0] == trim)
-    { outStr++; }
+    // temporary variable
+    CHAR* trimmedStr;
+
+    // calculate the first index that doesn't have the trim character
+    while (*trimmedStr == trim )
+    {
+        trimmedStr++;
+    }
+
+    // size of the trimmed string with the null byte
+    DWORD dwSizeTrimmedString = myStrlenA(trimmedStr)+1;
+
+    // create a buffer with the size of the trimmed string
+    CHAR* outStr = ((CALLOC)api->calloc)(dwSizeTrimmedString, sizeof(CHAR));
+    
+    // copy the trimmed string over to that buffer
+    myMemcpy(outStr, trimmedStr, dwSizeTrimmedString);
+
     return outStr;
 }
 
