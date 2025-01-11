@@ -88,7 +88,7 @@ HANDLE executeRD(PAPI api, PDLL pDll)
 }
 
 /*
-This function tokenizes a string by replacing delimeters with null bytes
+This function tokenizes a string by replacing delimiters with null bytes
 The next token can be obtained by running the function again 
 
 Input:
@@ -103,6 +103,7 @@ Notes:
     need to run myStrtok(NULL, 0, TRUE) to reset the static variable after you are done
     TODO: Sketchy function overall, needs to be changed
 */
+/*
 CHAR* myStrtok(CHAR* str, CCHAR delim, BOOL reset)
 {
     // static variable allows us to keep the variable when the function exits
@@ -124,6 +125,85 @@ CHAR* myStrtok(CHAR* str, CCHAR delim, BOOL reset)
 
     index += myStrlenA(str)+1;    // +1 for null byte
     return str;
+}
+*/
+
+/*
+This struct contains a series of null terminated strings called tokens
+This struct represents a tokenized string
+
+Members:
+    CHAR* tokenizedString: contains a series of null terminated strings called tokens
+    DWORD numberOfTokens: the amount of tokens that can be used to loop through the tokens
+Example:
+    First\0Second\0Third\0Token
+Note:
+*/
+typedef struct Tokens
+{
+    CHAR* tokenizedString;
+    DWORD numberOfTokens;
+} Tokens, *PTokens;
+
+/*
+This function tokenizes a string
+
+Input:
+    [in] PAPI api: an instance of the API struct
+    [in] CCHAR delim: a delimiter to use for tokenization
+Output:
+    A `Tokens` struct whose member `tokenizedString` needs to be freed
+Note:
+    The first token can be retrieved by using the `tokenizedString` member as a CHAR*
+    The rest of the tokens can be retrieved using the getNextToken function
+*/
+Tokens myStrtok(PAPI api, CCHAR* str, CCHAR delim)
+{
+    // initialize tokens with numberOfTokens 1
+    Tokens tokens = {NULL, 1};
+
+    // calculate the buffer size for the tokenized string
+    DWORD lenStr = myStrlenA(str);
+    // create a new string that has the same size as `str` + a null byte
+    tokens.tokenizedString = ((CALLOC)api->calloc)(lenStr+1, sizeof(CHAR));
+
+    // copy the original string to the new buffer one by one, changing
+    // the delim with a null byte for tokenization
+    for (int i = 0; i < lenStr; i++)
+    {
+        if (str[i] == delim)
+        {
+            tokens.tokenizedString[i] = '\0';
+            tokens.numberOfTokens++;
+        }
+        else
+        {
+            tokens.tokenizedString[i] = str[i];
+        }
+    }
+
+    return tokens;
+}
+
+/*
+This function retrieves the next token in a Tokens struct
+
+Input:
+    Tokens tokenizedStr: a `Tokens` struct obtained with myStrtok
+Output:
+    CHAR*: a pointer to the next token
+Note:
+    the function should be run in a function that counts down the number of tokens
+    the `tokenizedString` member of `tokens` must not be freed before running the function
+*/
+CHAR* getNextToken(Tokens tokens)
+{
+    CHAR* token = tokens.tokenizedString;
+    // (size of a token + null byte) gives us the offset to reach the second token
+    DWORD dwOffsetToNextToken = myStrlenA(tokens.tokenizedString)+1;
+
+    token += dwOffsetToNextToken;
+    return token;
 }
 
 /*
