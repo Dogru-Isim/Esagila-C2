@@ -23,9 +23,12 @@ execueRD uses GetRLOffset which looks for the name "ReflectiveLoader"
 
 Input:
     PAPI api: a pointer to the API struct
+
     PDLL: a pointer to the DLL struct that holds a reflective DLL
+
 Output:
     Success -> HANDLE: handle to the new region the DLL has been written to, this handle needs to be freed
+
     Failure -> NULL
 */
 HANDLE executeRD(PAPI api, PDLL pDll)
@@ -109,13 +112,19 @@ This function tokenizes a string
 
 Input:
     [in] PAPI api: an instance of the API struct
+
     [in] CCHAR* str: the string to tokenize
+
     [in] CCHAR delim: a delimiter to use for tokenization
+
 Output:
     A `Tokens` struct whose member `tokenizedString` needs to be freed
+
 Note:
     The first token can be retrieved by using the `tokenizedString` member as a CHAR*
+
     The rest of the tokens can be retrieved using the getNextToken function
+
     // TODO: the final numberOfTokens value is not accurate if the last char 
     // or `delim` is not a null byte or if there are consecutive delimiters
 */
@@ -154,12 +163,17 @@ This function retrieves the next token in a Tokens struct
 
 Input:
     Tokens tokenizedStr: a `Tokens` struct obtained with myStrtok
+
     DWORD index: the index of the requested token
+
 Output:
     Success -> CHAR*: a pointer to the next token
+
     Failure -> NULL
+
 Note:
     the function should be run in a function that counts down the number of tokens
+
     the `tokenizedString` member of `tokens` must not be freed before running the function
 */
 CHAR* getNextToken(PAPI api, Tokens tokens, DWORD index)
@@ -186,8 +200,12 @@ This function recursively removes a character from the start of a string
 
 Input:
     PAPI api: an API struct
+
     CCHAR* str: string 
+
     CHAR trim: character to trim
+
+
 Output:
     A CHAR* that needs to be freed
 
@@ -227,6 +245,7 @@ Note:
     The function modifies the input itself and returns it
     TODO: weird function, change it
 */
+/*
 CHAR* myEndTrim(CHAR* str, CHAR trim)
 {
     for (int i=myStrlenA(str)-1; i>=0; i--)     // -1 for null terminator
@@ -238,21 +257,83 @@ CHAR* myEndTrim(CHAR* str, CHAR trim)
     }
     return str;
 }
+*/
+
+/*
+This function recursively removes a character from the end of a string
+
+Input:
+    PAPI api: a pointer to the API struct
+
+    CCHAR* str: string
+
+    CHAR trim: character to remove
+
+Output:
+    Success -> a CHAR* that needs to be freed
+
+    `str` is empty -> NULL
+
+    memory allocation failed -> NULL
+
+Note:
+    TODO: add checks for `str` having only the `trim` character
+*/
+CHAR* myEndTrim(PAPI api, CCHAR* str, CHAR trim)
+{
+    if (myStrlenA(str) == 0)
+    {
+        return NULL;
+    }
+
+    // the index of the last character that is not `trim`
+    DWORD dwLastIndex = myStrlenA(str)-1;
+
+    // get the last index that doesn't hold a trim character
+    while (dwLastIndex >= 0 && str[dwLastIndex] == trim)
+    {
+        dwLastIndex--;
+    }
+
+    // last index + 1 gives the size of the string without the null byte
+    DWORD dwSizeOfTrimmedStr = dwLastIndex + 1;
+
+    // allocate the buffer for the trimmed string including the null byte
+    CHAR* trimmedStr = ((CALLOC)api->calloc)(dwSizeOfTrimmedStr + 1, sizeof(CHAR));
+
+    if (trimmedStr == NULL)
+    {
+        return NULL;
+    }
+
+    // Copy the trimmed string
+    for (DWORD i = 0; i < dwSizeOfTrimmedStr; i++)
+    {
+        trimmedStr[i] = str[i];
+    }
+
+    trimmedStr[dwLastIndex + 1] = '\0';
+    return trimmedStr;
+}
 
 /*
 This function recursively removes a character from both sides of a string
 
 Input:
     CHAR* str: the string to trim
+
     CHAR trim: the character to remove
+
 Output:
     CHAR*: the new string
+
     // TODO: sketchy function change it
 */
-CHAR* myTrim(CCHAR* str, CHAR trim)
+CHAR* myTrim(PAPI api, CCHAR* str, CHAR trim)
 {
-    CHAR* outStr = myStartTrim(str, trim);
-    outStr = myEndTrim(outStr, trim);
+    CHAR* startTrimmedStr = myStartTrim(api, str, trim);
+    CHAR* outStr = myEndTrim(api, startTrimmedStr, trim);
+    ((FREE)api->free)(startTrimmedStr);
     return outStr;
 }
 
