@@ -87,12 +87,32 @@ HANDLE executeRD(PAPI api, PDLL pDll)
     return hDllBase;
 }
 
-CHAR* myStrtok(CHAR* str, CHAR delim, BOOL reset)
+/*
+This function tokenizes a string by replacing delimeters with null bytes
+The next token can be obtained by running the function again 
+
+Input:
+    CHAR* str: the string to tokenize, NULL to reset
+    CCHAR delim: the character to replace null bytes with, 0 to reset
+    BOOL reset: 
+Output:
+    CHAR* str: the next token
+Notes:
+    The function changes every `delim` character with a null byte in the original string
+    The function changes the pointer to iterate through every token, you lose the original pointer
+    need to run myStrtok(NULL, 0, TRUE) to reset the static variable
+    TODO: Sketchy function overall, needs to be changed
+*/
+CHAR* myStrtok(CHAR* str, CCHAR delim, BOOL reset)
 {
+    // static variable allows us to keep the variable when the function exits
     static DWORD index = 0;
+    // retrieve the original 
     if (reset)
-    { index=0; return NULL; }
-    //CHAR* token = { 0 };
+    {
+        index=0;
+        return NULL;
+    }
     DWORD lenStr = myStrlenA(str);
     str += index;
 
@@ -102,7 +122,6 @@ CHAR* myStrtok(CHAR* str, CHAR delim, BOOL reset)
         { str[i] = '\0'; }
     }
 
-    //token = str;
     index += myStrlenA(str)+1;    // +1 for null byte
     return str;
 }
