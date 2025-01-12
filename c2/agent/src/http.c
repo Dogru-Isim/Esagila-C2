@@ -7,10 +7,10 @@
 This function sends a get request to a web server
 
 Input:
-    PAPI api: a pointer to the API structure
-    WCHAR* wcServer: host name or an IP address of an HTTP server
-    INTERNET_PORT port: port number
-    WCHAR* wcPath: path to query
+    [in] PAPI api: a pointer to the API structure
+    [in] WCHAR* wcServer: host name or an IP address of an HTTP server
+    [in] INTERNET_PORT port: port number
+    [in] WCHAR* wcPath: path to query
 Output:
     Success -> CHAR*: web server response, needs to be freed
     Failure -> NULL
@@ -216,11 +216,11 @@ CHAR* GetRequest(PAPI api, WCHAR* wcServer, INTERNET_PORT port, WCHAR* wcPath)
 This function sends a post request to an endpoint
 
 Input:
-    PAPI api: a pointer to the API struct
-    WCHAR* server: a hostname or an IP address
-    INTERNET_PORT port: a port number
-    const WCHAR endpoint: a path on the server
-    CCHAR* data: a json data
+    [in] PAPI api: a pointer to the API struct
+    [in] WCHAR* server: a hostname or an IP address
+    [in] INTERNET_PORT port: a port number
+    [in] const WCHAR endpoint: a path on the server
+    [in] CCHAR* data: a json data
 Output:
     The function returns nothing
 */
@@ -290,9 +290,12 @@ void PostRequest(PAPI api, WCHAR* server, INTERNET_PORT port, const WCHAR* endpo
     ((WINHTTPCLOSEHANDLE)api->WinHttpCloseHandle)(hSession);
 }
 
-// TODO: combine this function with GetRequest
+//
 /*
 the return need to be freed
+
+Note:
+    TODO: combine this function with GetRequest
 */
 LPVOID httpGetExecutable(PAPI api, PDWORD pdwDllSize, WCHAR* wEndpoint, WCHAR* wServer, INTERNET_PORT dwPort)
 {
