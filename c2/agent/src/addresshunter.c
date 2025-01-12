@@ -65,8 +65,8 @@ This function extracts the address of a function from a DLL using the function's
 It does so using the export directory of the DLL
 
 Input:
-    HANDLE hModule: a handle to the DLL
-    LPCSTR lpProcName: the function name
+    [in] HANDLE hModule: a handle to the DLL
+    [in] LPCSTR lpProcName: the function name
 Output:
     Success                -> UINT64: a pointer to the function
     hModule is NULL        -> 0
@@ -138,8 +138,8 @@ The output from this function can be used to summarize with uiBaseAddress to get
 pointed to by dwRva -assuming uiBaseAddress is not relative.
 
 Input:
-    DWORD dwRva: a virtual address obtained from a DLL
-    UINT_PTR uiBaseAddress: the current address of the DLL in memory
+    [in] DWORD dwRva: a virtual address obtained from a DLL
+    [in] UINT_PTR uiBaseAddress: the current address of the DLL in memory
 Output:
     Success -> DWORD: the real location dwRva was meant to point to
     Failure -> 0
@@ -175,8 +175,8 @@ This function gets the offset of a function called ReflectiveLoader from a DLLs 
 the offset is relative to the DLLs current address
 
 Input:
-    PAPI api: a struct that stores a pointer to the `wprintf` function for debugging
-    PVOID lpDll: a pointer to the DLL from which to get a pointer to the reflective loader's
+    [in] PAPI api: a struct that stores a pointer to the `wprintf` function for debugging
+    [in] PVOID lpDll: a pointer to the DLL from which to get a pointer to the reflective loader's
 Output:
     Success -> UINT_PTR: the offset of the reflective loader
     Failure -> 0
