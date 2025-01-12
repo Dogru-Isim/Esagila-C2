@@ -143,7 +143,6 @@ Input:
 Output:
     Success -> DWORD: the real location dwRva was meant to point to
     Failure -> 0
-
 */
 DWORD Rva2Offset(DWORD dwRva, UINT_PTR uiBaseAddress)
 {
