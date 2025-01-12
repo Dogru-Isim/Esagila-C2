@@ -23,9 +23,9 @@ This function runs the function named "ReflectiveLoader" in a reflective dll
 execueRD uses GetRLOffset which looks for the name "ReflectiveLoader"
 
 Input:
-    PAPI api: a pointer to the API struct
+    [in] PAPI api: a pointer to the API struct
 
-    PDLL: a pointer to the DLL struct that holds a reflective DLL
+    [in] PDLL: a pointer to the DLL struct that holds a reflective DLL
 
 Output:
     Success -> HANDLE: handle to the new region the DLL has been written to, this handle needs to be freed
@@ -161,9 +161,11 @@ Tokens myStrtok(PAPI api, CCHAR* str, CCHAR delim)
 This function retrieves a token in a Tokens struct
 
 Input:
-    Tokens tokenizedStr: a `Tokens` struct obtained from myStrtok
+    [in] PAPI api: an instance to the API struct
 
-    DWORD index: the index of the requested token
+    [in] Tokens tokenizedStr: a `Tokens` struct obtained from myStrtok
+
+    [in] DWORD index: the index of the requested token
 
 Output:
     Success -> CHAR*: a pointer to the requested token
@@ -196,11 +198,11 @@ CHAR* getToken(PAPI api, Tokens tokens, DWORD index)
 This function recursively removes a character from the start of a string
 
 Input:
-    PAPI api: an API struct
+    [in] PAPI api: an API struct
 
-    CCHAR* str: string 
+    [in] CCHAR* str: string 
 
-    CHAR trim: character to trim
+    [in] CHAR trim: character to trim
 
 
 Output:
@@ -234,37 +236,11 @@ CHAR* myStartTrim(PAPI api, CCHAR* str, CHAR trim)
 This function recursively removes a character from the end of a string
 
 Input:
-    CHAR* str: the string to trim
-    CHAR trim: character to remove
-Output:
-    CHAR*: the new string
-Note:
-    The function modifies the input itself and returns it
-    TODO: weird function, change it
-*/
-/*
-CHAR* myEndTrim(CHAR* str, CHAR trim)
-{
-    for (int i=myStrlenA(str)-1; i>=0; i--)     // -1 for null terminator
-    {
-        if(str[i] == trim)
-        { str[i] = '\0'; }          // change trim with a null terminator
-        else
-        { return str; }
-    }
-    return str;
-}
-*/
+    [in] PAPI api: a pointer to the API struct
 
-/*
-This function recursively removes a character from the end of a string
+    [in] CCHAR* str: string
 
-Input:
-    PAPI api: a pointer to the API struct
-
-    CCHAR* str: string
-
-    CHAR trim: character to remove
+    [in] CHAR trim: character to remove
 
 Output:
     Success -> a CHAR* that needs to be freed
@@ -317,14 +293,14 @@ CHAR* myEndTrim(PAPI api, CCHAR* str, CHAR trim)
 This function recursively removes a character from both sides of a string
 
 Input:
-    PAPI api: a pointer to the API struct
+    [in] PAPI api: a pointer to the API struct
 
-    CHAR* str: the string to trim
+    [in] CHAR* str: the string to trim
 
-    CHAR trim: the character to remove
+    [in] CHAR trim: the character to remove
 
 Output:
-    CHAR*: the trimmed string that needs to be freed
+    heapCHAR*: the trimmed string that needs to be freed
 */
 CHAR* myTrim(PAPI api, CCHAR* str, CHAR trim)
 {
@@ -342,6 +318,29 @@ typedef struct jsonTask
     CHAR* uuid;
 } JsonTask, PJsonTask;
 
+/*
+This function reads and parses a task in json format
+
+Input:
+    [in] PAPI api: a pointer to the API struct
+
+    [in] CHAR* json: a pointer to a json string
+
+    [out] [heap] CHAR** taskId: a pointer to receive the taskId member in json that needs to be freed
+
+    [out] [heap] CHAR** taskType: a pointer to receive the taskType member in json that needs to be freed
+
+    [out] [heap] CHAR** uuid: a pointer to receive the uuid member in json that needs to be freed
+
+Output:
+    Success -> CHAR*: a pointer to a base64 encoded string that holds the task value
+
+    Json doesn't hold any data -> NULL
+
+Note:
+    // TODO: This function can be improved by using a struct to hold the json
+
+*/
 CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** taskType, CHAR** uuid)
 {
     /*
