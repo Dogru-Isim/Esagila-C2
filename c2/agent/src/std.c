@@ -137,6 +137,16 @@ int myStrlenW(const WCHAR* s1)
     return s2 - s1;
 }
 
+/*
+ * This function copies a region in memory onto another using WCHARs
+ * 
+ * Input:
+ *      void* dest: start of the memory region to copy data onto
+ *
+ *      const void* src: start of the memory region to copy data from
+ *
+ *      size_t len: how many WCHARs to copy
+ */
 void myMemcpyW (void *dest, const void *src, size_t len)
 {
   wchar_t *d = dest;
