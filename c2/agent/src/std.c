@@ -155,6 +155,9 @@ void myMemcpyW (void *dest, const void *src, size_t len)
     *d++ = *s++;
 }
 
+/*
+ * This function is deprecated and should not be used without changes
+ */
 wchar_t* myConcatW(PAPI api, const wchar_t *s1, const wchar_t *s2)
 {
     const size_t len1 = myStrlenW(s1);
