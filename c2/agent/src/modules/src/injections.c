@@ -7,11 +7,11 @@
  * This function creates a process, injects shellcode into that process, and runs that shellcode
  *
  * Input:
- *      BYTE[] shellcode: shellcode to inject and execute
+ *      [in] BYTE[] shellcode: shellcode to inject and execute
  *
- *      SIZE_T dwShellcodeSize: size of the shellcode array
+ *      [in] SIZE_T dwShellcodeSize: size of the shellcode array
  *
- *      LPCSTR lpApplicationName: name of the application to create a process of
+ *      [in] LPCSTR lpApplicationName: name of the application to create a process of
  *
  * Note:
  *      The function uses a standard CreateProcessA, VirtualAllocEx,
