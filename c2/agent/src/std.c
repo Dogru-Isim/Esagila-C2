@@ -119,6 +119,15 @@ int myStrlenA(const CHAR* s1)
     return s2 - s1;
 }
 
+/*
+ * This function calculates the size of a WCHAR excluding the null byte
+ *
+ * Input:
+ *      const CHAR* s1: string to calculate its size
+ *
+ * Output:
+ *      int: size of the string excluding the null byte
+ */
 int myStrlenW(const WCHAR* s1)
 {
     const WCHAR *s2 = s1; // Pointer to traverse the wide string
