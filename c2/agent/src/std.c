@@ -1,5 +1,8 @@
 #include "../include/std.h"
 
+// NOTE: These functions are defined mostly to be used
+// before the dynamic linking of DLLs
+
 /*
  * This function is used to compare two null terminated strings
  *
@@ -156,7 +159,7 @@ void myMemcpyW (void *dest, const void *src, size_t len)
 }
 
 /*
- * This function is deprecated and should not be used without changes
+ * This function is deprecated and should not be used before making changes
  */
 wchar_t* myConcatW(PAPI api, const wchar_t *s1, const wchar_t *s2)
 {
