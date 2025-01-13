@@ -26,6 +26,14 @@ int my_strcmp(const char *p1, const char *p2)
     return c1 - c2;
 }
 
+/*
+ * This function calculates the size for a base64 decoded value
+ *
+ * Input:
+ *      size_t len: the size of the base64 encoded value
+ * Output:
+ *      size_t -> size of the base64 decoded value
+ */
 size_t base64_raw_size(size_t len)
 {
     size_t padding = 0;
