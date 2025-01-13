@@ -1,5 +1,15 @@
 #include "../include/std.h"
 
+/*
+ * This function is used to compare two null terminated strings
+ *
+ * Input:
+ *      const char *p1: first string
+ *      const char *p1: second string
+ * Output:
+ *      0 -> strings are the same
+ *      Non-zero value -> strings are different
+ */
 int my_strcmp(const char *p1, const char *p2)
 {
     const unsigned char *s1 = (const unsigned char *)p1;
