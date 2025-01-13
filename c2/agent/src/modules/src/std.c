@@ -380,7 +380,6 @@ DLLEXPORT UINT_PTR WINAPI ReflectiveLoader()
     return pDllMain;
 }
 
-
 // https://stackoverflow.com/questions/9545732/what-is-hmodule
 BOOL WINAPI DllMain( HINSTANCE hinstDLL, DWORD dwReason, HMODULE hBaseAddress )
 {
