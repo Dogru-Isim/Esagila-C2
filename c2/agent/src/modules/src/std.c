@@ -130,6 +130,18 @@ DLLEXPORT CHAR* WINAPI RunCmd(CHAR* cmd, PDWORD totalSize)
     return output; // Return the dynamically allocated string
 }
 
+/*
+ * This function takes the responsibility of the Windows DLL loader and loads the DLL
+ * that it belongs to into memory, performing needed operations such as resolving the
+ * export table and performing base reallocations.
+ *
+ * Output:
+ *      The entry point of the DLL (a.k.a. DllMain)
+ *
+ * Note:
+ *      The function allocates a memory on the virtual address space that needs to be freed with VirtualFree
+ *      this memory has the PAGE_EXECUTE_READWRITE protection rights
+ */
 DLLEXPORT UINT_PTR WINAPI ReflectiveLoader()
 {
     UINT_PTR uiNewLibraryAddress;
@@ -157,16 +169,21 @@ DLLEXPORT UINT_PTR WINAPI ReflectiveLoader()
     CHAR printf_c[] = { 'p', 'r', 'i', 'n', 't', 'f', 0 };
     #endif
 
+    // a handle to kernel32.dll
     kernel32dll = GetKernel32();
+    // receive a handle to LoadLibraryA
     api->loadLibraryAFn = (UINT64)(GetSymbolAddress((HANDLE)kernel32dll, loadLibrary_c));
 
+    // load user32.dll and msvcrt.dll
     user32dll = (UINT64)(((LOADLIBRARYA)(api->loadLibraryAFn))(user32_c));
     msvcrtdll = (UINT64)(((LOADLIBRARYA)(api->loadLibraryAFn))(msvcrt_c));
 
+    // get a handle to MessageBoxA
     api->messageBoxAFn = GetSymbolAddress((HANDLE)user32dll, messageBoxA_c);
     #ifdef DEBUG
     api->printf = GetSymbolAddress((HANDLE)msvcrtdll, printf_c);
     #endif
+    // get a handle to FlushInstructionCache
     api->FlushInstructionCache = GetSymbolAddress((HANDLE)kernel32dll, FlushInstructionCache_c);
 
     #ifdef DEBUG
@@ -179,7 +196,10 @@ DLLEXPORT UINT_PTR WINAPI ReflectiveLoader()
     char fDword[] = { '%', 'd', '\n', 0 };
     #endif
 
+    // get the return address of the ReflectiveLoader
     ULONG_PTR uiLibraryAddress = caller();
+
+    // get the base address of the DLL by traversing the return address
     while( TRUE )
     {
         if( ((PIMAGE_DOS_HEADER)uiLibraryAddress)->e_magic == IMAGE_DOS_SIGNATURE )
@@ -198,9 +218,12 @@ DLLEXPORT UINT_PTR WINAPI ReflectiveLoader()
             uiLibraryAddress--;
     }
 
+    // NtHeader struct
     uiHeaderValue = uiLibraryAddress + ((PIMAGE_DOS_HEADER)uiLibraryAddress)->e_lfanew;
 
+    // get a handle to VirtualAlloc
     api->VirtualAlloc = (UINT64)(GetSymbolAddress((HANDLE)kernel32dll, virtualAlloc_c));
+    // allocate size for 
     uiNewLibraryAddress = (UINT_PTR)((VIRTUALALLOC)api->VirtualAlloc)( NULL, ((PIMAGE_NT_HEADERS)uiHeaderValue)->OptionalHeader.SizeOfImage, MEM_RESERVE|MEM_COMMIT, PAGE_EXECUTE_READWRITE );
 
     /*
