@@ -45,6 +45,13 @@ typedef struct API_
 
 HINSTANCE hAppInstance = NULL;
 
+/*
+ * This function uses the GetUserNameA Win32 api to fetch the current user's name
+ *
+ * Output:
+ *      Success -> CHAR*: current user's name
+ *      Failure -> NULL
+ */
 DLLEXPORT CHAR* WINAPI Whoami()
 {
     CHAR* username;
@@ -69,6 +76,21 @@ DLLEXPORT CHAR* WINAPI Whoami()
     return NULL;
 }
 
+/*
+ * This function uses the popen Win32 api to run a cmd command
+ *
+ * Input:
+ *      [in] CHAR* cmd: command to run
+ *
+ *      [out] PDWORD totalSize: the size of the command output
+ *
+ * Output:
+ *      Success -> CHAR*: command output
+ *
+ *      popen failed -> NULL
+ *
+ *      memory allocation failed -> NULL
+ */
 DLLEXPORT CHAR* WINAPI RunCmd(CHAR* cmd, PDWORD totalSize)
 {
     FILE *fp;
