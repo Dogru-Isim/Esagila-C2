@@ -133,7 +133,7 @@ DLLEXPORT CHAR* WINAPI RunCmd(CHAR* cmd, PDWORD totalSize)
 /*
  * This function takes the responsibility of the Windows DLL loader and loads the DLL
  * that it belongs to into memory, performing needed operations such as resolving the
- * export table and performing base reallocations.
+ * import table and performing base reallocations.
  *
  * Output:
  *      The entry point of the DLL (a.k.a. DllMain)
@@ -268,6 +268,7 @@ DLLEXPORT UINT_PTR WINAPI ReflectiveLoader()
     HMODULE hLoadedLibrary;
     PIMAGE_IMPORT_BY_NAME pLoadedModuleName;
 
+    // resolve the import address table
     while (pImportTable->Name)
     {
         #ifdef DEBUG

@@ -6,8 +6,10 @@ This function fetches the base address of kernel32.dll from the Process Environm
 
 Input:
     The function takes no input
+
 Output:
     Success -> UINT64: a pointer to kernel32.dll
+
     Failure -> 0
 */
 UINT64 GetKernel32() {
@@ -66,10 +68,14 @@ It does so using the export directory of the DLL
 
 Input:
     [in] HANDLE hModule: a handle to the DLL
+
     [in] LPCSTR lpProcName: the function name
+
 Output:
     Success                -> UINT64: a pointer to the function
+
     hModule is NULL        -> 0
+
     cannot find lpProcName -> 0
 */
 UINT64 GetSymbolAddress(HANDLE hModule, LPCSTR lpProcName)
@@ -139,9 +145,12 @@ pointed to by dwRva -assuming uiBaseAddress is not relative.
 
 Input:
     [in] DWORD dwRva: a virtual address obtained from a DLL
+
     [in] UINT_PTR uiBaseAddress: the current address of the DLL in memory
+
 Output:
     Success -> DWORD: the real location dwRva was meant to point to
+
     Failure -> 0
 */
 DWORD Rva2Offset(DWORD dwRva, UINT_PTR uiBaseAddress)
