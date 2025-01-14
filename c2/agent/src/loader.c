@@ -356,7 +356,7 @@ typedef struct jsonTask
     CHAR* task;
     CHAR* taskType;
     CHAR* uuid;
-} JsonTask, PJsonTask;
+} JsonTask, *PJsonTask;
 
 /*
 This function reads and parses a task in json format
