@@ -12,10 +12,10 @@ make:
 	nasm -f win64 ./src/adjuststack.asm -o ./tmp/adjuststack.o
 ifeq ($(DEBUG), $(DEBUG_DEFAULT))  # if DEBUG isn't overridden by the user
 	@echo "\nDEBUG DISABLED\n"
-	x86_64-w64-mingw32-gcc ./src/std.c -fPIC -Wall -m64 -ffunction-sections -fno-asynchronous-unwind-tables -nostdlib -fno-ident -O2 -c -o ./tmp/std.o -Wl,-T./src/linker.ld,--no-seh -g
-	x86_64-w64-mingw32-gcc ./src/http.c -DSERVER_M=$(SERVER_M) -DPORT_M=$(PORT_M) -DUUID_M=$(UUID_M) -Wno-unused-variable -fPIC -Wall -m64 -ffunction-sections -fno-asynchronous-unwind-tables -nostdlib -fno-ident -O2 -c -o ./tmp/http.o -Wl,-T./src/linker.ld,--no-seh -g
-	x86_64-w64-mingw32-gcc ./src/addresshunter.c -DSERVER_M -DPORT_M -DUUID_M -Wno-unused-variable -fPIC -Wall -m64 -ffunction-sections -fno-asynchronous-unwind-tables -nostdlib -fno-ident -O2 -c -o ./tmp/addresshunter.o -Wl,-T./src/linker.ld,--no-seh -g
-	x86_64-w64-mingw32-gcc ./src/loader.c -DSERVER_M=$(SERVER_M) -DPORT_M=$(PORT_M) -DUUID_M=$(UUID_M) -Wno-unused-variable -fPIC -Wall -m64 -ffunction-sections -fno-asynchronous-unwind-tables -nostdlib -fno-ident -O2 -c -o ./tmp/loader.o -Wl,-T./src/linker.ld,--no-seh -g
+	x86_64-w64-mingw32-gcc ./src/std.c -fPIC -Wall -m64 -ffunction-sections -fno-asynchronous-unwind-tables -nostdlib -fno-ident -O2 -c -o ./tmp/std.o -Wl,-T./src/linker.ld,--no-seh
+	x86_64-w64-mingw32-gcc ./src/http.c -DSERVER_M=$(SERVER_M) -DPORT_M=$(PORT_M) -DUUID_M=$(UUID_M) -Wno-unused-variable -fPIC -Wall -m64 -ffunction-sections -fno-asynchronous-unwind-tables -nostdlib -fno-ident -O2 -c -o ./tmp/http.o -Wl,-T./src/linker.ld,--no-seh
+	x86_64-w64-mingw32-gcc ./src/addresshunter.c -DSERVER_M -DPORT_M -DUUID_M -Wno-unused-variable -fPIC -Wall -m64 -ffunction-sections -fno-asynchronous-unwind-tables -nostdlib -fno-ident -O2 -c -o ./tmp/addresshunter.o -Wl,-T./src/linker.ld,--no-seh
+	x86_64-w64-mingw32-gcc ./src/loader.c -DSERVER_M=$(SERVER_M) -DPORT_M=$(PORT_M) -DUUID_M=$(UUID_M) -Wno-unused-variable -fPIC -Wall -m64 -ffunction-sections -fno-asynchronous-unwind-tables -nostdlib -fno-ident -O2 -c -o ./tmp/loader.o -Wl,-T./src/linker.ld,--no-seh
 else
 	@echo "\nDEBUG ENABLED\n"
 	x86_64-w64-mingw32-gcc ./src/std.c -DDEBUG -fPIC -Wall -m64 -ffunction-sections -fno-asynchronous-unwind-tables -nostdlib -fno-ident -O2 -c -o ./tmp/std.o -Wl,-T./src/linker.ld,--no-seh -g
