@@ -353,7 +353,7 @@ CHAR* myTrim(PAPI api, CCHAR* str, CHAR trim)
 typedef struct Task_
 {
     CHAR* taskId;
-    CHAR* task;
+    CHAR* taskParams;
     CHAR* taskType;
     CHAR* uuid;
 } Task, *PTask;
@@ -446,7 +446,7 @@ PTask readJsonTask(PAPI api, CHAR* json)
     trimmedToken1 = myTrim(api, token, ' ');
     trimmedToken2 = myEndTrim(api, trimmedToken1, ',');
     // remove the double quotes
-    pTask->task = myTrim(api, trimmedToken2, '"');
+    pTask->taskParams = myTrim(api, trimmedToken2, '"');
 
     #ifdef DEBUG
     if (pTask->task == NULL)
