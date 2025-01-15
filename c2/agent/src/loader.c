@@ -4,6 +4,7 @@
 #include "../include/http.h"
 #include "../include/typedefs.h"
 #include "../include/task.h"
+#include "../include/tokenizer.h"
 #include <time.h>
 
 // will be overwritten by ImhulluCLI
