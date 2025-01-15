@@ -780,6 +780,7 @@ void myMain()
         PostRequest(api, wServer, port, pathSendTaskOutput, json);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         ((FREE)api->free)(task.taskId);
         task.taskId = NULL;
         ((FREE)api->free)(task.taskParams);
@@ -797,6 +798,8 @@ void myMain()
         ((FREE)api->free)(json);
         json = NULL;
 =======
+=======
+>>>>>>> parent of 675ea53 (change task.uuiduid to task.agentUuid)
         if (task.taskId)
         {
             ((FREE)api->free)(task.taskId);
