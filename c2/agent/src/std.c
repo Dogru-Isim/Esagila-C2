@@ -175,17 +175,14 @@ wchar_t* myConcatW(PAPI api, const wchar_t *s1, const wchar_t *s2)
 This function recursively removes a character from the start of a string
 
 Input:
-    [in] PAPI api: an API struct
+    [in] CCHAR* str: original string
 
-    [in] CCHAR* str: string 
+    [out] CHAR[] trimmedStr: an array to receive the new string, its size should be as big as the length of the original string including the null byte
 
     [in] CHAR trim: character to trim
 
 Output:
-    A CHAR* that needs to be freed
-
-Note:
-    If `str` only consists of `trim` characters, an empty string that still `needs to be freed` is returned
+    The function returns nothing, newly trimmed string is written to trimmedStr[]
 */
 
 VOID myStartTrim(CCHAR* str, CHAR trimmedStr[], CHAR trim)
