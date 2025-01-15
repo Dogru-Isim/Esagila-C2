@@ -83,8 +83,6 @@ were loaded in the entry point cannot be used by other functions unless they are
 This is where the API comes into play. It keeps all the functions in one place which allows us to pass
 only one pointer (the API) and use every Win32 function we need.
 
-`NOTE: It could be a good idea to use a static variable to hold the API.`
-
 ----
 
 #### Standard Esagila DLL
