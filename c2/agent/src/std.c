@@ -184,7 +184,6 @@ Input:
 Output:
     The function returns nothing, newly trimmed string is written to trimmedStr[]
 */
-
 VOID myStartTrim(CCHAR* str, CHAR trimmedStr[], CHAR trim)
 {
     DWORD dwSizeOriginalStr;
