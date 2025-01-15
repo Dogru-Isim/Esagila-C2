@@ -187,38 +187,19 @@ Output:
 Note:
     If `str` only consists of `trim` characters, an empty string that still `needs to be freed` is returned
 */
-CHAR* myStartTrim(PAPI api, CCHAR* str, CHAR trim)
-{
-    // temporary variable
-    CHAR* trimmedStr = str;
 
-    // calculate the first index that doesn't have the trim character
-    while (*trimmedStr == trim )
+VOID myStartTrim(CCHAR* str, CHAR trimmedStr[], CHAR trim)
+{
+    DWORD dwSizeOriginalStr;
+    // find the index of the last trim function
+    DWORD dwLastTrim = 0;
+
+    while (str[dwLastTrim] == trim)
     {
-        trimmedStr++;
+        dwLastTrim++;
     }
 
-    // size of the trimmed string with the null byte
-    DWORD dwSizeTrimmedString = myStrlenA(trimmedStr)+1;
-
-    #ifdef DEBUG
-    CHAR head[] = { 'm', 'S', 'T', '\n', 0 };
-    ((PRINTF)api->printf)(head);
-
-    CHAR trimmedString_c[] = { 't', 's', ':', ' ', '%', 's', '\n', 0 };
-    ((PRINTF)api->printf)(trimmedString_c, trimmedStr);
-
-    CHAR sizeTrimmedString_c[] = { 's', 't', 's', ':', ' ', '%', 'd', '\n', 0 };
-    ((PRINTF)api->printf)(sizeTrimmedString_c, dwSizeTrimmedString);
-    #endif
-
-    // create a buffer with the size of the trimmed string
-    CHAR* outStr = ((CALLOC)api->calloc)(dwSizeTrimmedString, sizeof(CHAR));
-    
-    // copy the trimmed string over to that buffer
-    myMemcpy(outStr, trimmedStr, dwSizeTrimmedString);
-
-    return outStr;
+    memcpy(trimmedStr, str+dwLastTrim, dwSizeOriginalStr-dwLastTrim);
 }
 
 /*
