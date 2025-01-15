@@ -298,9 +298,9 @@ Note:
 */
 CHAR* myTrim(PAPI api, CCHAR* str, CHAR trim)
 {
-    CHAR* startTrimmedStr = myStartTrim(api, str, trim);
+    CHAR* startTrimmedStr;
+    myStartTrim(str, startTrimmedStr, trim);
     CHAR* outStr = myEndTrim(api, startTrimmedStr, trim);
-    ((FREE)api->free)(startTrimmedStr);
     return outStr;
 }
 
