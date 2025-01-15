@@ -5,6 +5,19 @@
 #include "typedefs.h"
 #include "task.h"
 
+typedef enum
+{
+    TaskResponse,  // task request from the server
+    TaskOutput,    // output of a task
+} JsonType;
+
+typedef struct Json_
+{
+    CHAR* buffer;
+    DWORD dwSize;
+    JsonType type;
+} Json, *PJson;
+
 /*
 This function reads and parses a task in json format
 
@@ -31,3 +44,4 @@ Task readJsonTask(PAPI api, CHAR* json);
 
 
 #endif
+
