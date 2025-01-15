@@ -8,6 +8,7 @@
 // NOTE: These functions are defined mostly to be used before
 // the dynamic linking off DLLs
 
+
 /*
  * This function is used to compare two null terminated strings
  *
@@ -23,6 +24,7 @@
  */
 int my_strcmp(const char *p1, const char *p2);
 
+
 /*
  * This function calculates the size for a base64 decoded value
  *
@@ -33,6 +35,7 @@ int my_strcmp(const char *p1, const char *p2);
  *      size_t -> size of the base64 decoded value
  */
 size_t base64_raw_size(size_t len);
+
 
 /*
  * This function copies a region in memory onto another
@@ -52,6 +55,7 @@ size_t base64_raw_size(size_t len);
  */
 void * myMemcpy (void *dest, const void *src, size_t len);
 
+
 /*
  * This function set a `len` amount of bytes to `val` starting from `dest`
  *
@@ -70,6 +74,7 @@ void * myMemcpy (void *dest, const void *src, size_t len);
  */
 void* memset(void* dest, int val, size_t len);
 
+
 /*
  * This function calculates the size of a CHAR excluding the null byte
  *
@@ -81,6 +86,7 @@ void* memset(void* dest, int val, size_t len);
  */
 int myStrlenA(const CHAR* s1);
 
+
 /*
  * This function calculates the size of a WCHAR excluding the null byte
  *
@@ -91,6 +97,7 @@ int myStrlenA(const CHAR* s1);
  *      int: size of the string excluding the null byte
  */
 int myStrlenW(const WCHAR* s1);
+
 
 /*
  * This function copies a region in memory onto another using WCHARs
@@ -108,5 +115,67 @@ void myMemcpyW (void *dest, const void *src, size_t len);
  * This function is deprecated and should not be used before making changes
  */
 wchar_t* myConcatW(PAPI api, const wchar_t *s1, const wchar_t *s2);
+
+
+/*
+This function recursively removes a character from the start of a string
+
+Input:
+    [in] PAPI api: an API struct
+
+    [in] CCHAR* str: string 
+
+    [in] CHAR trim: character to trim
+
+Output:
+    A CHAR* that needs to be freed
+
+Note:
+    If `str` only consists of `trim` characters, an empty string that still `needs to be freed` is returned
+*/
+CHAR* myStartTrim(PAPI api, CCHAR* str, CHAR trim);
+
+
+/*
+This function recursively removes a character from the end of a string
+
+Input:
+    [in] PAPI api: a pointer to the API struct
+
+    [in] CCHAR* str: string
+
+    [in] CHAR trim: character to remove
+
+Output:
+    Success -> a CHAR* that needs to be freed
+
+    Failure -> `str` is empty -> null terminated empty string
+
+    Failure -> memory allocation failed -> NULL
+
+Note:
+    If `str` only consists of trim characters a pointer to an empty string that still needs to be freed is returned
+*/
+CHAR* myEndTrim(PAPI api, CCHAR* str, CHAR trim);
+
+
+/*
+This function recursively removes a character from both sides of a string
+
+Input:
+    [in] PAPI api: a pointer to the API struct
+
+    [in] CHAR* str: the string to trim
+
+    [in] CHAR trim: the character to remove
+
+Output:
+    heap CHAR*: the trimmed string that needs to be freed
+
+Note:
+    if `str` only consists of the `trim` character, an empty string that still `needs to be freed` is returned is returned
+*/
+CHAR* myTrim(PAPI api, CCHAR* str, CHAR trim);
+
 
 #endif  // STD_H
