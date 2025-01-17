@@ -218,6 +218,12 @@ void myMain()
         #endif
     }
 
+    #ifdef DEBUG
+    CHAR ntHeader_f[] = { '1', 'n', 't', 'h', 'e', 'a', 'd', 'e', 'r', ':', ' ', '%', 'p', '\n', 0};
+    // e_lfanew = offset to nt headers
+    ((PRINTF)api->printf)(ntHeader_f, (UINT_PTR)(pPrimalDll->pBuffer) + ((PIMAGE_DOS_HEADER)pPrimalDll->pBuffer)->e_lfanew);
+    #endif
+
     DLL esgStdDll;
     PDLL pEsgStdDll = &esgStdDll;
     pEsgStdDll->pBuffer = NULL;

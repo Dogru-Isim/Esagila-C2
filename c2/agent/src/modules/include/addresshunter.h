@@ -155,7 +155,6 @@ UINT64 GetKernel32() {
         pDllName = (ULONG_PTR)((PLDR_DATA_TABLE_ENTRY)Flink)->BaseDllName.pBuffer;
         usCounter = ((PLDR_DATA_TABLE_ENTRY)Flink)->BaseDllName.Length;
         ror13Hash = 0;
-
         // calculate the hash of kernel32.dll (0x6A4ABC5B)
         do {
             ror13Hash = ror13((DWORD)ror13Hash);  // rotate right 13. Convert string values into decimal representations

