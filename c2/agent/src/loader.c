@@ -280,9 +280,6 @@ void myMain()
             continue;
         }
 
-        // NOTE: task is an outdated name. The name should be changed with taskParams
-        // the real task is determined by reading the taskType variable
-    
         // task is sent in base64 format to prevent corrupting json
         Task task = readJsonTask(api, jsonResponse);
 
