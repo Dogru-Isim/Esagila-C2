@@ -1,18 +1,8 @@
 #!/bin/bash
 
-echo -n test/loader.bin
+echo -n build/loader.exe
 echo
 
-a=''
-
-for i in $(objdump -d build/loader.exe|grep "^ " | cut -f2); do
-    a=$a'0x'$i','
-done
-
-b=${a::-1}
-
-echo 'unsigned char shellcode[] = {'
-echo $b
-echo '};'
+xxd -i build/loader.exe
 
 echo
