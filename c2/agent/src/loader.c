@@ -8,6 +8,8 @@
 #include <time.h>
 
 // will be overwritten by ImhulluCLI
+// ImhulluCLI defines these macros when it compiles the agent
+// these are here just so IDEs don't complain.
 #ifndef SERVER_M
 #define SERVER_M '1','9','2','.','1','6','8','.','0','.','1',0
 #endif
