@@ -303,21 +303,23 @@ CHAR* myEndTrim(PAPI api, CCHAR* str, CHAR trim)
     return trimmedStr;
 }
 
-/*
-This function recursively removes a character from both sides of a string
-
-Input:
-    [in] PAPI api: a pointer to the API struct
-
-    [in] CHAR* str: the string to trim
-
-    [in] CHAR trim: the character to remove
-
-Output:
-    heap CHAR*: the trimmed string that needs to be freed
-
-Note:
-    if `str` only consists of the `trim` character, an empty string that still `needs to be freed` is returned is returned
+/**
+* @fn CHAR* myTrim
+*
+* This function recursively removes a character from both sides of a string
+* 
+* Input:
+*     [in] PAPI api: a pointer to the API struct
+* 
+*     [in] CHAR* str: the string to trim
+* 
+*     [in] CHAR trim: the character to remove
+* 
+* Output:
+*     heap CHAR*: the trimmed string that needs to be freed
+* 
+* Note:
+*     if `str` only consists of the `trim` character, an empty string that still `needs to be freed` is returned is returned
 */
 CHAR* myTrim(PAPI api, CCHAR* str, CHAR trim)
 {
