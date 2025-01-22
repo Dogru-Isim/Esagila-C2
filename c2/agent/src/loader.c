@@ -298,7 +298,7 @@ void myMain()
         }
         else if (my_strcmp(task.taskType, TASK_WHOAMI) == 0)
         {
-            orgOutput = ((WHOAMI)PEsgStdApi->Whoami)();
+            orgOutput = ((WHOAMI)PEsgStdApi->Whoami)(&sizeOfOutput);
             taskOutput = myTrim(api, orgOutput, '\n');
         }
         else if (my_strcmp(task.taskType, TASK_SHUTDOWN) == 0)
