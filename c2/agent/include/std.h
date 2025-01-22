@@ -175,7 +175,7 @@ CHAR* myEndTrim(PAPI api, CCHAR* str, CHAR trim);
 *     heap CHAR*: the trimmed string that needs to be freed
 * 
 * Note:
-*     if `str` only consists of the `trim` character, an empty string that still `needs to be freed` is returned is returned
+*     if `str` only consists of the `trim` character, an empty string that still `needs to be freed` is returned
 */
 CHAR* myTrim(PAPI api, CCHAR* str, CHAR trim);
 
