@@ -19,6 +19,14 @@ typedef int                 BOOL;
 #define DEREF_16(name) *(WORD *)(name)
 #define DEREF_8(name) *(BYTE *)(name)
 
+#ifdef DEBUG
+    #define DEBUG_PRINTF_WARNING(fmt, ...) printf("[WARNING] " fmt, __VA_ARGS__)
+    #define DEBUG_PRINTF_ERROR(fmt, ...) printf("[ERROR] " fmt, __VA_ARGS__)
+#else
+    #define DEBUG_PRINTF_WARNING(fmt, ...) ((void)0) // No operation, remove the string literal from the binary
+    #define DEBUG_PRINTF_ERROR(fmt, ...) ((void)0) // No operation, remove the string literal from the binary
+#endif
+
 // redefine UNICODE_STR struct
 typedef struct _UNICODE_STR {
     USHORT Length;
