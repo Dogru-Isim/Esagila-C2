@@ -61,6 +61,8 @@ typedef struct TaskMapping_ {
     TaskExecutor executor;
 } TaskMapping, *PTaskMapping;
 
+#define MAX_TASK_MAPPINGS 255
+
 #define TASK_CMD (CHAR[]){ 'c', 'm', 'd', 0 }
 #define TASK_WHOAMI (CHAR[]){ 'w', 'h', 'o', 'a', 'm', 'i', 0 }
 #define TASK_SHUTDOWN (CHAR[]){ 's', 'h', 'u', 't', 'd', 'o', 'w', 'n', 0 }
