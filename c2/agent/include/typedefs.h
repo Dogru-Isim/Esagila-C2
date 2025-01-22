@@ -198,8 +198,7 @@ typedef VOID(WINAPI *EXITTHREAD)(DWORD dwExitCode);
 
 // standard esagila api
 typedef CHAR*(WINAPI *RUNCMD)(CCHAR* cmd, PDWORD size);
-typedef CHAR*(WINAPI *WHOAMI)();
-typedef CHAR*(WINAPI *WHOAMI)();
+typedef CHAR*(WINAPI *WHOAMI)(DWORD* pdwSizeOfOutput);
 typedef VOID(WINAPI *INJECTINTOPROCESS)(PBYTE shellcode, SIZE_T dwShellcodeSize, LPCSTR lpApplicationName);
 
 typedef struct API_
