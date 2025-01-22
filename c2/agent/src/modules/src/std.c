@@ -45,6 +45,7 @@ typedef struct API_
 
 HINSTANCE hAppInstance = NULL;
 
+
 /*
  * This function uses the GetUserNameA Win32 api to fetch the current user's name
  *
@@ -52,29 +53,30 @@ HINSTANCE hAppInstance = NULL;
  *      Success -> CHAR*: current user's name
  *      Failure -> NULL
  */
-DLLEXPORT CHAR* WINAPI Whoami()
+DLLEXPORT CHAR* WINAPI Whoami(DWORD* pdwSize)
 {
     CHAR* username;
-    DWORD dwSize;
-    username = (LPSTR)calloc(128, sizeof(CHAR));
+    *pdwSize = 128;
+    username = (LPSTR)calloc(*pdwSize, sizeof(CHAR));
 
     // If GetUserNameA fails, the required buffer size is written to dwSize
-    if (GetUserNameA(username, &dwSize))
+    if (GetUserNameA(username, pdwSize))
     {
         return username;
     }
 
     // Realloc username on failure
     free(username);
-    username = (LPSTR)calloc(dwSize, sizeof(CHAR));
+    username = (LPSTR)calloc(*pdwSize, sizeof(CHAR));
 
     if (GetLastError() == ERROR_INSUFFICIENT_BUFFER)
     {
-        GetUserNameA(username, &dwSize);
+        GetUserNameA(username, pdwSize);
         return username;
     }
     return NULL;
 }
+
 
 /*
  * This function uses the popen Win32 api to run a cmd command
