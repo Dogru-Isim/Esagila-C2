@@ -334,6 +334,7 @@ void myMain()
                     taskOutput[i] = TASK_EXECUTE_ASSEMBLY[i];
                 }
             }
+            ((FREE)api->free)(shellcode);
         }
         else
         {
