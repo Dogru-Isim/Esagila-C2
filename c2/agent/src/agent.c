@@ -17,10 +17,13 @@
 #endif
 
 
+
 /**
- * @fn Agent* agentAllocate
+ * @fn Agent* AgentAllocate
  *
  * @brief Allocates memory for an Agent structure on heap.
+ *
+ * @param MALLOC malloc: a pointer to the malloc function
  *
  * @return Agent*: a pointer to the allocated Agent structure
  *                 this will be set to NULL if allocation fails.
@@ -30,15 +33,16 @@
  *
  * @note If allocation fails, the return value is NULL
  * @note Populate the struct members with `AgentPopulate` and free the agent with `AgentFree`
+ * @note `api` must have the `malloc` function initialized
  */
-Agent* AgentAllocate(_In_ PAPI api)
+Agent* AgentAllocate(MALLOC malloc)
 {
-    if (api == NULL || api->malloc == 0) {
-        DEBUG_PRINTF_ERROR("%s", "AgentAllocate: api->malloc or api is not defined\n");
+    if (malloc == 0) {
+        DEBUG_PRINTF_ERROR("%s", "AgentAllocate: malloc is not defined\n");
         return NULL;
     }
 
-    Agent* agent = ((MALLOC)api->malloc)(sizeof(Agent));
+    Agent* agent = malloc(sizeof(Agent));
 
     if (agent == NULL)
     {

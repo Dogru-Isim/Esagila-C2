@@ -34,6 +34,8 @@ typedef struct Agent_ {
  *
  * @brief Allocates memory for an Agent structure on heap.
  *
+ * @param MALLOC malloc: a pointer to the malloc function
+ *
  * @return Agent*: a pointer to the allocated Agent structure
  *                 this will be set to NULL if allocation fails.
  *
@@ -44,7 +46,7 @@ typedef struct Agent_ {
  * @note Populate the struct members with `AgentPopulate` and free the agent with `AgentFree`
  * @note `api` must have the `malloc` function initialized
  */
-Agent* AgentAllocate(PAPI api);
+Agent* AgentAllocate(MALLOC malloc);
 
 
 /**
