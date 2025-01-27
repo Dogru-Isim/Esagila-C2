@@ -1,2 +1,4 @@
 *.pyc
 .venv
+database.db
+test/*
