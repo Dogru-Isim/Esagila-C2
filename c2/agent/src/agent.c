@@ -63,6 +63,7 @@ Agent* AgentAllocate(MALLOC malloc)
  * @param _In_ CONST SIZE_T remoteServerLength: the length of the `remoteServer` string including the null terminator
  * @param _In_ CONST INTERNET_PORT remotePort: the server port to connect to
  * @param _In_ CONST AGENT_INTERVAL interval: the interval in between server callbacks
+ * @param _In_ PAPI api interval: the struct that has dynamically imported Win32 api calls
  *
  * @return BOOL: TRUE if population is successful
  *               FALSE if population fails
@@ -75,7 +76,7 @@ Agent* AgentAllocate(MALLOC malloc)
  * @note If population of a member fails, the function returns FALSE and all the members are considered uninitialized
  * @note Allocate the struct with `AgentAllocate` and free the agent with `AgentFree`
  */
-BOOL AgentPopulate(_In_ Agent* agent, _In_ CONST WCHAR remoteServer[AGENT_REMOTE_SERVER_MAX_LENGTH], _In_ CONST SIZE_T remoteServerLength, _In_ CONST INTERNET_PORT remotePort, _In_ CONST AGENT_INTERVAL interval)
+BOOL AgentPopulate(_In_ Agent* agent, _In_ CONST WCHAR remoteServer[AGENT_REMOTE_SERVER_MAX_LENGTH], _In_ CONST SIZE_T remoteServerLength, _In_ CONST INTERNET_PORT remotePort, _In_ CONST AGENT_INTERVAL interval, _In_ PAPI api)
 {
     // if agent pointer is NULL, exit
     if (agent == NULL)
@@ -114,6 +115,12 @@ BOOL AgentPopulate(_In_ Agent* agent, _In_ CONST WCHAR remoteServer[AGENT_REMOTE
     if (AgentIntervalSet(agent, interval) == FALSE)
     {
         DEBUG_PRINTF_ERROR("%s", "AgentPopulate: AgentIntervalSet failed\n");
+        return FALSE;
+    }
+
+    if (AgentApiSet(agent, api) == FALSE)
+    {
+        DEBUG_PRINTF_ERROR("%s", "AgentPopulate: AgentApiSet failed\n");
         return FALSE;
     }
 
@@ -275,6 +282,41 @@ BOOL AgentIntervalSet(_Inout_ Agent* agent, _In_ AGENT_INTERVAL interval)
 
     return TRUE;
 }
+
+
+/**
+ * @fn BOOL AgentApiSet
+ *
+ * @brief Set the api member of the agent
+ *
+ * @param _Out_ Agent* agent: the agent whose member `api` will be changed
+ *                             if function fails, `api` isn't changed
+ * @param _In_ PAPI api: a pointer to the struct that has dynamically imported Win32 api calls
+ *
+ * @return If function suceeds TRUE
+ *         If function fails FALSE
+ *
+ * @note: make sure Win32 api functions in `api` is initialized
+ * @note: If the function fails, the `api` member remains unchanged
+ */
+BOOL AgentApiSet(_Out_ Agent* agent, _In_ PAPI api)
+{
+    if (agent == NULL)
+    {
+        DEBUG_PRINTF_ERROR("%s", "AgentApiSet: agent is NULL\n");
+        return FALSE;
+    }
+    if (api == NULL)
+    {
+        DEBUG_PRINTF_ERROR("%s", "AgentApiSet: api is NULL\n");
+        return FALSE;
+    }
+
+    agent->api = api;
+
+    return TRUE;
+}
+
 
 /**
  * @fn BOOL AgentTaskMappingsSet

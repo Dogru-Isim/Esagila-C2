@@ -205,7 +205,7 @@ void myMain()
     DWORD dwRemoteServerLength = myStrlenW(wRemoteServer)+1;
     INTERNET_PORT dwRemotePort = PORT_M;
 
-    if (AgentPopulate(pAgent, wRemoteServer, dwRemoteServerLength, dwRemotePort, 3) == FALSE)
+    if (AgentPopulate(pAgent, wRemoteServer, dwRemoteServerLength, dwRemotePort, 3, api) == FALSE)
     {
         DEBUG_PRINTF_ERROR("%s", "myMain: AgentPopulate failed\n");
     }
