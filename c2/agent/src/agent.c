@@ -21,7 +21,7 @@
 /**
  * @fn Agent* AgentAllocate
  *
- * @brief Allocates memory for an Agent structure on heap.
+ * @brief Allocates memory for an Agent structure on heap and its magic byte.
  *
  * @param MALLOC malloc: a pointer to the malloc function
  *
@@ -49,6 +49,9 @@ Agent* AgentAllocate(MALLOC malloc)
         DEBUG_PRINTF_ERROR("%s", "AgentAllocate: Allocation of agent failed\n");
         return NULL;
     }
+
+    agent->_magic = AGENT_MAGIC;
+
     return agent;
 }
 
@@ -56,7 +59,7 @@ Agent* AgentAllocate(MALLOC malloc)
 /**
  * @fn BOOL AgentPopulate
  *
- * @brief Populates an agent's members.
+ * @brief Populates an agent's members and sets its magic byte.
  *
  * @param _In_ Agent* agent: a pointer to an agent that will be populated
  * @param _In_ CONST WCHAR remoteServer[REMOTE_SERVER_MAX_LENGTH]: a null terminated WCHAR array that the agent will connect to
@@ -180,7 +183,19 @@ BOOL AgentRemoteServerSet(_Inout_ Agent* agent, _In_ CONST WCHAR remoteServer[AG
     // if agent pointer is NULL, exit
     if (agent == NULL)
     {
-        DEBUG_PRINTF_ERROR("%s", "AgentPopulate: agent is NULL\n");
+        DEBUG_PRINTF_ERROR("%s", "AgentRemoteServerSet: agent is NULL\n");
+        return FALSE;
+    }
+
+    if (agent->_magic != AGENT_MAGIC)
+    {
+        DEBUG_PRINTF_ERROR("%s", "AgentRemoteServerSet: agent is not valid\n");
+        return FALSE;
+    }
+
+    if (agent->_magic != AGENT_MAGIC)
+    {
+        DEBUG_PRINTF_ERROR("%s", "AgentRemoteServerSet: agent is not valid\n");
         return FALSE;
     }
 
@@ -194,7 +209,7 @@ BOOL AgentRemoteServerSet(_Inout_ Agent* agent, _In_ CONST WCHAR remoteServer[AG
     // if remoteServerLength is more than the allowed length, exit
     if (remoteServerLength > AGENT_REMOTE_SERVER_MAX_LENGTH)
     {
-        DEBUG_PRINTF_ERROR("%s", "remoteServerLength is higher than AGENT_REMOTE_SERVER_MAX_LENGTH\n");
+        DEBUG_PRINTF_ERROR("%s", "AgentRemoteServerSet: remoteServerLength is higher than AGENT_REMOTE_SERVER_MAX_LENGTH\n");
         return FALSE;
     }
 
@@ -241,6 +256,13 @@ BOOL AgentRemotePortSet(_Inout_ Agent* agent, _In_ INTERNET_PORT remotePort)
         DEBUG_PRINTF_ERROR("%s", "AgentRemotePortSet: agent is null\n");
         return FALSE;
     }
+
+    if (agent->_magic != AGENT_MAGIC)
+    {
+        DEBUG_PRINTF_ERROR("%s", "AgentRemotePortSet: agent is not valid\n");
+        return FALSE;
+    }
+
     if (remotePort<1 || remotePort>65535)
     {
         DEBUG_PRINTF_ERROR("%s", "AgentRemotePortSet: remotePort is not in between 1-65535\n");
@@ -274,6 +296,13 @@ BOOL AgentIntervalSet(_Inout_ Agent* agent, _In_ AGENT_INTERVAL interval)
         DEBUG_PRINTF_ERROR("%s", "AgentIntervalSet: agent is NULL\n");
         return FALSE;
     }
+
+    if (agent->_magic != AGENT_MAGIC)
+    {
+        DEBUG_PRINTF_ERROR("%s", "AgentIntervalSet: agent is not valid\n");
+        return FALSE;
+    }
+    
     if (interval < 0)
     {
         DEBUG_PRINTF_ERROR("%s", "AgentIntervalSet: interval is less than 0\n");
@@ -308,6 +337,13 @@ BOOL AgentApiSet(_Out_ Agent* agent, _In_ PAPI api)
         DEBUG_PRINTF_ERROR("%s", "AgentApiSet: agent is NULL\n");
         return FALSE;
     }
+
+    if (agent->_magic != AGENT_MAGIC)
+    {
+        DEBUG_PRINTF_ERROR("%s", "AgentApiSet: agent is not valid\n");
+        return FALSE;
+    }
+
     if (api == NULL)
     {
         DEBUG_PRINTF_ERROR("%s", "AgentApiSet: api is NULL\n");

@@ -35,7 +35,7 @@ typedef struct Agent_ {
 /**
  * @fn Agent* AgentAllocate
  *
- * @brief Allocates memory for an Agent structure on heap.
+ * @brief Allocates memory for an Agent structure on heap and its magic byte.
  *
  * @param MALLOC malloc: a pointer to the malloc function
  *
@@ -55,7 +55,7 @@ Agent* AgentAllocate(MALLOC malloc);
 /**
  * @fn BOOL AgentPopulate
  *
- * @brief Populates an agent's members.
+ * @brief Populates an agent's members and sets its magic byte.
  *
  * @param _In_ Agent* agent: a pointer to an agent that will be populated
  * @param _In_ CONST WCHAR remoteServer[REMOTE_SERVER_MAX_LENGTH]: a null terminated WCHAR array that the agent will connect to
