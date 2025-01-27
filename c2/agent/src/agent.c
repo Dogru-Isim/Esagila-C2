@@ -58,7 +58,6 @@ Agent* AgentAllocate(MALLOC malloc)
  *
  * @brief Populates an agent's members.
  *
- * @param _In_ PAPI api: a pointer to the API struct
  * @param _In_ Agent* agent: a pointer to an agent that will be populated
  * @param _In_ CONST WCHAR remoteServer[REMOTE_SERVER_MAX_LENGTH]: a null terminated WCHAR array that the agent will connect to
  * @param _In_ CONST SIZE_T remoteServerLength: the length of the `remoteServer` string including the null terminator
@@ -76,7 +75,7 @@ Agent* AgentAllocate(MALLOC malloc)
  * @note If population of a member fails, the function returns FALSE and all the members are considered uninitialized
  * @note Allocate the struct with `AgentAllocate` and free the agent with `AgentFree`
  */
-BOOL AgentPopulate(_In_ PAPI api, _In_ Agent* agent, _In_ CONST WCHAR remoteServer[AGENT_REMOTE_SERVER_MAX_LENGTH], _In_ CONST SIZE_T remoteServerLength, _In_ CONST INTERNET_PORT remotePort, _In_ CONST AGENT_INTERVAL interval)
+BOOL AgentPopulate(_In_ Agent* agent, _In_ CONST WCHAR remoteServer[AGENT_REMOTE_SERVER_MAX_LENGTH], _In_ CONST SIZE_T remoteServerLength, _In_ CONST INTERNET_PORT remotePort, _In_ CONST AGENT_INTERVAL interval)
 {
     // if agent pointer is NULL, exit
     if (agent == NULL)
