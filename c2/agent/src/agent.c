@@ -138,14 +138,14 @@ BOOL AgentPopulate(_In_ Agent* agent, _In_ CONST WCHAR remoteServer[AGENT_REMOTE
  *
  * @note Allocate the struct with `AgentAllocate` and populate the struct with `AgentPopulate`
  */
-BOOL AgentFree(_In_ PAPI api, _In_ Agent* agent)
+BOOL AgentFree(_In_ Agent* agent)
 {
-    if (api == NULL || api->malloc == 0) {
-        DEBUG_PRINTF_ERROR("%s", "api->malloc or api is null or 0\n");
+    if (agent->api == NULL || agent->api->malloc == 0) {
+        DEBUG_PRINTF_ERROR("%s", "agent->api->malloc or agent->api is null or 0\n");
         return FALSE;
     }
 
-    ((FREE)api->free)(agent);
+    ((FREE)agent->api->free)(agent);
 
     return TRUE;
 }

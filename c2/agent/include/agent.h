@@ -90,9 +90,9 @@ BOOL AgentPopulate(_In_ Agent* agent, _In_ CONST WCHAR remoteServer[AGENT_REMOTE
  * @see AgentCreate()
  *
  * @note Allocate the struct with `AgentAllocate` and populate the struct with `AgentPopulate`
- * @note `api` must have the `free` function initialized
+ * @note `agent->api` must have the `free` function initialized
  */
-BOOL AgentFree(_In_ PAPI api, _In_ Agent* agent);
+BOOL AgentFree(_In_ Agent* agent);
 
 
 /**
