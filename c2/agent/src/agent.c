@@ -157,7 +157,6 @@ BOOL AgentFree(_In_ PAPI api, _In_ Agent* agent)
  *
  * @brief Change the RemoteServer member of the agent
  *
- * @param _In_ PAPI api: a pointer to the API struct
  * @param _Inout_ Agent* agent: the agent whose member `_remoteServer` will be changed
  *                             if function fails, `_remoteServer` isn't changed
  * @param _In_ WCHAR remoteServer[REMOTE_SERVER_MAX_LENGTH]: a null terminated WCHAR array that the agent will connect to
@@ -168,7 +167,7 @@ BOOL AgentFree(_In_ PAPI api, _In_ Agent* agent)
  *
  * @note: If the function fails, the _remoteServer member remains unchanged
  */
-BOOL AgentRemoteServerSet(_In_ PAPI api, _Inout_ Agent* agent, _In_ CONST WCHAR remoteServer[AGENT_REMOTE_SERVER_MAX_LENGTH], _In_ CONST SIZE_T remoteServerLength)
+BOOL AgentRemoteServerSet(_Inout_ Agent* agent, _In_ CONST WCHAR remoteServer[AGENT_REMOTE_SERVER_MAX_LENGTH], _In_ CONST SIZE_T remoteServerLength)
 {
     // if agent pointer is NULL, exit
     if (agent == NULL)
@@ -217,7 +216,6 @@ BOOL AgentRemoteServerSet(_In_ PAPI api, _Inout_ Agent* agent, _In_ CONST WCHAR 
  *
  * @brief Change the RemotePort member of the agent
  *
- * @param _In_ PAPI api: a pointer to the API struct
  * @param _Inout_ Agent* agent: the agent whose member `_remotePort` will be changed
  *                             if function fails, `_remotePort` isn't changed
  * @param _In_ INTERNET_PORT remotePort: the port the agent will connect to
@@ -228,7 +226,7 @@ BOOL AgentRemoteServerSet(_In_ PAPI api, _Inout_ Agent* agent, _In_ CONST WCHAR 
  * @note: make sure remotePort is between 1-65535
  * @note: If the function fails, the _remotePort member remains unchanged
  */
-BOOL AgentRemotePortSet(_In_ PAPI api, _Inout_ Agent* agent, _In_ INTERNET_PORT remotePort)
+BOOL AgentRemotePortSet(_Inout_ Agent* agent, _In_ INTERNET_PORT remotePort)
 {
     if (agent == NULL)
     {
@@ -252,7 +250,6 @@ BOOL AgentRemotePortSet(_In_ PAPI api, _Inout_ Agent* agent, _In_ INTERNET_PORT 
  *
  * @brief Change the `_interval` member of the agent
  *
- * @param _In_ PAPI api: a pointer to the API struct
  * @param _Inout_ Agent* agent: the agent whose `_interval` member will be changed
  *                             if function fails, the interval isn't changed
  * @param _In_ AGENT_INTERVAL: a positive value that will be the interval in milliseconds
@@ -262,7 +259,7 @@ BOOL AgentRemotePortSet(_In_ PAPI api, _Inout_ Agent* agent, _In_ INTERNET_PORT 
  *
  * @note If the function fails, the interval remains unchanged
  */
-BOOL AgentIntervalSet(_In_ PAPI api, _Inout_ Agent* agent, _In_ AGENT_INTERVAL interval)
+BOOL AgentIntervalSet(_Inout_ Agent* agent, _In_ AGENT_INTERVAL interval)
 {
     if (agent == NULL)
     {
