@@ -102,7 +102,7 @@ BOOL AgentFree(_In_ Agent* agent);
 /**
  * @fn BOOL AgentIntervalSet
  *
- * @brief Change the `_interval` member of the agent
+ * @brief Set the `_interval` member of the agent
  *
  * @param _Out_ Agent* agent: the agent whose `_interval` member will be changed
  *                             if function fails, the interval isn't changed
@@ -137,7 +137,7 @@ BOOL AgentIntervalSet(_Out_ Agent* agent, _In_ AGENT_INTERVAL interval);
 /**
  * @fn BOOL AgentRemoteServerSet
  *
- * @brief Change the RemoteServer member of the agent
+ * @brief Set the RemoteServer member of the agent
  *
  * @param _Out_ Agent* agent: the agent whose member `_remoteServer` will be changed
  *                             if function fails, `_remoteServer` isn't changed
@@ -155,7 +155,7 @@ BOOL AgentRemoteServerSet(_Out_ Agent* agent, _In_ CONST WCHAR remoteServer[AGEN
 /**
  * @fn BOOL AgentRemotePortSet
  *
- * @brief Change the RemotePort member of the agent
+ * @brief Set the RemotePort member of the agent
  *
  * @param _Out_ Agent* agent: the agent whose member `_remotePort` will be changed
  *                             if function fails, `_remotePort` isn't changed
