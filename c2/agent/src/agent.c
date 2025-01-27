@@ -99,20 +99,20 @@ BOOL AgentPopulate(_In_ PAPI api, _In_ Agent* agent, _In_ CONST WCHAR remoteServ
         return FALSE;
     }
 
-    if (AgentRemoteServerSet(api, agent, remoteServer, remoteServerLength) == FALSE)
+    if (AgentRemoteServerSet(agent, remoteServer, remoteServerLength) == FALSE)
     {
         DEBUG_PRINTF_ERROR("%s", "AgentPopulate: AgentRemoteServerSet failed\n");
         return FALSE;
     }
 
     // populate _remotePort
-    if (AgentRemotePortSet(api, agent, remotePort) == FALSE)
+    if (AgentRemotePortSet(agent, remotePort) == FALSE)
     {
         DEBUG_PRINTF_ERROR("%s", "AgentPopulate: AgentRemotePortSet failed\n");
         return FALSE;
     }
 
-    if (AgentIntervalSet(api, agent, interval) == FALSE)
+    if (AgentIntervalSet(agent, interval) == FALSE)
     {
         DEBUG_PRINTF_ERROR("%s", "AgentPopulate: AgentIntervalSet failed\n");
         return FALSE;
