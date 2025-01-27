@@ -25,6 +25,7 @@ typedef struct Agent_ {
     WCHAR _remoteServer[AGENT_REMOTE_SERVER_MAX_LENGTH];  // the server IP or URL that the agent will connect to
     INTERNET_PORT _remotePort;                            // the port for the server 
     AGENT_INTERVAL _interval;                             // the interval in between server callbacks
+    PAPI api;                                             // the api that has dynamically imported Win32 functions
 } Agent, *PAgent;
 
 

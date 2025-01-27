@@ -95,6 +95,7 @@ DLLEXPORT CHAR* WINAPI Whoami(DWORD* pdwSize)
  */
 DLLEXPORT CHAR* WINAPI RunCmd(CHAR* cmd, PDWORD totalSize)
 {
+    // NOTE: Read this: https://learn.microsoft.com/en-us/windows/win32/ProcThread/creating-a-child-process-with-redirected-input-and-output
     FILE *fp;
     char *output = NULL;
     DWORD size = 0;
