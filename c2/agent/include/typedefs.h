@@ -20,8 +20,8 @@ typedef int                 BOOL;
 #define DEREF_8(name) *(BYTE *)(name)
 
 #ifdef DEBUG
-    #define DEBUG_PRINTF_WARNING(fmt, ...) ((PRINTF)api->printf)("[WARNING] " fmt, __VA_ARGS__)
-    #define DEBUG_PRINTF_ERROR(fmt, ...) ((PRINTF)api->printf)("[ERROR] " fmt, __VA_ARGS__)
+    #define DEBUG_PRINTF_WARNING(fmt, ...) ((PRINTF)agent->api->printf)("[WARNING] " fmt, __VA_ARGS__)
+    #define DEBUG_PRINTF_ERROR(fmt, ...) ((PRINTF)agent->api->printf)("[ERROR] " fmt, __VA_ARGS__)
 #else
     #define DEBUG_PRINTF_WARNING(fmt, ...) ((void)0) // No operation, remove the string literal from the binary
     #define DEBUG_PRINTF_ERROR(fmt, ...) ((void)0) // No operation, remove the string literal from the binary
