@@ -108,4 +108,3 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR cmdline,
     return 0;
 }
 
-

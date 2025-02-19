@@ -1,0 +1,3 @@
+nasm -fwin64 hellsgate.asm -o obj/hellsgate.o
+x86_64-w64-mingw32-gcc ./hellsgate.c -c -o obj/main.o -lkernel32 -lmsvcrt -Wl,--verbose
+x86_64-w64-mingw32-gcc obj/main.o obj/hellsgate.o -o /mnt/vshare/hellsgate2.exe -lkernel32 -lmsvcrt
