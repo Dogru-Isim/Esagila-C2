@@ -329,7 +329,27 @@ BOOL _AgentExecuteShutdown(_In_ Agent* agent, _Out_ DLL* pEsgStdDll, _In_ Task t
 BOOL _AgentExecuteAssembly(_In_ Agent* agent, PESG_STD_API pEsgStdApi, CHAR** pTaskResult, DWORD* pdwSizeOfOutput);
 
 API _populate_api();
+
 VOID AGENT_downloadPrimalDll(Agent* agent, PDLL pPrimalDll);
+
+// TODO: Pass the name of the reflective loader as a parameter
+/*
+This function runs the function named "ReflectiveLoader" in a reflective dll
+execueRD uses GetRLOffset which looks for the name "ReflectiveLoader"
+
+Input:
+    [in] PAPI api: a pointer to the API struct
+
+    [in] PDLL: a pointer to the DLL struct that holds a reflective DLL
+
+Output:
+    Success -> HANDLE: handle to the new region the DLL has been written to, this handle needs to be freed
+
+    Failure -> NULL
+*/
+HANDLE executeRD(PAPI api, PDLL pDll);
+
+DLL AGENT_loadReflectiveDll(Agent* agent);
 
 #endif // AGENT_H
 
