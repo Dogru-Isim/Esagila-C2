@@ -328,7 +328,8 @@ BOOL _AgentExecuteShutdown(_In_ Agent* agent, _Out_ DLL* pEsgStdDll, _In_ Task t
  */
 BOOL _AgentExecuteAssembly(_In_ Agent* agent, PESG_STD_API pEsgStdApi, CHAR** pTaskResult, DWORD* pdwSizeOfOutput);
 
-API _populate_api();
+API _populate_base_api();
+ESG_STD_API _populate_esgStd_api(DLL* esgStdDll);
 
 VOID AGENT_downloadPrimalDll(Agent* agent, PDLL pPrimalDll);
 
@@ -350,6 +351,9 @@ Output:
 HANDLE executeRD(PAPI api, PDLL pDll);
 
 DLL AGENT_loadReflectiveDll(Agent* agent);
+
+// Function signature for functions of populators of different APIs
+typedef API (*AGENT_signaturePopulateApi)(VOID);
 
 #endif // AGENT_H
 
